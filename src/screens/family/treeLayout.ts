@@ -16,11 +16,11 @@ import { relationshipColor } from '@/theme';
  */
 
 // --- Maße eines Knotens / Layout-Raster (unskaliert) ---
-export const NODE_W = 104;
-export const NODE_H = 132;
-const H_GAP = 32; // horizontaler Abstand zwischen Geschwistern/Partnern
-const V_GAP = 76; // vertikaler Abstand zwischen Generationen
-const MARGIN = 48; // Rand rund um den Baum
+export const NODE_W = 132;
+export const NODE_H = 156;
+const H_GAP = 40; // horizontaler Abstand zwischen Geschwistern/Partnern
+const V_GAP = 104; // vertikaler Abstand zwischen Generationen
+const MARGIN = 120; // großzügiger Rand → „Weltgefühl", Platz zum Pannen
 
 /** Generationsversatz von `to` relativ zu `from` (gen(to) − gen(from)). */
 const GENERATION_DELTA: Record<RelationshipType, number> = {
@@ -177,6 +177,29 @@ function orderRows(
   }
 }
 
+/** Rückt Partner (Ehe-/Lebenspartner) innerhalb ihrer Zeile nebeneinander. */
+function placePartnersAdjacent(
+  rows: Map<number, string[]>,
+  relationships: Relationship[],
+): void {
+  const partnerTypes = new Set(['ehepartner', 'lebenspartner']);
+  const pairs = relationships
+    .filter((r) => partnerTypes.has(r.type))
+    .map((r) => [r.from_person_id, r.to_person_id] as const);
+
+  for (const row of rows.values()) {
+    for (const [a, b] of pairs) {
+      const ia = row.indexOf(a);
+      const ib = row.indexOf(b);
+      if (ia < 0 || ib < 0 || Math.abs(ia - ib) === 1) continue;
+      // b direkt hinter a einsortieren.
+      const [moved] = row.splice(ib, 1);
+      const target = row.indexOf(a) + 1;
+      row.splice(target, 0, moved!);
+    }
+  }
+}
+
 function byBirth(a?: Person, b?: Person): number {
   const da = a?.birth_date ?? '';
   const db = b?.birth_date ?? '';
@@ -219,6 +242,7 @@ export function computeTreeLayout(
   }
 
   orderRows(rows, graph, personById);
+  placePartnersAdjacent(rows, relationships);
 
   const sortedRowKeys = [...rows.keys()].sort((a, b) => a - b);
   const maxRowWidth = Math.max(

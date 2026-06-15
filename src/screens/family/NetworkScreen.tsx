@@ -13,11 +13,13 @@ import {
 import { SignedImage } from '@/components/SignedImage';
 import { useQuery } from '@tanstack/react-query';
 import { listPersons, listRelationships } from '@/api/persons';
+import { listCloseness, closenessMap } from '@/api/closeness';
+import { listBranches } from '@/api/branches';
 import { qk } from '@/api/queryKeys';
 import { useFamily } from '@/context/FamilyContext';
 import { useAuth } from '@/context/AuthContext';
 import { fullName, formatDate } from '@/lib/format';
-import { CATEGORY_LABELS } from '@/constants/relationships';
+import { CATEGORY_LABELS, RELATIONSHIP_LABELS } from '@/constants/relationships';
 import { colors, spacing, radius, useResponsive } from '@/theme';
 import type { FamilyStackParamList } from '@/navigation/types';
 import type { RelationshipCategory } from '@/types/models';
@@ -45,6 +47,7 @@ export function NetworkScreen({ navigation }: Props) {
   const cardBasis = columns === 1 ? '100%' : columns === 3 ? '31%' : '47%';
 
   const [mode, setMode] = useState<ViewMode>('tree');
+  const [worldMode, setWorldMode] = useState(false);
 
   const personsQuery = useQuery({
     queryKey: qk.persons(familyId),
@@ -54,14 +57,41 @@ export function NetworkScreen({ navigation }: Props) {
     queryKey: qk.relationships(familyId),
     queryFn: () => listRelationships(familyId),
   });
+  const closenessQuery = useQuery({
+    queryKey: qk.closeness(familyId, userId ?? ''),
+    queryFn: () => listCloseness(familyId, userId ?? ''),
+    enabled: !!userId,
+  });
+  const branchesQuery = useQuery({
+    queryKey: qk.branches(familyId),
+    queryFn: () => listBranches(familyId),
+  });
 
   const persons = personsQuery.data ?? [];
   const relationships = relationshipsQuery.data ?? [];
+  const branches = branchesQuery.data ?? [];
 
   const anchorId = useMemo(
     () => persons.find((p) => p.user_id === userId)?.id ?? persons[0]?.id ?? null,
     [persons, userId],
   );
+
+  const closenessByPerson = useMemo(
+    () => closenessMap(closenessQuery.data ?? []),
+    [closenessQuery.data],
+  );
+
+  // Beziehungstyp relativ zur eingeloggten Person (direkte Verbindungen).
+  const relationshipLabelByPerson = useMemo(() => {
+    const map: Record<string, string> = {};
+    if (!anchorId) return map;
+    for (const rel of relationships) {
+      if (rel.from_person_id === anchorId) {
+        map[rel.to_person_id] = RELATIONSHIP_LABELS[rel.type];
+      }
+    }
+    return map;
+  }, [relationships, anchorId]);
 
   const categoriesByPerson = useMemo(() => {
     const map = new Map<string, Set<RelationshipCategory>>();
@@ -121,15 +151,29 @@ export function NetworkScreen({ navigation }: Props) {
           {toggle}
         </View>
 
-        <View style={styles.legendRowWrap}>
-          {LEGEND.map((item) => (
-            <View key={item.category} style={styles.legendChip}>
-              <View style={[styles.dotSmall, { backgroundColor: item.color }]} />
-              <AppText variant="caption" color={colors.textSecondary}>
-                {item.short}
-              </AppText>
-            </View>
-          ))}
+        <View style={styles.controlsRow}>
+          <View style={styles.legendRowWrap}>
+            {LEGEND.map((item) => (
+              <View key={item.category} style={styles.legendChip}>
+                <View style={[styles.dotSmall, { backgroundColor: item.color }]} />
+                <AppText variant="caption" color={colors.textSecondary}>
+                  {item.short}
+                </AppText>
+              </View>
+            ))}
+          </View>
+          <Pressable
+            onPress={() => setWorldMode((w) => !w)}
+            style={[styles.worldBtn, worldMode && styles.worldBtnActive]}
+          >
+            <AppText
+              variant="caption"
+              color={worldMode ? colors.textOnAccent : colors.primaryDark}
+              style={styles.worldBtnText}
+            >
+              🌍 Familienwelt
+            </AppText>
+          </Pressable>
         </View>
 
         {loading ? (
@@ -148,6 +192,10 @@ export function NetworkScreen({ navigation }: Props) {
               persons={persons}
               relationships={relationships}
               anchorId={anchorId}
+              branches={branches}
+              closenessByPerson={closenessByPerson}
+              relationshipLabelByPerson={relationshipLabelByPerson}
+              worldMode={worldMode}
               onSelectPerson={(personId) =>
                 navigation.navigate('PersonProfile', { personId })
               }
@@ -305,13 +353,33 @@ const styles = StyleSheet.create({
     borderRadius: radius.pill,
   },
   segmentActive: { backgroundColor: colors.primary },
+  controlsRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: spacing.sm,
+  },
   legendRowWrap: {
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: spacing.sm,
+    flexShrink: 1,
   },
   legendChip: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
   dotSmall: { width: 10, height: 10, borderRadius: 5 },
+  worldBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.xs,
+    borderRadius: radius.pill,
+    backgroundColor: colors.surfaceAlt,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  worldBtnActive: { backgroundColor: colors.primary, borderColor: colors.primary },
+  worldBtnText: { fontWeight: '700' },
   treeArea: {
     flex: 1,
     backgroundColor: colors.background,

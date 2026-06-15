@@ -126,6 +126,8 @@ export function createSeedData(): DemoDataset {
     person('p-stiefmutter', 'Claudia', 'Mielke', '1970-03-03', 'Kiel', null, 'CM'),
     person('p-cousin', 'Max', 'Krüger', '1996-08-08', 'Berlin', null, 'MK'),
     person('p-schwager', 'Peter', 'Wagner', '1985-01-01', 'Hamburg', null, 'PW'),
+    // Stiefgeschwister: Tochter des Stiefvaters Peter Hoffmann
+    person('p-stiefschwester', 'Lena', 'Hoffmann', '1998-10-10', 'Bremen', null, 'LH'),
     // Phase 5 · Smart Invites: Nick lud Bruder Max ein; Max fügte Tochter Lea hinzu
     person('p-max', 'Max', 'Mielke', '1992-02-02', 'Hamburg', null, 'MX', 'demo-user-max'),
     person('p-lea', 'Lea', 'Mielke', '2018-06-06', 'Hamburg', null, 'LE'),
@@ -177,6 +179,9 @@ export function createSeedData(): DemoDataset {
     // Phase 5: Nick → Max (Bruder), Max → Lea (Tochter)
     rel('r19', 'p-nick', 'p-max', 'bruder', 'biological'),
     rel('r20', 'p-max', 'p-lea', 'tochter', 'biological'),
+    // Stiefgeschwister Lena (Tochter des Stiefvaters) – Patchwork (gelb)
+    rel('r21', 'p-stief', 'p-stiefschwester', 'tochter', 'patchwork'),
+    rel('r22', 'p-nick', 'p-stiefschwester', 'schwester', 'patchwork'),
   ];
 
   // Phase 5 · Smart Invites: gesendete Einladung (Nick lud Max ein, angenommen)
@@ -227,14 +232,17 @@ export function createSeedData(): DemoDataset {
     closeness('cl6', 'p-mutter', 'inner'),
     closeness('cl7', 'p-vater', 'inner'),
     closeness('cl8', 'p-max', 'inner'), // Nick stuft Bruder Max als Inner Circle ein
+    closeness('cl9', 'p-stiefschwester', 'familie'), // Stiefschwester Lena 💙
+    closeness('cl10', 'p-pflege', 'inner'),          // Pflegekind Mia ❤️
+    closeness('cl11', 'p-stief', 'sehr_nah'),         // Stiefvater 💛
   ];
 
   // Phase 4.5: Familienzweige
   const branches: FamilyBranch[] = [
     branch('br-vater', 'Vaterseite', '#5B8A5A', ['p-vater', 'p-oma', 'p-opa', 'p-uroma', 'p-uropa']),
     branch('br-mutter', 'Mutterseite', '#4A78A8', ['p-mutter', 'p-cousin']),
-    branch('br-patchwork', 'Patchwork-Seite', '#D6A93B', ['p-stiefmutter', 'p-stief', 'p-pflege']),
-    branch('br-angeheiratet', 'Angeheiratete Familie', '#8A6BB0', ['p-schwager', 'p-stief']),
+    branch('br-patchwork', 'Patchwork-Seite', '#D6A93B', ['p-stiefmutter', 'p-stief', 'p-pflege', 'p-stiefschwester']),
+    branch('br-angeheiratet', 'Angeheiratete Familie', '#8A6BB0', ['p-schwager', 'p-stief', 'p-stiefmutter']),
   ];
 
   // --- Erinnerungen ---
