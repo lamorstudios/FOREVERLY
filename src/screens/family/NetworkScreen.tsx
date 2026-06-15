@@ -121,7 +121,17 @@ export function NetworkScreen({ navigation }: Props) {
           {toggle}
         </View>
 
-        <AppText variant="caption" color={colors.textSecondary} style={styles.hint}>
+        <View style={styles.legendChips}>
+          {LEGEND.map((item) => (
+            <View key={item.category} style={styles.legendChip}>
+              <View style={[styles.legendDot, { backgroundColor: item.color }]} />
+              <AppText variant="caption" color={colors.textSecondary} style={styles.legendText}>
+                {item.short}
+              </AppText>
+            </View>
+          ))}
+        </View>
+        <AppText variant="caption" color={colors.textMuted} style={styles.hint}>
           Tippe eine Person an, um sie ins Zentrum zu holen · nochmal tippen öffnet das Profil
         </AppText>
 
@@ -312,7 +322,20 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
     flexShrink: 1,
   },
-  legendChip: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
+  legendChips: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs, marginTop: spacing.xs },
+  legendChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
+    backgroundColor: colors.surface,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.pill,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 4,
+  },
+  legendDot: { width: 9, height: 9, borderRadius: 5 },
+  legendText: { fontWeight: '600' },
   dotSmall: { width: 10, height: 10, borderRadius: 5 },
   worldBtn: {
     flexDirection: 'row',

@@ -90,14 +90,24 @@ Weich und großzügig (kein harter „Material"-Look):
 
 ## 7. Stammbaum / „Familienwelt"
 
-Konzept: **radialer Ego-Graph** (im Geist von Obsidian Graph / Miro / Apple
-Maps) – ausdrücklich **kein Stammbaum**. Die aktive Person steht **immer
-exakt im Zentrum** als Hub; ihre nächsten Angehörigen liegen als **Kreise**
-(keine Karten) **nach Himmelsrichtung**: Eltern oben, Kinder unten,
-Geschwister/Partner seitlich. Jeder Kreis trägt einen **dezenten, nach
-Beziehungsart eingefärbten Glow** (Grün/Blau/Gold/Lila) – subtil, aber sofort
-erkennbar. Neue Kreise **poppen versetzt herein** (Stagger), die Kamera
-gleitet weich.
+Konzept: **radialer Ego-Graph mit Ring-System** (Obsidian Graph / Miro /
+Apple Maps) – ausdrücklich **kein Stammbaum**. Die aktive Person steht
+**immer exakt im Zentrum**; Angehörige liegen als **Kreise** in konzentrischen
+Ringen nach Verwandtschaftsnähe (Kinship-Distanz via Dijkstra):
+
+- **Ring 1** – Eltern, Geschwister, Partner, Kinder: voll sichtbar, nach
+  Himmelsrichtung (Eltern oben, Kinder unten, Geschwister/Partner seitlich).
+- **Ring 2** – Großeltern, Tanten, Onkel: standardmäßig sichtbar, voll.
+- **Ring 3** – Cousins, Schwager, angeheiratete Familie: kleiner,
+  transparenter, entsättigt (ausgegraut).
+- **Ring 4** – entfernte Verwandte: nur angedeutet.
+
+Äußere Ringe sind **kleiner, transparenter, farbärmer** – „es gibt noch mehr
+Familie". Ein Tipp holt eine Person ins Zentrum (sie wird voll & farbig, der
+Graph baut sich um sie neu auf); zweiter Tipp öffnet das Profil. Linien sind
+nach Beziehungsart eingefärbt, neue Kreise **poppen versetzt herein**, die
+Kamera gleitet weich. Eine **Legende als Chips** (🟢🔵🟡🟣) ist dauerhaft
+sichtbar.
 
 - **Erster Tipp** auf einen Kreis macht ihn zum neuen Zentrum: die Kamera
   zentriert sanft, neue Kreise **wachsen aus dem Hub heraus**, die
