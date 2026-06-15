@@ -35,11 +35,19 @@ const ACTIVITY_ICON: Record<string, keyof typeof Ionicons.glyphMap> = {
   'time_capsule.created': 'time-outline',
 };
 
+type QuickRoute =
+  | 'Status'
+  | 'Calendar'
+  | 'Emergency'
+  | 'Documents'
+  | 'BookHome'
+  | 'SeniorMode';
+
 interface QuickAction {
   label: string;
   icon: keyof typeof Ionicons.glyphMap;
   color: string;
-  route: keyof HomeStackParamList;
+  route: QuickRoute;
 }
 
 const QUICK_ACTIONS: QuickAction[] = [
@@ -47,6 +55,7 @@ const QUICK_ACTIONS: QuickAction[] = [
   { label: 'Kalender', icon: 'calendar-outline', color: colors.relationMarried, route: 'Calendar' },
   { label: 'Notfall', icon: 'alert-circle-outline', color: colors.error, route: 'Emergency' },
   { label: 'Dokumente', icon: 'folder-outline', color: colors.primary, route: 'Documents' },
+  { label: 'Familienbuch', icon: 'book-outline', color: colors.primaryDark, route: 'BookHome' },
   { label: 'Seniorenmodus', icon: 'accessibility-outline', color: colors.gold, route: 'SeniorMode' },
 ];
 

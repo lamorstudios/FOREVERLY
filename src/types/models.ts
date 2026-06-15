@@ -285,3 +285,47 @@ export interface FamilyDocument {
   created_at: string;
   updated_at: string;
 }
+
+// ===================== Phase 4 · Familienbuch =====================
+
+export type BookType =
+  | 'komplett'
+  | 'person'
+  | 'oma_opa'
+  | 'jahr'
+  | 'erinnerungen'
+  | 'lebensweisheiten';
+
+export type BookExportFormat = 'pdf' | 'print' | 'share';
+export type BookExportStatus = 'pending' | 'ready' | 'failed';
+
+export interface BookOptions {
+  personId?: string;
+  year?: number;
+}
+
+export interface BookProject {
+  id: string;
+  family_id: string;
+  type: BookType;
+  title: string;
+  subtitle: string | null;
+  cover_photo_path: string | null;
+  hidden_chapters: string[];
+  chapter_order: string[];
+  options: BookOptions;
+  status: 'draft' | 'ready' | 'exported';
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface BookExport {
+  id: string;
+  project_id: string;
+  format: BookExportFormat;
+  status: BookExportStatus;
+  url: string | null;
+  print_ready: boolean;
+  created_at: string;
+}

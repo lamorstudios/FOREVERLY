@@ -19,6 +19,7 @@ import type {
   Audio,
   TimeCapsule,
   CalendarEvent,
+  Relationship,
 } from '@/types/models';
 
 export type KnowledgeKind =
@@ -102,6 +103,7 @@ export interface FamilyData {
   audios: Audio[];
   capsules: TimeCapsule[];
   calendarEvents: CalendarEvent[];
+  relationships: Relationship[];
 }
 
 export interface KnowledgeBase {

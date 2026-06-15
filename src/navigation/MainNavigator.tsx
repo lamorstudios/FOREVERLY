@@ -53,6 +53,11 @@ import { TimelineScreen } from '@/screens/historian/TimelineScreen';
 import { ImportantPeopleScreen } from '@/screens/historian/ImportantPeopleScreen';
 import { PersonInsightScreen } from '@/screens/historian/PersonInsightScreen';
 import { KnowledgeGapsScreen } from '@/screens/historian/KnowledgeGapsScreen';
+// Phase 4 · Familienbuch
+import { BookHomeScreen } from '@/screens/book/BookHomeScreen';
+import { BookCreateScreen } from '@/screens/book/BookCreateScreen';
+import { BookPreviewScreen } from '@/screens/book/BookPreviewScreen';
+import { BookChapterScreen } from '@/screens/book/BookChapterScreen';
 
 const HomeStack = createNativeStackNavigator<HomeStackParamList>();
 function HomeStackNavigator() {
@@ -72,6 +77,10 @@ function HomeStackNavigator() {
       <HomeStack.Screen name="EmergencyContactForm" component={EmergencyContactFormScreen} options={{ title: 'Notfallkontakt' }} />
       <HomeStack.Screen name="Documents" component={DocumentsScreen} options={{ title: 'Dokumente' }} />
       <HomeStack.Screen name="DocumentForm" component={DocumentFormScreen} options={{ title: 'Dokument' }} />
+      <HomeStack.Screen name="BookHome" component={BookHomeScreen} options={{ title: 'Familienbuch' }} />
+      <HomeStack.Screen name="BookCreate" component={BookCreateScreen} options={{ title: 'Neues Buch' }} />
+      <HomeStack.Screen name="BookPreview" component={BookPreviewScreen} options={{ title: 'Buchvorschau' }} />
+      <HomeStack.Screen name="BookChapter" component={BookChapterScreen} options={{ title: 'Kapitel' }} />
     </HomeStack.Navigator>
   );
 }

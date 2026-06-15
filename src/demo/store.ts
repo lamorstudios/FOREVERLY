@@ -24,6 +24,9 @@ import type {
   CalendarEventType,
   FamilyDocument,
   DocumentKind,
+  BookProject,
+  BookType,
+  BookOptions,
 } from '@/types/models';
 import { createSeedData, DEMO_FAMILY_ID, DEMO_USER_ID } from './demoData';
 
@@ -643,5 +646,54 @@ export const demoStore = {
   },
   deleteDocument(id: string): void {
     data.documents = data.documents.filter((d) => d.id !== id);
+  },
+
+  // --- Phase 4: Familienbuch ---
+  listBookProjects(): BookProject[] {
+    return [...data.bookProjects].sort((a, b) =>
+      b.created_at.localeCompare(a.created_at),
+    );
+  },
+  getBookProject(id: string): BookProject | null {
+    return data.bookProjects.find((b) => b.id === id) ?? null;
+  },
+  createBookProject(input: {
+    familyId: string;
+    type: BookType;
+    title: string;
+    subtitle: string | null;
+    coverPhotoPath: string | null;
+    options: BookOptions;
+    createdBy: string;
+  }): BookProject {
+    const project: BookProject = {
+      id: newId('book'),
+      family_id: input.familyId,
+      type: input.type,
+      title: input.title,
+      subtitle: input.subtitle,
+      cover_photo_path: input.coverPhotoPath,
+      hidden_chapters: [],
+      chapter_order: [],
+      options: input.options,
+      status: 'ready',
+      created_by: input.createdBy,
+      created_at: nowIso(),
+      updated_at: nowIso(),
+    };
+    data.bookProjects.unshift(project);
+    return project;
+  },
+  updateBookProject(id: string, patch: Partial<BookProject>): BookProject {
+    const idx = data.bookProjects.findIndex((b) => b.id === id);
+    data.bookProjects[idx] = {
+      ...data.bookProjects[idx]!,
+      ...patch,
+      updated_at: nowIso(),
+    };
+    return data.bookProjects[idx]!;
+  },
+  deleteBookProject(id: string): void {
+    data.bookProjects = data.bookProjects.filter((b) => b.id !== id);
   },
 };

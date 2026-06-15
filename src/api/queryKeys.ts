@@ -41,4 +41,8 @@ export const qk = {
     ['historian', 'insight', familyId, personId] as const,
   knowledgeGaps: (familyId: string) =>
     ['historian', 'gaps', familyId] as const,
+  // Phase 4 · Familienbuch
+  bookProjects: (familyId: string) => ['book', 'projects', familyId] as const,
+  book: (familyId: string, projectId: string) =>
+    ['book', 'generated', familyId, projectId] as const,
 };

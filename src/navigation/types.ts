@@ -25,6 +25,11 @@ export type HomeStackParamList = {
   EmergencyContactForm: undefined;
   Documents: undefined;
   DocumentForm: { documentId?: string } | undefined;
+  // Phase 4 · Familienbuch
+  BookHome: undefined;
+  BookCreate: undefined;
+  BookPreview: { projectId: string };
+  BookChapter: { projectId: string; chapterKey: string };
 };
 
 export type FamilyStackParamList = {

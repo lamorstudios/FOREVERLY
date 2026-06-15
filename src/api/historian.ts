@@ -1,4 +1,4 @@
-import { listPersons } from './persons';
+import { listPersons, listRelationships } from './persons';
 import { listMemories } from './memories';
 import { listPhotos, listAudios } from './media';
 import { listMyCapsules } from './timeCapsules';
@@ -21,9 +21,10 @@ import {
  * Nutzt ausschließlich die vorhandenen Familien-APIs (keine externen Daten).
  */
 async function gather(familyId: string): Promise<KnowledgeBase> {
-  const [persons, memories, photos, audios, capsules, calendarEvents] =
+  const [persons, relationships, memories, photos, audios, capsules, calendarEvents] =
     await Promise.all([
       listPersons(familyId),
+      listRelationships(familyId),
       listMemories(familyId),
       listPhotos(familyId),
       listAudios(familyId),
@@ -38,6 +39,7 @@ async function gather(familyId: string): Promise<KnowledgeBase> {
     audios,
     capsules,
     calendarEvents,
+    relationships,
   };
   return buildKnowledgeBase(data);
 }

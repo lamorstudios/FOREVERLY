@@ -19,6 +19,7 @@ import type {
   CalendarEventType,
   FamilyDocument,
   StatusLevel,
+  BookProject,
 } from '@/types/models';
 import { coverImage, photoImage, portraitImage } from './images';
 
@@ -55,6 +56,7 @@ export interface DemoDataset {
   emergencyEvents: EmergencyEvent[];
   calendarEvents: CalendarEvent[];
   documents: FamilyDocument[];
+  bookProjects: BookProject[];
 }
 
 /** Erzeugt einen frischen Demo-Datensatz (Familie Mielke). */
@@ -247,6 +249,25 @@ export function createSeedData(): DemoDataset {
     doc('doc4', 'versicherung', 'Versicherungsunterlagen', true, 'Versicherungsordner im Wohnzimmer', 'Max Mustermann', null),
   ];
 
+  // --- Phase 4: Beispiel-Familienbuch ---
+  const bookProjects: BookProject[] = [
+    {
+      id: 'book1',
+      family_id: DEMO_FAMILY_ID,
+      type: 'komplett',
+      title: 'Die Geschichte der Familie Mielke',
+      subtitle: 'Ein Familienbuch',
+      cover_photo_path: family.image_url,
+      hidden_chapters: [],
+      chapter_order: [],
+      options: {},
+      status: 'ready',
+      created_by: DEMO_USER_ID,
+      created_at: daysFromNow(-5),
+      updated_at: daysFromNow(-5),
+    },
+  ];
+
   return {
     profile,
     family,
@@ -266,6 +287,7 @@ export function createSeedData(): DemoDataset {
     emergencyEvents,
     calendarEvents,
     documents,
+    bookProjects,
   };
 
   // --- Fabrik-Helfer ---
