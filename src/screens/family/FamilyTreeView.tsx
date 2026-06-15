@@ -81,12 +81,6 @@ interface TreeEdgeView {
   opacity: number;
 }
 
-// Ring 2: Großeltern, Tanten, Onkel. Höhere Gewichtung als enge Familie.
-const RING2_TYPES = new Set<RelationshipType>(['oma', 'opa', 'tante', 'onkel']);
-// Himmelsrichtung für die nächste Ebene um den Hub.
-const UP_TYPES = new Set<RelationshipType>(['vater', 'mutter', 'stiefvater', 'stiefmutter', 'oma', 'opa', 'tante', 'onkel']);
-const DOWN_TYPES = new Set<RelationshipType>(['sohn', 'tochter', 'stiefkind', 'adoptivkind', 'pflegekind', 'nichte', 'neffe']);
-
 
 /**
  * Interaktive Familienwelt als radialer Ego-Graph (im Geist von Obsidian
@@ -100,7 +94,7 @@ const DOWN_TYPES = new Set<RelationshipType>(['sohn', 'tochter', 'stiefkind', 'a
 export function FamilyTreeView({ persons, relationships, anchorId, onSelectPerson }: FamilyTreeViewProps) {
   const personById = useMemo(() => new Map(persons.map((p) => [p.id, p])), [persons]);
 
-  const { neighborMap, pairTypeMap, dirLabel, dirType, pairCat } = useMemo(() => {
+  const { neighborMap, dirLabel, dirType, pairCat } = useMemo(() => {
     const neighborMap = new Map<string, string[]>();
     const pairTypeMap = new Map<string, RelationshipType>();
     const pairCat = new Map<string, RelationshipCategory>();
@@ -125,7 +119,7 @@ export function FamilyTreeView({ persons, relationships, anchorId, onSelectPerso
       dirLabel.set(`${t}->${f}`, INVERSE_LABEL[type]);
       if (!dirType.has(`${f}->${t}`)) dirType.set(`${f}->${t}`, type);
     }
-    return { neighborMap, pairTypeMap, dirLabel, dirType, pairCat };
+    return { neighborMap, dirLabel, dirType, pairCat };
   }, [relationships]);
 
   const [activeId, setActiveId] = useState<string | null>(anchorId);
@@ -135,8 +129,11 @@ export function FamilyTreeView({ persons, relationships, anchorId, onSelectPerso
 
   const hubId = activeId ?? anchorId;
 
-  // Kinship-Distanz per Dijkstra → Ring-System (1 nah … 4 entfernt).
-  // Gewichte: enge Familie=1, Großeltern/Tante/Onkel=2, Cousin/angeheiratet=3.
+  // Semantisches Raster-Layout aus Sicht des Hubs („ich"):
+  // Eltern oben (Mutter links / Vater rechts), Großeltern über dem jeweiligen
+  // Elternteil, Tante/Onkel daneben, Schwestern links, Brüder rechts, Kinder
+  // unten, alles Weitere ausgegraut weiter außen. Eigene Rasterzellen ⇒ keine
+  // Überschneidungen von Kreisen/Texten.
   const layout = useMemo<{
     nodes: TreeNodeView[];
     edges: TreeEdgeView[];
@@ -147,129 +144,188 @@ export function FamilyTreeView({ persons, relationships, anchorId, onSelectPerso
   }>(() => {
     if (!hubId) return { nodes: [], edges: [], width: 600, height: 600, hubX: 300, hubY: 300 };
 
-    const weight = (t: RelationshipType) =>
-      CLOSE_TYPES.has(t) ? 1 : RING2_TYPES.has(t) ? 2 : 3;
+    const PARENTS_T = new Set<RelationshipType>(['mutter', 'vater', 'stiefmutter', 'stiefvater']);
+    const CHILDREN_T = new Set<RelationshipType>(['sohn', 'tochter', 'stiefkind', 'adoptivkind', 'pflegekind']);
 
+    const relInfo = (a: string, b: string): { type: RelationshipType; inv: boolean } | null => {
+      const f = dirType.get(`${a}->${b}`);
+      if (f) return { type: f, inv: false };
+      const g = dirType.get(`${b}->${a}`);
+      if (g) return { type: g, inv: true };
+      return null;
+    };
+
+    // Erreichbarkeit + Vorgänger (für „äußere" Verwandte).
     const dist = new Map<string, number>([[hubId, 0]]);
-    const pred = new Map<string, string>();
-    const visited = new Set<string>();
-    for (;;) {
-      let u: string | null = null;
-      let best = Infinity;
-      for (const [k, d] of dist) if (!visited.has(k) && d < best) { best = d; u = k; }
-      if (u == null) break;
-      visited.add(u);
+    const bpred = new Map<string, string>();
+    const q = [hubId];
+    while (q.length) {
+      const u = q.shift()!;
       for (const n of neighborMap.get(u) ?? []) {
-        const t = pairTypeMap.get(pairKey(u, n));
-        if (!t) continue;
-        const nd = best + weight(t);
-        if (nd < (dist.get(n) ?? Infinity)) {
-          dist.set(n, nd);
-          pred.set(n, u);
-        }
+        if (!dist.has(n)) { dist.set(n, dist.get(u)! + 1); bpred.set(n, u); q.push(n); }
       }
     }
-
     const reachable = [...dist.keys()].filter((id) => id !== hubId && personById.has(id));
-    const ringOf = (id: string) => Math.min(4, Math.max(1, Math.round(dist.get(id)!)));
 
-    // Winkel: nahe Angehörige nach Himmelsrichtung, äußere erben Eltern-Winkel.
-    const angle = new Map<string, number>();
-    const dirOf = (id: string): 'up' | 'down' | 'side' => {
-      const t = dirType.get(`${hubId}->${id}`);
-      if (t) return UP_TYPES.has(t) ? 'up' : DOWN_TYPES.has(t) ? 'down' : 'side';
-      const inv = dirType.get(`${id}->${hubId}`);
-      if (inv) return UP_TYPES.has(inv) ? 'down' : DOWN_TYPES.has(inv) ? 'up' : 'side';
-      return 'side';
-    };
-    const fan = (ids: string[], base: number, spread: number) => {
-      const k = ids.length;
-      ids.forEach((id, i) => angle.set(id, k <= 1 ? base : base - spread / 2 + (spread * (i + 0.5)) / k));
-    };
+    const roleKind = new Map<string, string>();
+    const parentOf = new Map<string, string>(); // strukturelle Kante
+    const mothers: string[] = [];
+    const fathers: string[] = [];
+    const sisters: string[] = [];
+    const brothers: string[] = [];
+    const partners: string[] = [];
+    const children: string[] = [];
+    const placed = new Set<string>([hubId]);
 
-    const up: string[] = [];
-    const down: string[] = [];
-    const left: string[] = [];
-    const right: string[] = [];
-    let st = true;
-    for (const id of reachable) {
-      if (pred.get(id) !== hubId) continue;
-      const d = dirOf(id);
-      if (d === 'up') up.push(id);
-      else if (d === 'down') down.push(id);
-      else (st ? left : right).push(id), (st = !st);
-    }
-    fan(up, -Math.PI / 2, Math.min(2.2, 0.55 * up.length));
-    fan(down, Math.PI / 2, Math.min(2.2, 0.55 * down.length));
-    fan(left, Math.PI, Math.min(1.6, 0.5 * left.length));
-    fan(right, 0, Math.min(1.6, 0.5 * right.length));
-
-    const childrenByPred = new Map<string, string[]>();
-    for (const id of reachable) {
-      const p = pred.get(id);
-      if (p && p !== hubId) {
-        if (!childrenByPred.has(p)) childrenByPred.set(p, []);
-        childrenByPred.get(p)!.push(id);
+    for (const n of neighborMap.get(hubId) ?? []) {
+      const r = relInfo(hubId, n);
+      if (!r || !CLOSE_TYPES.has(r.type)) continue;
+      const T = r.type;
+      let kind: string;
+      if (!r.inv) {
+        if (T === 'mutter' || T === 'stiefmutter') kind = 'mother';
+        else if (T === 'vater' || T === 'stiefvater') kind = 'father';
+        else if (T === 'schwester') kind = 'sister';
+        else if (T === 'bruder') kind = 'brother';
+        else if (T === 'ehepartner' || T === 'lebenspartner') kind = 'partner';
+        else kind = 'child';
+      } else {
+        if (PARENTS_T.has(T)) kind = 'child'; // hub ist Elternteil von n
+        else if (CHILDREN_T.has(T)) kind = 'father'; // hub ist Kind von n → n Elternteil
+        else if (T === 'ehepartner' || T === 'lebenspartner') kind = 'partner';
+        else if (T === 'schwester' || T === 'bruder') kind = 'brother';
+        else kind = 'child';
       }
-    }
-    for (const p of [...childrenByPred.keys()].sort((a, b) => ringOf(a) - ringOf(b))) {
-      const kids = childrenByPred.get(p)!;
-      fan(kids, angle.get(p) ?? 0, Math.min(1.3, 0.45 * kids.length));
-    }
-
-    const RAD = [0, 190, 345, 475, 590];
-    const SIZE = [HUB_D, 86, 78, 62, 48];
-    const OPACITY = [1, 1, 1, 0.55, 0.34];
-
-    const raw = new Map<string, { x: number; y: number; size: number }>();
-    raw.set(hubId, { x: 0, y: 0, size: HUB_D });
-    const nodes: TreeNodeView[] = [];
-    const edges: TreeEdgeView[] = [];
-    for (const id of reachable) {
-      const r = ringOf(id);
-      const a = angle.get(id) ?? 0;
-      const x = RAD[r]! * Math.cos(a);
-      const y = RAD[r]! * Math.sin(a);
-      raw.set(id, { x, y, size: SIZE[r]! });
+      ({ mother: mothers, father: fathers, sister: sisters, brother: brothers, partner: partners, child: children }[kind as 'mother'])?.push(n);
+      roleKind.set(n, kind);
+      parentOf.set(n, hubId);
+      placed.add(n);
     }
 
-    // In positive Koordinaten verschieben.
+    const aunts: string[] = [];
+    const gpOf = new Map<string, string[]>();
+    const addExtras = (parent: string) => {
+      const gps: string[] = [];
+      for (const n of neighborMap.get(parent) ?? []) {
+        if (placed.has(n) || !personById.has(n)) continue;
+        const r = relInfo(parent, n);
+        if (!r) continue;
+        const nIsParent = (!r.inv && PARENTS_T.has(r.type)) || (r.inv && CHILDREN_T.has(r.type));
+        const nIsSibling = r.type === 'schwester' || r.type === 'bruder';
+        if (nIsParent) { gps.push(n); roleKind.set(n, 'gp'); parentOf.set(n, parent); placed.add(n); }
+        else if (nIsSibling) { aunts.push(n); roleKind.set(n, 'aunt'); parentOf.set(n, parent); placed.add(n); }
+      }
+      gpOf.set(parent, gps);
+    };
+    mothers.forEach(addExtras);
+    fathers.forEach(addExtras);
+
+    const gkOf = new Map<string, string[]>();
+    for (const c of children) {
+      const arr: string[] = [];
+      for (const n of neighborMap.get(c) ?? []) {
+        if (placed.has(n) || !personById.has(n)) continue;
+        const r = relInfo(c, n);
+        if (!r) continue;
+        const nIsChild = (!r.inv && CHILDREN_T.has(r.type)) || (r.inv && PARENTS_T.has(r.type));
+        if (nIsChild) { arr.push(n); roleKind.set(n, 'grandchild'); parentOf.set(n, c); placed.add(n); }
+      }
+      gkOf.set(c, arr);
+    }
+
+    const outer = reachable.filter((id) => !placed.has(id));
+    outer.forEach((id) => { roleKind.set(id, 'outer'); parentOf.set(id, bpred.get(id) ?? hubId); });
+
+    // ---- Rasterplatzierung (jede Person eine eigene Zelle) ----
+    const used = new Set<string>();
+    const cell = new Map<string, { c: number; r: number }>();
+    const claim = (c0: number, r: number, dir: number) => {
+      let c = c0;
+      if (dir === 0) {
+        let k = 0;
+        while (used.has(`${c},${r}`)) { k++; c = c0 + (k % 2 ? Math.ceil(k / 2) : -Math.ceil(k / 2)); }
+      } else {
+        while (used.has(`${c},${r}`)) c += dir;
+      }
+      used.add(`${c},${r}`);
+      return c;
+    };
+    const put = (id: string, c0: number, r: number, dir: number) => cell.set(id, { c: claim(c0, r, dir), r });
+
+    put(hubId, 0, 0, 0);
+    mothers.forEach((id, i) => put(id, -1 - i, -1, -1));
+    fathers.forEach((id, i) => put(id, 1 + i, -1, 1));
+    mothers.forEach((m) => (gpOf.get(m) ?? []).forEach((g, i) => put(g, cell.get(m)!.c + (i % 2 ? Math.ceil(i / 2) : -Math.ceil(i / 2)), -2, -1)));
+    fathers.forEach((f) => (gpOf.get(f) ?? []).forEach((g, i) => put(g, cell.get(f)!.c + (i % 2 ? Math.ceil(i / 2) : -Math.ceil(i / 2)), -2, 1)));
+    const leftMother = mothers.length ? Math.min(...mothers.map((m) => cell.get(m)!.c)) : -1;
+    aunts.filter((a) => mothers.includes(parentOf.get(a)!)).forEach((id, i) => put(id, leftMother - 1 - i, -1, -1));
+    const rightFather = fathers.length ? Math.max(...fathers.map((f) => cell.get(f)!.c)) : 1;
+    aunts.filter((a) => fathers.includes(parentOf.get(a)!)).forEach((id, i) => put(id, rightFather + 1 + i, -1, 1));
+    partners.forEach((id, i) => put(id, 1 + i, 0, 1));
+    sisters.forEach((id, i) => put(id, -1 - i, 0, -1));
+    brothers.forEach((id, i) => put(id, 1 + i + partners.length, 0, 1));
+    children.forEach((id) => put(id, 0, 1, 0));
+    children.forEach((c) => (gkOf.get(c) ?? []).forEach((g) => put(g, cell.get(c)!.c, 2, 0)));
+    outer.forEach((id) => {
+      const p = parentOf.get(id)!;
+      const pc = cell.get(p)?.c ?? 0;
+      const pr = cell.get(p)?.r ?? 0;
+      const r = pr < 0 ? pr - 1 : pr > 0 ? pr + 1 : (id.charCodeAt(0) % 2 ? 2 : -2);
+      const dir = pc < 0 ? -1 : pc > 0 ? 1 : id.charCodeAt(0) % 2 ? 1 : -1;
+      put(id, pc, r, dir);
+    });
+
+    const COLW = 164;
+    const ROWH = 192;
+    const tierOf = (id: string): number => {
+      if (id === hubId) return 0;
+      const k = roleKind.get(id);
+      if (k === 'gp' || k === 'aunt' || k === 'grandchild') return 2;
+      if (k === 'outer' || !k) return 3;
+      return 1;
+    };
+    const SIZE = [HUB_D, 84, 76, 58];
+    const OPACITY = [1, 1, 1, 0.5];
+    const genericLabel = (id: string): string | undefined => {
+      const k = roleKind.get(id);
+      if (k === 'gp') return 'Großeltern';
+      if (k === 'aunt') return 'Tante/Onkel';
+      if (k === 'grandchild') return 'Enkelkind';
+      return undefined;
+    };
+
+    const ids = [hubId, ...reachable.filter((id) => cell.has(id))];
+    const xs = ids.map((id) => cell.get(id)!.c * COLW);
+    const ys = ids.map((id) => cell.get(id)!.r * ROWH);
     const margin = 150;
-    const xs = [...raw.values()].map((v) => v.x);
-    const ys = [...raw.values()].map((v) => v.y);
     const minX = Math.min(...xs);
     const minY = Math.min(...ys);
-    const maxX = Math.max(...xs);
-    const maxY = Math.max(...ys);
     const offX = margin - minX;
     const offY = margin - minY;
-    const width = maxX - minX + margin * 2;
-    const height = maxY - minY + margin * 2;
-    const hubX = offX;
-    const hubY = offY;
+    const width = Math.max(...xs) - minX + margin * 2;
+    const height = Math.max(...ys) - minY + margin * 2;
+    const hubX = -minX + margin;
+    const hubY = -minY + margin;
 
-    const colorOf = (id: string) => {
-      const p = pred.get(id);
+    const nodes: TreeNodeView[] = [];
+    const edges: TreeEdgeView[] = [];
+    for (const id of ids) {
+      const t = tierOf(id);
+      const cx = cell.get(id)!.c * COLW + offX;
+      const cy = cell.get(id)!.r * ROWH + offY;
+      const p = parentOf.get(id);
       const cat = p ? pairCat.get(pairKey(p, id)) : undefined;
-      const r = ringOf(id);
-      if (r >= 3) return colors.textMuted;
-      return cat ? relationshipColor(cat) : colors.border;
-    };
-
-    nodes.push({ id: hubId, cx: hubX, cy: hubY, size: HUB_D, ring: 0, color: hubId === anchorId ? colors.gold : colors.primary, opacity: 1, rel: undefined });
-    for (const id of reachable) {
-      const v = raw.get(id)!;
-      const r = ringOf(id);
-      const rel = r <= 2 ? dirLabel.get(`${hubId}->${id}`) : undefined;
-      nodes.push({ id, cx: v.x + offX, cy: v.y + offY, size: v.size, ring: r, color: colorOf(id), opacity: OPACITY[r]!, rel });
-      const p = pred.get(id)!;
-      const cat = pairCat.get(pairKey(p, id));
-      const edgeColor = r >= 3 ? colors.textMuted : cat ? relationshipColor(cat) : colors.border;
-      edges.push({ id: `${p}->${id}`, from: p, to: id, color: edgeColor, opacity: [0, 0.6, 0.5, 0.28, 0.16][r]! });
+      const color = id === anchorId ? colors.gold : id === hubId ? colors.primary : t >= 3 ? colors.textMuted : cat ? relationshipColor(cat) : colors.border;
+      const rel = id === hubId ? undefined : t <= 2 ? dirLabel.get(`${hubId}->${id}`) ?? genericLabel(id) : undefined;
+      nodes.push({ id, cx, cy, size: SIZE[t]!, ring: t, color, opacity: OPACITY[t]!, rel });
+      if (p) {
+        const ec = t >= 3 ? colors.textMuted : cat ? relationshipColor(cat) : colors.border;
+        edges.push({ id: `${p}->${id}`, from: p, to: id, color: ec, opacity: [0, 0.6, 0.5, 0.22][t]! });
+      }
     }
 
     return { nodes, edges, width, height, hubX, hubY };
-  }, [hubId, anchorId, neighborMap, pairTypeMap, dirType, dirLabel, pairCat, personById]);
+  }, [hubId, anchorId, neighborMap, dirType, dirLabel, pairCat, personById]);
 
   // ---- Kamera ----
   const translate = useRef(new Animated.ValueXY({ x: 0, y: 0 })).current;
@@ -327,6 +383,11 @@ export function FamilyTreeView({ persons, relationships, anchorId, onSelectPerso
   const targets = useRef(new Map<string, { x: number; y: number }>()).current;
   const prevIds = useRef<string[]>([]);
   const justEntered = useRef<Set<string>>(new Set()).current;
+  // Frei verschobene Knoten (Long-Press-Drag) – Layout überschreibt sie nicht.
+  const overridden = useRef<Set<string>>(new Set()).current;
+  const grabbed = useRef<string | null>(null);
+  const grabStart = useRef({ x: 0, y: 0 });
+  const [grabbedId, setGrabbedId] = useState<string | null>(null);
   const [exiting, setExiting] = useState<{ id: string; size: number }[]>([]);
   const pulse = useRef(new Animated.Value(0)).current;
 
@@ -380,7 +441,7 @@ export function FamilyTreeView({ persons, relationships, anchorId, onSelectPerso
       const isNew = justEntered.has(n.id);
       // Neue Kreise „poppen" mit leichter Überschwingung und versetzt herein.
       const delay = isNew ? enterIdx++ * 55 : 0;
-      if (pos)
+      if (pos && !overridden.has(n.id))
         Animated.spring(pos, {
           toValue: { x: n.cx, y: n.cy },
           useNativeDriver: false,
@@ -434,11 +495,28 @@ export function FamilyTreeView({ persons, relationships, anchorId, onSelectPerso
       onPanResponderGrant: () => {
         panStart.current = { x: tx.current, y: ty.current };
         pinch.current = null;
-        scale.stopAnimation();
-        translate.stopAnimation();
+        if (grabbed.current) {
+          const p = positions.get(grabbed.current);
+          // aktuellen Wert auslesen, um von dort weiterzuziehen
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          grabStart.current = { x: (p?.x as any)?.__getValue?.() ?? 0, y: (p?.y as any)?.__getValue?.() ?? 0 };
+        } else {
+          scale.stopAnimation();
+          translate.stopAnimation();
+        }
       },
       onPanResponderMove: (e, g) => {
         const touches = e.nativeEvent.touches;
+        // Long-Press-Drag: gegriffenen Kreis frei verschieben.
+        if (grabbed.current && (!touches || touches.length < 2)) {
+          const s = sc.current || 1;
+          const p = positions.get(grabbed.current);
+          if (p) {
+            overridden.add(grabbed.current);
+            p.setValue({ x: grabStart.current.x + g.dx / s, y: grabStart.current.y + g.dy / s });
+          }
+          return;
+        }
         if (touches && touches.length === 2) {
           const t1 = touches[0]!;
           const t2 = touches[1]!;
@@ -456,15 +534,28 @@ export function FamilyTreeView({ persons, relationships, anchorId, onSelectPerso
           translate.setValue({ x: panStart.current.x + g.dx, y: panStart.current.y + g.dy });
         }
       },
-      onPanResponderRelease: () => (pinch.current = null),
-      onPanResponderTerminate: () => (pinch.current = null),
+      onPanResponderRelease: () => {
+        pinch.current = null;
+        grabbed.current = null;
+        setGrabbedId(null);
+      },
+      onPanResponderTerminate: () => {
+        pinch.current = null;
+        grabbed.current = null;
+        setGrabbedId(null);
+      },
       onPanResponderTerminationRequest: () => false,
     }),
   ).current;
 
+  function beginGrab(id: string) {
+    grabbed.current = id;
+    setGrabbedId(id);
+  }
+
   function handleBackgroundTap() {
     const now = Date.now();
-    if (now - lastTap.current < 300 && anchorId) setActiveId(anchorId);
+    if (now - lastTap.current < 300 && anchorId) focusPerson(anchorId);
     lastTap.current = now;
   }
 
@@ -476,9 +567,14 @@ export function FamilyTreeView({ persons, relationships, anchorId, onSelectPerso
     animateCam(ns, w / 2 - cx * ns, h / 2 - cy * ns);
   }
 
+  function focusPerson(id: string) {
+    overridden.clear(); // frei verschobene Positionen beim Neuaufbau zurücksetzen
+    setActiveId(id);
+  }
+
   function onNodePress(id: string) {
     if (id === hubId) onSelectPerson(id); // zweiter Tipp = Profil
-    else setActiveId(id); // erster Tipp = erkunden / neues Zentrum
+    else focusPerson(id); // erster Tipp = erkunden / neues Zentrum
   }
 
   const currentIds = useMemo(() => new Set(layout.nodes.map((n) => n.id)), [layout]);
@@ -563,8 +659,10 @@ export function FamilyTreeView({ persons, relationships, anchorId, onSelectPerso
                 color={isAnchor ? colors.gold : nv?.color ?? colors.border}
                 ringOpacity={nv?.opacity ?? 1}
                 faded={(nv?.ring ?? 0) >= 3}
+                grabbed={id === grabbedId}
                 relLabel={nv?.rel}
                 onPress={() => onNodePress(id)}
+                onLongPress={() => beginGrab(id)}
               />
             );
           })}
@@ -579,7 +677,7 @@ export function FamilyTreeView({ persons, relationships, anchorId, onSelectPerso
           <AppText variant="heading" color={colors.primaryDark}>−</AppText>
         </Pressable>
         {anchorId ? (
-          <Pressable style={styles.ctrlBtn} onPress={() => setActiveId(anchorId)} hitSlop={6}>
+          <Pressable style={styles.ctrlBtn} onPress={() => focusPerson(anchorId)} hitSlop={6}>
             <Ionicons name="locate-outline" size={20} color={colors.primaryDark} />
           </Pressable>
         ) : null}
@@ -598,8 +696,10 @@ function NodeCircle({
   color,
   ringOpacity,
   faded,
+  grabbed,
   relLabel,
   onPress,
+  onLongPress,
 }: {
   person: Person;
   pos: Animated.ValueXY;
@@ -610,15 +710,17 @@ function NodeCircle({
   color: string;
   ringOpacity: number;
   faded: boolean;
+  grabbed: boolean;
   relLabel?: string;
   onPress: () => void;
+  onLongPress: () => void;
 }) {
   const press = useRef(new Animated.Value(0)).current;
   const animatePress = (to: number) =>
     Animated.spring(press, { toValue: to, useNativeDriver: false, friction: 6, tension: 120 }).start();
 
   const baseScale = appear.interpolate({ inputRange: [0, 1], outputRange: [0.75, 1] });
-  const pressScale = press.interpolate({ inputRange: [0, 1], outputRange: [1, 1.07] });
+  const pressScale = press.interpolate({ inputRange: [0, 1], outputRange: [1, grabbed ? 1.14 : 1.07] });
   const wrapW = Math.max(size, 132);
 
   return (
@@ -629,6 +731,7 @@ function NodeCircle({
         {
           width: wrapW,
           opacity: appear,
+          zIndex: grabbed ? 50 : isHub ? 10 : 1,
           transform: [
             { translateX: Animated.subtract(pos.x, wrapW / 2) },
             { translateY: Animated.subtract(pos.y, size / 2) },
@@ -639,6 +742,8 @@ function NodeCircle({
     >
       <Pressable
         onPress={onPress}
+        onLongPress={onLongPress}
+        delayLongPress={280}
         onPressIn={() => animatePress(1)}
         onPressOut={() => animatePress(0)}
         onHoverIn={() => animatePress(1)}
@@ -650,14 +755,15 @@ function NodeCircle({
             height: size,
             borderRadius: size / 2,
             borderColor: color,
-            borderWidth: isHub ? 3.5 : 3,
+            borderWidth: isHub ? 3.5 : grabbed ? 3.5 : 3,
             opacity: ringOpacity,
-            backgroundColor: faded ? colors.surfaceAlt : withAlpha(color, 0.1),
+            // Glassmorphism: leicht durchscheinende Fläche + weicher Glow.
+            backgroundColor: faded ? withAlpha(colors.surface, 0.6) : withAlpha(colors.surface, 0.82),
             shadowColor: color,
-            shadowOpacity: faded ? 0 : isHub ? 0.45 : 0.3,
-            shadowRadius: isHub ? 22 : 16,
-            shadowOffset: { width: 0, height: 0 },
-            elevation: faded ? 0 : isHub ? 8 : 5,
+            shadowOpacity: faded ? 0.12 : isHub || grabbed ? 0.5 : 0.34,
+            shadowRadius: grabbed ? 26 : isHub ? 22 : 15,
+            shadowOffset: { width: 0, height: 6 },
+            elevation: faded ? 1 : isHub || grabbed ? 9 : 5,
           },
         ]}
       >

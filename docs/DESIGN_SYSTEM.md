@@ -90,24 +90,25 @@ Weich und großzügig (kein harter „Material"-Look):
 
 ## 7. Stammbaum / „Familienwelt"
 
-Konzept: **radialer Ego-Graph mit Ring-System** (Obsidian Graph / Miro /
-Apple Maps) – ausdrücklich **kein Stammbaum**. Die aktive Person steht
-**immer exakt im Zentrum**; Angehörige liegen als **Kreise** in konzentrischen
-Ringen nach Verwandtschaftsnähe (Kinship-Distanz via Dijkstra):
+Konzept: **interaktive Familienwelt aus Sicht des Nutzers** (Apple Maps /
+Notion / Arc) – ausdrücklich **kein Stammbaum**. Die aktive Person steht
+**immer exakt im Zentrum**; Angehörige werden semantisch um sie herum auf
+einem **Raster** angeordnet (eigene Zellen ⇒ **keine Überschneidungen** von
+Kreisen oder Texten):
 
-- **Ring 1** – Eltern, Geschwister, Partner, Kinder: voll sichtbar, nach
-  Himmelsrichtung (Eltern oben, Kinder unten, Geschwister/Partner seitlich).
-- **Ring 2** – Großeltern, Tanten, Onkel: standardmäßig sichtbar, voll.
-- **Ring 3** – Cousins, Schwager, angeheiratete Familie: kleiner,
-  transparenter, entsättigt (ausgegraut).
-- **Ring 4** – entfernte Verwandte: nur angedeutet.
+- **Oben:** Mutter (links) / Vater (rechts); **darüber** die jeweiligen
+  Großeltern; **daneben** Tante/Onkel der jeweiligen Seite.
+- **Links:** Schwestern/Stief-/Halbschwestern · **Rechts:** Brüder.
+- **Unten:** eigene Kinder (darunter Enkel).
+- **Weiter außen, ausgegraut** (kleiner, transparenter, farbärmer): Cousins,
+  Schwager, angeheiratete & entfernte Verwandte – „es gibt noch mehr Familie".
 
-Äußere Ringe sind **kleiner, transparenter, farbärmer** – „es gibt noch mehr
-Familie". Ein Tipp holt eine Person ins Zentrum (sie wird voll & farbig, der
-Graph baut sich um sie neu auf); zweiter Tipp öffnet das Profil. Linien sind
-nach Beziehungsart eingefärbt, neue Kreise **poppen versetzt herein**, die
-Kamera gleitet weich. Eine **Legende als Chips** (🟢🔵🟡🟣) ist dauerhaft
-sichtbar.
+Interaktion: ein Tipp holt eine Person ins Zentrum (Graph baut sich animiert
+neu auf), zweiter Tipp öffnet das Profil, **langes Halten** nimmt einen Kreis
+auf und verschiebt ihn frei (Linien folgen live). Neue Kreise **poppen
+versetzt herein**, Linien wachsen mit, die Kamera gleitet weich. Optik:
+**Glassmorphism** (durchscheinende Kreise, weiche Schatten, farbiger Glow je
+Beziehungsart). Eine **Legende als Chips** (🟢🔵🟡🟣) ist dauerhaft sichtbar.
 
 - **Erster Tipp** auf einen Kreis macht ihn zum neuen Zentrum: die Kamera
   zentriert sanft, neue Kreise **wachsen aus dem Hub heraus**, die
