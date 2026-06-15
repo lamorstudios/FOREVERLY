@@ -33,6 +33,16 @@ import { CapsuleDetailScreen } from '@/screens/capsules/CapsuleDetailScreen';
 import { ProfileScreen } from '@/screens/profile/ProfileScreen';
 import { EditProfileScreen } from '@/screens/profile/EditProfileScreen';
 import { FamilySettingsScreen } from '@/screens/profile/FamilySettingsScreen';
+// Phase 2
+import { StatusScreen } from '@/screens/phase2/StatusScreen';
+import { NotificationsScreen } from '@/screens/phase2/NotificationsScreen';
+import { CalendarScreen } from '@/screens/phase2/CalendarScreen';
+import { CalendarEventFormScreen } from '@/screens/phase2/CalendarEventFormScreen';
+import { EmergencyScreen } from '@/screens/phase2/EmergencyScreen';
+import { EmergencyContactFormScreen } from '@/screens/phase2/EmergencyContactFormScreen';
+import { DocumentsScreen } from '@/screens/phase2/DocumentsScreen';
+import { DocumentFormScreen } from '@/screens/phase2/DocumentFormScreen';
+import { SeniorModeScreen } from '@/screens/phase2/SeniorModeScreen';
 
 const HomeStack = createNativeStackNavigator<HomeStackParamList>();
 function HomeStackNavigator() {
@@ -43,6 +53,15 @@ function HomeStackNavigator() {
         component={HomeScreen}
         options={{ title: 'Foreverly' }}
       />
+      <HomeStack.Screen name="SeniorMode" component={SeniorModeScreen} options={{ title: 'Seniorenmodus' }} />
+      <HomeStack.Screen name="Status" component={StatusScreen} options={{ title: 'Familienstatus' }} />
+      <HomeStack.Screen name="Notifications" component={NotificationsScreen} options={{ title: 'Benachrichtigungen' }} />
+      <HomeStack.Screen name="Calendar" component={CalendarScreen} options={{ title: 'Familienkalender' }} />
+      <HomeStack.Screen name="CalendarEventForm" component={CalendarEventFormScreen} options={{ title: 'Neuer Termin' }} />
+      <HomeStack.Screen name="Emergency" component={EmergencyScreen} options={{ title: 'Notfall' }} />
+      <HomeStack.Screen name="EmergencyContactForm" component={EmergencyContactFormScreen} options={{ title: 'Notfallkontakt' }} />
+      <HomeStack.Screen name="Documents" component={DocumentsScreen} options={{ title: 'Dokumente' }} />
+      <HomeStack.Screen name="DocumentForm" component={DocumentFormScreen} options={{ title: 'Dokument' }} />
     </HomeStack.Navigator>
   );
 }

@@ -15,6 +15,15 @@ import type {
   RelationshipType,
   TimeCapsule,
   UpcomingCapsule,
+  MemberStatus,
+  StatusLevel,
+  AppNotification,
+  EmergencyContact,
+  EmergencyEvent,
+  CalendarEvent,
+  CalendarEventType,
+  FamilyDocument,
+  DocumentKind,
 } from '@/types/models';
 import { createSeedData, DEMO_FAMILY_ID, DEMO_USER_ID } from './demoData';
 
@@ -385,5 +394,254 @@ export const demoStore = {
       created_at: nowIso(),
       actor: data.profile,
     });
+  },
+
+  // --- Phase 2: Familienstatus ---
+  listStatuses(): MemberStatus[] {
+    return data.statuses.map((s) => ({
+      ...s,
+      person: data.persons.find((p) => p.id === s.person_id),
+    }));
+  },
+  setStatus(
+    familyId: string,
+    personId: string,
+    level: StatusLevel,
+    message: string | null,
+    updatedBy: string,
+  ): MemberStatus {
+    const existing = data.statuses.find((s) => s.person_id === personId);
+    if (existing) {
+      existing.level = level;
+      existing.message = message;
+      existing.updated_by = updatedBy;
+      existing.updated_at = nowIso();
+      return existing;
+    }
+    const s: MemberStatus = {
+      id: newId('st'),
+      family_id: familyId,
+      person_id: personId,
+      level,
+      message,
+      updated_by: updatedBy,
+      created_at: nowIso(),
+      updated_at: nowIso(),
+    };
+    data.statuses.push(s);
+    return s;
+  },
+
+  // --- Phase 2: Benachrichtigungen ---
+  listNotifications(): AppNotification[] {
+    return [...data.notifications].sort((a, b) =>
+      b.created_at.localeCompare(a.created_at),
+    );
+  },
+  unreadNotificationCount(): number {
+    return data.notifications.filter((n) => !n.is_read).length;
+  },
+  addNotification(input: {
+    familyId: string;
+    actorUserId: string;
+    category: AppNotification['category'];
+    title: string;
+    body?: string | null;
+    data?: Record<string, unknown>;
+  }): AppNotification {
+    const n: AppNotification = {
+      id: newId('nt'),
+      family_id: input.familyId,
+      recipient_user_id: null,
+      actor_user_id: input.actorUserId,
+      category: input.category,
+      title: input.title,
+      body: input.body ?? null,
+      data: input.data ?? {},
+      is_read: false,
+      created_at: nowIso(),
+    };
+    data.notifications.unshift(n);
+    return n;
+  },
+  markNotificationRead(id: string): void {
+    const n = data.notifications.find((x) => x.id === id);
+    if (n) n.is_read = true;
+  },
+  markAllNotificationsRead(): void {
+    data.notifications.forEach((n) => (n.is_read = true));
+  },
+
+  // --- Phase 2: Notfallkontakte ---
+  listEmergencyContacts(): EmergencyContact[] {
+    return [...data.emergencyContacts].sort((a, b) => a.priority - b.priority);
+  },
+  createEmergencyContact(input: {
+    familyId: string;
+    name: string;
+    relation?: string | null;
+    phone?: string | null;
+    note?: string | null;
+    personId?: string | null;
+    createdBy: string;
+  }): EmergencyContact {
+    const c: EmergencyContact = {
+      id: newId('ec'),
+      family_id: input.familyId,
+      person_id: input.personId ?? null,
+      name: input.name,
+      relation: input.relation ?? null,
+      phone: input.phone ?? null,
+      note: input.note ?? null,
+      priority: data.emergencyContacts.length,
+      created_by: input.createdBy,
+      created_at: nowIso(),
+    };
+    data.emergencyContacts.push(c);
+    return c;
+  },
+  deleteEmergencyContact(id: string): void {
+    data.emergencyContacts = data.emergencyContacts.filter((c) => c.id !== id);
+  },
+
+  // --- Phase 2: Notfallereignisse ---
+  listEmergencyEvents(): EmergencyEvent[] {
+    return [...data.emergencyEvents].sort((a, b) =>
+      b.created_at.localeCompare(a.created_at),
+    );
+  },
+  triggerEmergency(input: {
+    familyId: string;
+    triggeredBy: string;
+    latitude?: number | null;
+    longitude?: number | null;
+    locationLabel?: string | null;
+    message?: string | null;
+  }): EmergencyEvent {
+    const e: EmergencyEvent = {
+      id: newId('ev'),
+      family_id: input.familyId,
+      triggered_by: input.triggeredBy,
+      state: 'active',
+      latitude: input.latitude ?? null,
+      longitude: input.longitude ?? null,
+      location_label: input.locationLabel ?? null,
+      message: input.message ?? null,
+      created_at: nowIso(),
+      resolved_at: null,
+      resolved_by: null,
+    };
+    data.emergencyEvents.unshift(e);
+    this.addNotification({
+      familyId: input.familyId,
+      actorUserId: input.triggeredBy,
+      category: 'emergency',
+      title: '🚨 Notfall ausgelöst',
+      body: input.locationLabel
+        ? `Standort: ${input.locationLabel}`
+        : 'Ein Familienmitglied benötigt Hilfe.',
+      data: { eventId: e.id },
+    });
+    return e;
+  },
+  resolveEmergency(id: string, resolvedBy: string): void {
+    const e = data.emergencyEvents.find((x) => x.id === id);
+    if (e) {
+      e.state = 'resolved';
+      e.resolved_at = nowIso();
+      e.resolved_by = resolvedBy;
+    }
+  },
+
+  // --- Phase 2: Familienkalender ---
+  listCalendarEvents(): CalendarEvent[] {
+    return [...data.calendarEvents].sort((a, b) =>
+      a.event_date.localeCompare(b.event_date),
+    );
+  },
+  getCalendarEvent(id: string): CalendarEvent | null {
+    return data.calendarEvents.find((e) => e.id === id) ?? null;
+  },
+  createCalendarEvent(input: {
+    familyId: string;
+    type: CalendarEventType;
+    title: string;
+    description?: string | null;
+    eventDate: string;
+    eventTime?: string | null;
+    isAnnual?: boolean;
+    forWholeFamily?: boolean;
+    participantIds?: string[];
+    createdBy: string;
+  }): CalendarEvent {
+    const e: CalendarEvent = {
+      id: newId('cal'),
+      family_id: input.familyId,
+      type: input.type,
+      title: input.title,
+      description: input.description ?? null,
+      event_date: input.eventDate,
+      event_time: input.eventTime ?? null,
+      is_annual: input.isAnnual ?? false,
+      for_whole_family: input.forWholeFamily ?? false,
+      created_by: input.createdBy,
+      created_at: nowIso(),
+      updated_at: nowIso(),
+      participant_ids: input.participantIds ?? [],
+    };
+    data.calendarEvents.push(e);
+    return e;
+  },
+  deleteCalendarEvent(id: string): void {
+    data.calendarEvents = data.calendarEvents.filter((e) => e.id !== id);
+  },
+
+  // --- Phase 2: Dokumentenübersicht ---
+  listDocuments(): FamilyDocument[] {
+    return [...data.documents];
+  },
+  upsertDocument(input: {
+    id?: string;
+    familyId: string;
+    kind: DocumentKind;
+    title: string;
+    isAvailable: boolean;
+    location?: string | null;
+    note?: string | null;
+    contactPerson?: string | null;
+    createdBy: string;
+  }): FamilyDocument {
+    if (input.id) {
+      const existing = data.documents.find((d) => d.id === input.id);
+      if (existing) {
+        existing.kind = input.kind;
+        existing.title = input.title;
+        existing.is_available = input.isAvailable;
+        existing.location = input.location ?? null;
+        existing.note = input.note ?? null;
+        existing.contact_person = input.contactPerson ?? null;
+        existing.updated_at = nowIso();
+        return existing;
+      }
+    }
+    const d: FamilyDocument = {
+      id: newId('doc'),
+      family_id: input.familyId,
+      kind: input.kind,
+      title: input.title,
+      is_available: input.isAvailable,
+      location: input.location ?? null,
+      note: input.note ?? null,
+      contact_person: input.contactPerson ?? null,
+      contact_person_id: null,
+      created_by: input.createdBy,
+      created_at: nowIso(),
+      updated_at: nowIso(),
+    };
+    data.documents.push(d);
+    return d;
+  },
+  deleteDocument(id: string): void {
+    data.documents = data.documents.filter((d) => d.id !== id);
   },
 };

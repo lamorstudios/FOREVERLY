@@ -11,6 +11,14 @@ import type {
   Relationship,
   TimeCapsule,
   TimeCapsuleRecipient,
+  MemberStatus,
+  AppNotification,
+  EmergencyContact,
+  EmergencyEvent,
+  CalendarEvent,
+  CalendarEventType,
+  FamilyDocument,
+  StatusLevel,
 } from '@/types/models';
 import { coverImage, photoImage, portraitImage } from './images';
 
@@ -40,6 +48,13 @@ export interface DemoDataset {
   capsules: TimeCapsule[];
   recipients: TimeCapsuleRecipient[];
   activities: Activity[];
+  // Phase 2
+  statuses: MemberStatus[];
+  notifications: AppNotification[];
+  emergencyContacts: EmergencyContact[];
+  emergencyEvents: EmergencyEvent[];
+  calendarEvents: CalendarEvent[];
+  documents: FamilyDocument[];
 }
 
 /** Erzeugt einen frischen Demo-Datensatz (Familie Mielke). */
@@ -160,6 +175,60 @@ export function createSeedData(): DemoDataset {
     activity('ac4', 'time_capsule.created', 'time_capsule', 'tc2', 'Eine Überraschung', -1, profile),
   ];
 
+  // --- Phase 2: Familienstatus ---
+  const statuses: MemberStatus[] = [
+    status('st-nick', 'p-nick', 'gut', null, -1),
+    status('st-oma', 'p-oma', 'unwohl', 'Mir geht es heute nicht so gut.', -0),
+    status('st-opa', 'p-opa', 'okay', null, -2),
+  ];
+
+  // --- Phase 2: Benachrichtigungen ---
+  const notifications: AppNotification[] = [
+    notify('nt1', 'status', 'Oma Erika fühlt sich nicht wohl', '🤒 „Mir geht es heute nicht so gut." – schau doch mal nach ihr.', 0),
+    notify('nt2', 'calendar', 'Bald: Arzttermin Opa Hans', 'In wenigen Tagen steht ein Termin an.', -1),
+  ];
+
+  // --- Phase 2: Notfallkontakte ---
+  const emergencyContacts: EmergencyContact[] = [
+    contact('ec1', 'Sabine Mielke', 'Tochter', '+49 170 1234567', 'p-mutter', 0),
+    contact('ec2', 'Dr. Wagner (Hausarzt)', 'Hausarzt', '+49 451 998877', null, 1),
+    contact('ec3', 'Notruf', 'Rettungsdienst', '112', null, 2),
+  ];
+
+  // --- Phase 2: Notfallereignisse (ein gelöstes Beispiel) ---
+  const emergencyEvents: EmergencyEvent[] = [
+    {
+      id: 'ev1',
+      family_id: DEMO_FAMILY_ID,
+      triggered_by: DEMO_USER_ID,
+      state: 'resolved',
+      latitude: 53.8655,
+      longitude: 10.6866,
+      location_label: 'Lübeck, Musterstraße 1',
+      message: 'Test-Notfall (bereits gelöst).',
+      created_at: daysFromNow(-14),
+      resolved_at: daysFromNow(-14),
+      resolved_by: DEMO_USER_ID,
+    },
+  ];
+
+  // --- Phase 2: Familienkalender ---
+  const calendarEvents: CalendarEvent[] = [
+    cal('cal1', 'geburtstag', 'Geburtstag Oma Erika', '1942-11-30', true, ['p-oma']),
+    cal('cal2', 'jahrestag', 'Hochzeitstag Erika & Hans', '1963-06-08', true, ['p-oma', 'p-opa']),
+    calRel('cal3', 'arzttermin', 'Arzttermin Opa Hans', 3, ['p-opa'], '10:30'),
+    calRel('cal4', 'familienereignis', 'Großes Familienfest im Garten', 21, [], null, true),
+    calRel('cal5', 'erinnerung', 'Mia für Schwimmkurs anmelden', 9, ['p-pflege'], null),
+  ];
+
+  // --- Phase 2: Dokumentenübersicht (nur Metadaten) ---
+  const documents: FamilyDocument[] = [
+    doc('doc1', 'testament', 'Testament', true, 'Liegt beim Notar', 'Notar Dr. Berger', 'Beglaubigte Abschrift bei Sabine.'),
+    doc('doc2', 'patientenverfuegung', 'Patientenverfügung', true, 'Ordner im Schlafzimmerschrank', 'Sabine Mielke', null),
+    doc('doc3', 'vorsorgevollmacht', 'Vorsorgevollmacht', false, null, null, 'Muss noch erstellt werden.'),
+    doc('doc4', 'versicherung', 'Versicherungsunterlagen', true, 'Versicherungsordner im Wohnzimmer', 'Max Mustermann', null),
+  ];
+
   return {
     profile,
     family,
@@ -173,6 +242,12 @@ export function createSeedData(): DemoDataset {
     capsules,
     recipients,
     activities,
+    statuses,
+    notifications,
+    emergencyContacts,
+    emergencyEvents,
+    calendarEvents,
+    documents,
   };
 
   // --- Fabrik-Helfer ---
@@ -346,6 +421,147 @@ export function createSeedData(): DemoDataset {
       summary,
       created_at: daysFromNow(createdOffset),
       actor,
+    };
+  }
+
+  function status(
+    id: string,
+    personId: string,
+    level: StatusLevel,
+    message: string | null,
+    offset: number,
+  ): MemberStatus {
+    return {
+      id,
+      family_id: DEMO_FAMILY_ID,
+      person_id: personId,
+      level,
+      message,
+      updated_by: DEMO_USER_ID,
+      created_at: daysFromNow(offset),
+      updated_at: daysFromNow(offset),
+    };
+  }
+
+  function notify(
+    id: string,
+    category: AppNotification['category'],
+    title: string,
+    body: string,
+    offset: number,
+  ): AppNotification {
+    return {
+      id,
+      family_id: DEMO_FAMILY_ID,
+      recipient_user_id: null,
+      actor_user_id: DEMO_USER_ID,
+      category,
+      title,
+      body,
+      data: {},
+      is_read: false,
+      created_at: daysFromNow(offset),
+    };
+  }
+
+  function contact(
+    id: string,
+    name: string,
+    relation: string,
+    phone: string,
+    personId: string | null,
+    priority: number,
+  ): EmergencyContact {
+    return {
+      id,
+      family_id: DEMO_FAMILY_ID,
+      person_id: personId,
+      name,
+      relation,
+      phone,
+      note: null,
+      priority,
+      created_by: DEMO_USER_ID,
+      created_at: daysFromNow(-30),
+    };
+  }
+
+  function cal(
+    id: string,
+    type: CalendarEventType,
+    title: string,
+    date: string,
+    isAnnual: boolean,
+    participantIds: string[],
+  ): CalendarEvent {
+    return {
+      id,
+      family_id: DEMO_FAMILY_ID,
+      type,
+      title,
+      description: null,
+      event_date: date,
+      event_time: null,
+      is_annual: isAnnual,
+      for_whole_family: false,
+      created_by: DEMO_USER_ID,
+      created_at: daysFromNow(-30),
+      updated_at: daysFromNow(-30),
+      participant_ids: participantIds,
+    };
+  }
+
+  function calRel(
+    id: string,
+    type: CalendarEventType,
+    title: string,
+    dayOffset: number,
+    participantIds: string[],
+    time: string | null,
+    wholeFamily = false,
+  ): CalendarEvent {
+    const d = new Date(now);
+    d.setDate(d.getDate() + dayOffset);
+    const iso = d.toISOString().slice(0, 10);
+    return {
+      id,
+      family_id: DEMO_FAMILY_ID,
+      type,
+      title,
+      description: null,
+      event_date: iso,
+      event_time: time,
+      is_annual: false,
+      for_whole_family: wholeFamily,
+      created_by: DEMO_USER_ID,
+      created_at: daysFromNow(-10),
+      updated_at: daysFromNow(-10),
+      participant_ids: participantIds,
+    };
+  }
+
+  function doc(
+    id: string,
+    kind: FamilyDocument['kind'],
+    title: string,
+    available: boolean,
+    location: string | null,
+    contactPerson: string | null,
+    note: string | null,
+  ): FamilyDocument {
+    return {
+      id,
+      family_id: DEMO_FAMILY_ID,
+      kind,
+      title,
+      is_available: available,
+      location,
+      note,
+      contact_person: contactPerson,
+      contact_person_id: null,
+      created_by: DEMO_USER_ID,
+      created_at: daysFromNow(-30),
+      updated_at: daysFromNow(-30),
     };
   }
 }

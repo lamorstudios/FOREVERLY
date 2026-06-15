@@ -16,6 +16,15 @@ export type OnboardingStackParamList = {
 
 export type HomeStackParamList = {
   Home: undefined;
+  SeniorMode: undefined;
+  Status: undefined;
+  Notifications: undefined;
+  Calendar: undefined;
+  CalendarEventForm: undefined;
+  Emergency: undefined;
+  EmergencyContactForm: undefined;
+  Documents: undefined;
+  DocumentForm: { documentId?: string } | undefined;
 };
 
 export type FamilyStackParamList = {

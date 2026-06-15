@@ -182,3 +182,106 @@ export interface UpcomingCapsule {
   title: string;
   open_at: string;
 }
+
+// ===================== Phase 2 =====================
+
+export type StatusLevel = 'gut' | 'okay' | 'allein' | 'unwohl' | 'hilfe';
+
+export type CalendarEventType =
+  | 'geburtstag'
+  | 'jahrestag'
+  | 'arzttermin'
+  | 'familienereignis'
+  | 'erinnerung';
+
+export type DocumentKind =
+  | 'testament'
+  | 'patientenverfuegung'
+  | 'vorsorgevollmacht'
+  | 'versicherung'
+  | 'sonstige';
+
+export type EmergencyState = 'active' | 'resolved';
+
+export interface MemberStatus {
+  id: string;
+  family_id: string;
+  person_id: string;
+  level: StatusLevel;
+  message: string | null;
+  updated_by: string | null;
+  created_at: string;
+  updated_at: string;
+  person?: Person;
+}
+
+export interface AppNotification {
+  id: string;
+  family_id: string;
+  recipient_user_id: string | null;
+  actor_user_id: string | null;
+  category: 'status' | 'emergency' | 'calendar' | 'info';
+  title: string;
+  body: string | null;
+  data: Record<string, unknown>;
+  is_read: boolean;
+  created_at: string;
+}
+
+export interface EmergencyContact {
+  id: string;
+  family_id: string;
+  person_id: string | null;
+  name: string;
+  relation: string | null;
+  phone: string | null;
+  note: string | null;
+  priority: number;
+  created_by: string | null;
+  created_at: string;
+}
+
+export interface EmergencyEvent {
+  id: string;
+  family_id: string;
+  triggered_by: string | null;
+  state: EmergencyState;
+  latitude: number | null;
+  longitude: number | null;
+  location_label: string | null;
+  message: string | null;
+  created_at: string;
+  resolved_at: string | null;
+  resolved_by: string | null;
+}
+
+export interface CalendarEvent {
+  id: string;
+  family_id: string;
+  type: CalendarEventType;
+  title: string;
+  description: string | null;
+  event_date: string;
+  event_time: string | null;
+  is_annual: boolean;
+  for_whole_family: boolean;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+  participant_ids?: string[];
+}
+
+export interface FamilyDocument {
+  id: string;
+  family_id: string;
+  kind: DocumentKind;
+  title: string;
+  is_available: boolean;
+  location: string | null;
+  note: string | null;
+  contact_person: string | null;
+  contact_person_id: string | null;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+}
