@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { View, StyleSheet, Pressable } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import {
@@ -15,27 +15,36 @@ import { useQuery } from '@tanstack/react-query';
 import { listPersons, listRelationships } from '@/api/persons';
 import { qk } from '@/api/queryKeys';
 import { useFamily } from '@/context/FamilyContext';
+import { useAuth } from '@/context/AuthContext';
 import { fullName, formatDate } from '@/lib/format';
 import { CATEGORY_LABELS } from '@/constants/relationships';
 import { colors, spacing, radius, useResponsive } from '@/theme';
 import type { FamilyStackParamList } from '@/navigation/types';
 import type { RelationshipCategory } from '@/types/models';
+import { FamilyTreeView } from './FamilyTreeView';
 
 type Props = NativeStackScreenProps<FamilyStackParamList, 'Network'>;
+type ViewMode = 'tree' | 'list';
 
-const LEGEND: { category: RelationshipCategory; color: string }[] = [
-  { category: 'biological', color: colors.relationBiological },
-  { category: 'married', color: colors.relationMarried },
-  { category: 'patchwork', color: colors.relationPatchwork },
-  { category: 'adoption', color: colors.relationAdoption },
+const LEGEND: {
+  category: RelationshipCategory;
+  color: string;
+  short: string;
+}[] = [
+  { category: 'biological', color: colors.relationBiological, short: 'Biologisch' },
+  { category: 'married', color: colors.relationMarried, short: 'Angeheiratet' },
+  { category: 'patchwork', color: colors.relationPatchwork, short: 'Patchwork' },
+  { category: 'adoption', color: colors.relationAdoption, short: 'Adoption' },
 ];
 
 export function NetworkScreen({ navigation }: Props) {
   const { activeFamily, isAdmin } = useFamily();
+  const { userId } = useAuth();
   const familyId = activeFamily!.id;
   const { columns } = useResponsive();
-  // Kartenbreite responsiv (1–3 Spalten); flexBasis statt fester Breite
   const cardBasis = columns === 1 ? '100%' : columns === 3 ? '31%' : '47%';
+
+  const [mode, setMode] = useState<ViewMode>('tree');
 
   const personsQuery = useQuery({
     queryKey: qk.persons(familyId),
@@ -48,6 +57,11 @@ export function NetworkScreen({ navigation }: Props) {
 
   const persons = personsQuery.data ?? [];
   const relationships = relationshipsQuery.data ?? [];
+
+  const anchorId = useMemo(
+    () => persons.find((p) => p.user_id === userId)?.id ?? persons[0]?.id ?? null,
+    [persons, userId],
+  );
 
   const categoriesByPerson = useMemo(() => {
     const map = new Map<string, Set<RelationshipCategory>>();
@@ -69,13 +83,89 @@ export function NetworkScreen({ navigation }: Props) {
     relationshipsQuery.refetch();
   }
 
+  const toggle = (
+    <View style={styles.segment}>
+      <Pressable
+        onPress={() => setMode('tree')}
+        style={[styles.segmentBtn, mode === 'tree' && styles.segmentActive]}
+      >
+        <AppText
+          variant="label"
+          color={mode === 'tree' ? colors.textOnAccent : colors.textSecondary}
+        >
+          Baum
+        </AppText>
+      </Pressable>
+      <Pressable
+        onPress={() => setMode('list')}
+        style={[styles.segmentBtn, mode === 'list' && styles.segmentActive]}
+      >
+        <AppText
+          variant="label"
+          color={mode === 'list' ? colors.textOnAccent : colors.textSecondary}
+        >
+          Liste
+        </AppText>
+      </Pressable>
+    </View>
+  );
+
+  // ----- Baumansicht (Standard) -----
+  if (mode === 'tree') {
+    return (
+      <Screen scroll={false} contentStyle={styles.treeContent}>
+        <View style={styles.treeHeader}>
+          <AppText variant="heading" numberOfLines={1} style={styles.flexShrink}>
+            {activeFamily!.name}
+          </AppText>
+          {toggle}
+        </View>
+
+        <View style={styles.legendRowWrap}>
+          {LEGEND.map((item) => (
+            <View key={item.category} style={styles.legendChip}>
+              <View style={[styles.dotSmall, { backgroundColor: item.color }]} />
+              <AppText variant="caption" color={colors.textSecondary}>
+                {item.short}
+              </AppText>
+            </View>
+          ))}
+        </View>
+
+        {loading ? (
+          <Loading message="Familie wird geladen …" />
+        ) : persons.length === 0 ? (
+          <EmptyState
+            icon="people-circle-outline"
+            title="Noch keine Personen"
+            message="Füge die erste Person zu eurem Familiennetzwerk hinzu."
+            actionLabel="Person hinzufügen"
+            onAction={() => navigation.navigate('PersonForm', {})}
+          />
+        ) : (
+          <View style={styles.treeArea}>
+            <FamilyTreeView
+              persons={persons}
+              relationships={relationships}
+              anchorId={anchorId}
+              onSelectPerson={(personId) =>
+                navigation.navigate('PersonProfile', { personId })
+              }
+            />
+          </View>
+        )}
+      </Screen>
+    );
+  }
+
+  // ----- Listenansicht -----
   return (
     <Screen refreshing={refreshing} onRefresh={onRefresh}>
-      <View style={styles.header}>
-        <AppText variant="display">{activeFamily!.name}</AppText>
-        <AppText variant="body" color={colors.textSecondary}>
-          Euer Familiennetzwerk
+      <View style={styles.listHeader}>
+        <AppText variant="display" numberOfLines={2} style={styles.flexShrink}>
+          {activeFamily!.name}
         </AppText>
+        {toggle}
       </View>
 
       <View style={styles.headerButtons}>
@@ -187,7 +277,47 @@ export function NetworkScreen({ navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
-  header: { gap: spacing.xs, marginBottom: spacing.md },
+  flexShrink: { flexShrink: 1 },
+  treeContent: { flex: 1 },
+  treeHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: spacing.sm,
+  },
+  listHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: spacing.sm,
+    marginBottom: spacing.sm,
+  },
+  segment: {
+    flexDirection: 'row',
+    backgroundColor: colors.surfaceAlt,
+    borderRadius: radius.pill,
+    padding: 3,
+    flexShrink: 0,
+  },
+  segmentBtn: {
+    paddingVertical: spacing.xs,
+    paddingHorizontal: spacing.md,
+    borderRadius: radius.pill,
+  },
+  segmentActive: { backgroundColor: colors.primary },
+  legendRowWrap: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: spacing.sm,
+  },
+  legendChip: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
+  dotSmall: { width: 10, height: 10, borderRadius: 5 },
+  treeArea: {
+    flex: 1,
+    backgroundColor: colors.background,
+    borderRadius: radius.lg,
+    overflow: 'hidden',
+  },
   headerButtons: {
     flexDirection: 'row',
     flexWrap: 'wrap',
