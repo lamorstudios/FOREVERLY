@@ -48,4 +48,8 @@ export const qk = {
   // Trusted Circle / Vertrauenskreis
   trustedContacts: (familyId: string, personId?: string) =>
     ['trustedContacts', familyId, personId ?? 'all'] as const,
+  // Phase 4.5 · Familiennähe & Zweige
+  closeness: (familyId: string, userId: string) =>
+    ['closeness', familyId, userId] as const,
+  branches: (familyId: string) => ['branches', familyId] as const,
 };

@@ -33,6 +33,9 @@ export type HomeStackParamList = {
   // Trusted Circle / Vertrauenskreis
   TrustedCircle: { personId?: string } | undefined;
   TrustedContactForm: { personId?: string } | undefined;
+  // Phase 4.5 · Familiennähe & Zweige
+  Closeness: undefined;
+  Branches: undefined;
 };
 
 export type FamilyStackParamList = {

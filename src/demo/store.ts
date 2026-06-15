@@ -29,6 +29,9 @@ import type {
   BookOptions,
   TrustedContact,
   TrustedRole,
+  ClosenessRating,
+  ClosenessLevel,
+  FamilyBranch,
 } from '@/types/models';
 import { createSeedData, DEMO_FAMILY_ID, DEMO_USER_ID } from './demoData';
 
@@ -205,6 +208,8 @@ export const demoStore = {
       content_type: ContentType;
       person_id?: string | null;
       occurred_on?: string | null;
+      visibility?: Memory['visibility'];
+      visibility_branch_id?: string | null;
     },
   ): Memory {
     const m: Memory = {
@@ -216,6 +221,8 @@ export const demoStore = {
       description: input.description ?? null,
       content_type: input.content_type,
       occurred_on: input.occurred_on ?? null,
+      visibility: input.visibility ?? 'family',
+      visibility_branch_id: input.visibility_branch_id ?? null,
       created_at: nowIso(),
       updated_at: nowIso(),
     };
@@ -339,6 +346,7 @@ export const demoStore = {
     textContent?: string | null;
     mediaUri?: string | null;
     openAt: string;
+    visibility?: TimeCapsule['visibility'];
     recipients: { personId?: string | null; userId?: string | null }[];
   }): TimeCapsule {
     const c: TimeCapsule = {
@@ -352,6 +360,8 @@ export const demoStore = {
       storage_path: input.mediaUri ?? null,
       open_at: input.openAt,
       is_opened: new Date(input.openAt).getTime() <= Date.now(),
+      visibility: input.visibility ?? 'selected',
+      visibility_branch_id: null,
       created_at: nowIso(),
       updated_at: nowIso(),
     };
@@ -753,5 +763,57 @@ export const demoStore = {
   },
   deleteTrustedContact(id: string): void {
     data.trustedContacts = data.trustedContacts.filter((c) => c.id !== id);
+  },
+
+  // --- Phase 4.5: Familiennähe ---
+  listCloseness(): ClosenessRating[] {
+    return [...data.closenessRatings];
+  },
+  setCloseness(familyId: string, raterUserId: string, personId: string, level: ClosenessLevel): ClosenessRating {
+    const existing = data.closenessRatings.find(
+      (c) => c.person_id === personId && c.rater_user_id === raterUserId,
+    );
+    if (existing) {
+      existing.level = level;
+      existing.updated_at = nowIso();
+      return existing;
+    }
+    const r: ClosenessRating = {
+      id: newId('cl'),
+      family_id: familyId,
+      rater_user_id: raterUserId,
+      person_id: personId,
+      level,
+      created_at: nowIso(),
+      updated_at: nowIso(),
+    };
+    data.closenessRatings.push(r);
+    return r;
+  },
+
+  // --- Phase 4.5: Familienzweige ---
+  listBranches(): FamilyBranch[] {
+    return [...data.branches];
+  },
+  createBranch(familyId: string, name: string, color: string | null, createdBy: string): FamilyBranch {
+    const b: FamilyBranch = {
+      id: newId('br'),
+      family_id: familyId,
+      name,
+      color,
+      created_by: createdBy,
+      created_at: nowIso(),
+      member_ids: [],
+    };
+    data.branches.push(b);
+    return b;
+  },
+  setBranchMembers(branchId: string, memberIds: string[]): FamilyBranch {
+    const b = data.branches.find((x) => x.id === branchId)!;
+    b.member_ids = memberIds;
+    return b;
+  },
+  deleteBranch(id: string): void {
+    data.branches = data.branches.filter((b) => b.id !== id);
   },
 };

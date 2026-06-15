@@ -6,6 +6,15 @@ export type MemberRole = 'admin' | 'member';
 export type ContentType = 'text' | 'photo' | 'audio';
 export type InvitationStatus = 'pending' | 'accepted' | 'revoked' | 'expired';
 
+export type ClosenessLevel = 'inner' | 'sehr_nah' | 'familie' | 'erweitert';
+export type VisibilityLevel =
+  | 'family'
+  | 'inner'
+  | 'sehr_nah'
+  | 'selected'
+  | 'branch'
+  | 'private';
+
 export type RelationshipType =
   | 'vater'
   | 'mutter'
@@ -112,6 +121,8 @@ export interface Memory {
   description: string | null;
   content_type: ContentType;
   occurred_on: string | null;
+  visibility?: VisibilityLevel;
+  visibility_branch_id?: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -152,6 +163,8 @@ export interface TimeCapsule {
   storage_path: string | null;
   open_at: string;
   is_opened: boolean;
+  visibility?: VisibilityLevel;
+  visibility_branch_id?: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -328,6 +341,34 @@ export interface BookExport {
   url: string | null;
   print_ready: boolean;
   created_at: string;
+}
+
+// ===================== Inner Circle & Familiennähe (Phase 4.5) =====================
+
+export interface ClosenessRating {
+  id: string;
+  family_id: string;
+  rater_user_id: string;
+  person_id: string;
+  level: ClosenessLevel;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface BranchMember {
+  id: string;
+  branch_id: string;
+  person_id: string;
+}
+
+export interface FamilyBranch {
+  id: string;
+  family_id: string;
+  name: string;
+  color: string | null;
+  created_by: string | null;
+  created_at: string;
+  member_ids?: string[];
 }
 
 // ===================== Trusted Circle / Vertrauenskreis =====================

@@ -61,6 +61,9 @@ import { BookChapterScreen } from '@/screens/book/BookChapterScreen';
 // Trusted Circle / Vertrauenskreis
 import { TrustedCircleScreen } from '@/screens/trusted/TrustedCircleScreen';
 import { TrustedContactFormScreen } from '@/screens/trusted/TrustedContactFormScreen';
+// Phase 4.5 · Familiennähe & Zweige
+import { ClosenessScreen } from '@/screens/closeness/ClosenessScreen';
+import { BranchesScreen } from '@/screens/closeness/BranchesScreen';
 
 const HomeStack = createNativeStackNavigator<HomeStackParamList>();
 function HomeStackNavigator() {
@@ -86,6 +89,8 @@ function HomeStackNavigator() {
       <HomeStack.Screen name="BookChapter" component={BookChapterScreen} options={{ title: 'Kapitel' }} />
       <HomeStack.Screen name="TrustedCircle" component={TrustedCircleScreen} options={{ title: 'Vertrauenskreis' }} />
       <HomeStack.Screen name="TrustedContactForm" component={TrustedContactFormScreen} options={{ title: 'Vertrauensperson' }} />
+      <HomeStack.Screen name="Closeness" component={ClosenessScreen} options={{ title: 'Familiennähe' }} />
+      <HomeStack.Screen name="Branches" component={BranchesScreen} options={{ title: 'Familienzweige' }} />
     </HomeStack.Navigator>
   );
 }

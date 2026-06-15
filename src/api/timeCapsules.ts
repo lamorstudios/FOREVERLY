@@ -8,6 +8,7 @@ import type {
   ContentType,
   TimeCapsule,
   UpcomingCapsule,
+  VisibilityLevel,
 } from '@/types/models';
 
 export interface CapsuleRecipientInput {
@@ -25,6 +26,7 @@ export interface CreateCapsuleInput {
   /** Lokale Datei (Foto/Audio), falls contentType media ist. */
   mediaUri?: string | null;
   openAt: string; // ISO
+  visibility?: VisibilityLevel;
   recipients: CapsuleRecipientInput[];
 }
 
@@ -101,6 +103,7 @@ export async function createCapsule(
       text_content: input.textContent ?? null,
       storage_path: storagePath,
       open_at: input.openAt,
+      visibility: input.visibility ?? 'selected',
     })
     .select('*')
     .single();

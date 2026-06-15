@@ -22,6 +22,10 @@ import type {
   BookProject,
   TrustedContact,
   TrustedRole,
+  ClosenessRating,
+  ClosenessLevel,
+  FamilyBranch,
+  VisibilityLevel,
 } from '@/types/models';
 import { coverImage, photoImage, portraitImage } from './images';
 
@@ -60,6 +64,8 @@ export interface DemoDataset {
   documents: FamilyDocument[];
   bookProjects: BookProject[];
   trustedContacts: TrustedContact[];
+  closenessRatings: ClosenessRating[];
+  branches: FamilyBranch[];
 }
 
 /** Erzeugt einen frischen Demo-Datensatz (Familie Mielke). */
@@ -105,6 +111,11 @@ export function createSeedData(): DemoDataset {
     person('p-uropa', 'Karl', 'Krüger', '1915-01-22', 'Stettin', '1991-06-15', 'KK'),
     person('p-stief', 'Peter', 'Hoffmann', '1962-09-09', 'Bremen', null, 'PH'),
     person('p-pflege', 'Mia', 'Mielke', '2012-03-15', 'Hamburg', null, 'MM'),
+    // Phase 4.5: zusätzliche Personen für „Beziehung ≠ Nähe"
+    person('p-halb', 'Jonas', 'Mielke', '2000-05-05', 'Hamburg', null, 'JM'),
+    person('p-stiefmutter', 'Claudia', 'Mielke', '1970-03-03', 'Kiel', null, 'CM'),
+    person('p-cousin', 'Max', 'Krüger', '1996-08-08', 'Berlin', null, 'MK'),
+    person('p-schwager', 'Peter', 'Wagner', '1985-01-01', 'Hamburg', null, 'PW'),
   ];
 
   // Biografien (vorhandene Daten – Grundlage für Kurzbiografien & Lebensweisheiten)
@@ -145,6 +156,30 @@ export function createSeedData(): DemoDataset {
     // Lila – Adoption / Pflegefamilie
     rel('r13', 'p-mutter', 'p-pflege', 'pflegekind', 'adoption'),
     rel('r14', 'p-vater', 'p-pflege', 'pflegekind', 'adoption'),
+    // Phase 4.5: Beziehungen der zusätzlichen Personen
+    rel('r15', 'p-nick', 'p-halb', 'bruder', 'biological'),
+    rel('r16', 'p-nick', 'p-stiefmutter', 'stiefmutter', 'patchwork'),
+    rel('r17', 'p-nick', 'p-cousin', 'cousin', 'biological'),
+    rel('r18', 'p-nick', 'p-schwager', 'sonstige', 'married'),
+  ];
+
+  // Phase 4.5: individuelle Familiennähe von Nick (Beziehung ≠ Nähe!)
+  const closenessRatings: ClosenessRating[] = [
+    closeness('cl1', 'p-halb', 'inner'),        // Halbbruder, aber ❤️ Inner Circle
+    closeness('cl2', 'p-stiefmutter', 'inner'), // Stiefmutter, aber ❤️ Inner Circle
+    closeness('cl3', 'p-oma', 'sehr_nah'),      // 💛
+    closeness('cl4', 'p-cousin', 'familie'),    // 💙
+    closeness('cl5', 'p-schwager', 'erweitert'),// 🤍 Erweiterter Kreis
+    closeness('cl6', 'p-mutter', 'inner'),
+    closeness('cl7', 'p-vater', 'inner'),
+  ];
+
+  // Phase 4.5: Familienzweige
+  const branches: FamilyBranch[] = [
+    branch('br-vater', 'Vaterseite', '#5B8A5A', ['p-vater', 'p-oma', 'p-opa', 'p-uroma', 'p-uropa']),
+    branch('br-mutter', 'Mutterseite', '#4A78A8', ['p-mutter', 'p-cousin']),
+    branch('br-patchwork', 'Patchwork-Seite', '#D6A93B', ['p-stiefmutter', 'p-stief', 'p-pflege']),
+    branch('br-angeheiratet', 'Angeheiratete Familie', '#8A6BB0', ['p-schwager', 'p-stief']),
   ];
 
   // --- Erinnerungen ---
@@ -155,6 +190,17 @@ export function createSeedData(): DemoDataset {
     memory('m4', 'Mias erster Schultag', 'Mit Schultüte und einem riesigen Lächeln – Mia konnte es kaum erwarten.', 'photo', 'p-pflege', '2018-09-01', -7),
     memory('m5', 'Sonntagskaffee bei Uroma Anna', 'Jeden Sonntag gab es selbstgebackenen Streuselkuchen. Den Duft vergisst man nie.', 'text', 'p-uroma', '1997-05-11', -300),
   ];
+
+  // Phase 4.5: Sichtbarkeit einzelner Erinnerungen (Demo)
+  const memoryVisibility: Record<string, VisibilityLevel> = {
+    m1: 'family', // Urlaub – für alle
+    m3: 'sehr_nah', // Opas Geschichten – nur sehr nahe Familie
+    m4: 'inner', // Mias Schultag – nur Inner Circle
+    m5: 'family',
+  };
+  for (const m of memories) {
+    m.visibility = memoryVisibility[m.id] ?? 'family';
+  }
 
   // --- Fotos (Platzhalter) ---
   const photos: Photo[] = [
@@ -306,6 +352,8 @@ export function createSeedData(): DemoDataset {
     documents,
     bookProjects,
     trustedContacts,
+    closenessRatings,
+    branches,
   };
 
   // --- Fabrik-Helfer ---
@@ -595,6 +643,39 @@ export function createSeedData(): DemoDataset {
       created_at: daysFromNow(-10),
       updated_at: daysFromNow(-10),
       participant_ids: participantIds,
+    };
+  }
+
+  function closeness(
+    id: string,
+    personId: string,
+    level: ClosenessLevel,
+  ): ClosenessRating {
+    return {
+      id,
+      family_id: DEMO_FAMILY_ID,
+      rater_user_id: DEMO_USER_ID,
+      person_id: personId,
+      level,
+      created_at: daysFromNow(-15),
+      updated_at: daysFromNow(-15),
+    };
+  }
+
+  function branch(
+    id: string,
+    name: string,
+    color: string,
+    memberIds: string[],
+  ): FamilyBranch {
+    return {
+      id,
+      family_id: DEMO_FAMILY_ID,
+      name,
+      color,
+      created_by: DEMO_USER_ID,
+      created_at: daysFromNow(-25),
+      member_ids: memberIds,
     };
   }
 
