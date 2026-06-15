@@ -13,7 +13,6 @@ import {
 import { SignedImage } from '@/components/SignedImage';
 import { useQuery } from '@tanstack/react-query';
 import { listPersons, listRelationships } from '@/api/persons';
-import { listCloseness, closenessMap } from '@/api/closeness';
 import { listBranches } from '@/api/branches';
 import { qk } from '@/api/queryKeys';
 import { useFamily } from '@/context/FamilyContext';
@@ -47,8 +46,6 @@ export function NetworkScreen({ navigation }: Props) {
   const cardBasis = columns === 1 ? '100%' : columns === 3 ? '31%' : '47%';
 
   const [mode, setMode] = useState<ViewMode>('tree');
-  // Standard: ganze Familie zeigen (Familienwelt), nicht auf mich zoomen.
-  const [worldMode, setWorldMode] = useState(true);
 
   const personsQuery = useQuery({
     queryKey: qk.persons(familyId),
@@ -57,11 +54,6 @@ export function NetworkScreen({ navigation }: Props) {
   const relationshipsQuery = useQuery({
     queryKey: qk.relationships(familyId),
     queryFn: () => listRelationships(familyId),
-  });
-  const closenessQuery = useQuery({
-    queryKey: qk.closeness(familyId, userId ?? ''),
-    queryFn: () => listCloseness(familyId, userId ?? ''),
-    enabled: !!userId,
   });
   const branchesQuery = useQuery({
     queryKey: qk.branches(familyId),
@@ -75,11 +67,6 @@ export function NetworkScreen({ navigation }: Props) {
   const anchorId = useMemo(
     () => persons.find((p) => p.user_id === userId)?.id ?? persons[0]?.id ?? null,
     [persons, userId],
-  );
-
-  const closenessByPerson = useMemo(
-    () => closenessMap(closenessQuery.data ?? []),
-    [closenessQuery.data],
   );
 
   // Beziehungstyp relativ zur eingeloggten Person (direkte Verbindungen).
@@ -152,30 +139,9 @@ export function NetworkScreen({ navigation }: Props) {
           {toggle}
         </View>
 
-        <View style={styles.controlsRow}>
-          <View style={styles.legendRowWrap}>
-            {LEGEND.map((item) => (
-              <View key={item.category} style={styles.legendChip}>
-                <View style={[styles.dotSmall, { backgroundColor: item.color }]} />
-                <AppText variant="caption" color={colors.textSecondary}>
-                  {item.short}
-                </AppText>
-              </View>
-            ))}
-          </View>
-          <Pressable
-            onPress={() => setWorldMode((w) => !w)}
-            style={[styles.worldBtn, worldMode && styles.worldBtnActive]}
-          >
-            <AppText
-              variant="caption"
-              color={worldMode ? colors.textOnAccent : colors.primaryDark}
-              style={styles.worldBtnText}
-            >
-              🌍 Familienwelt
-            </AppText>
-          </Pressable>
-        </View>
+        <AppText variant="caption" color={colors.textSecondary} style={styles.hint}>
+          Tippe eine Person an, um ihre Familie zu entdecken · ziehen & zoomen
+        </AppText>
 
         {loading ? (
           <Loading message="Familie wird geladen …" />
@@ -194,9 +160,7 @@ export function NetworkScreen({ navigation }: Props) {
               relationships={relationships}
               anchorId={anchorId}
               branches={branches}
-              closenessByPerson={closenessByPerson}
               relationshipLabelByPerson={relationshipLabelByPerson}
-              worldMode={worldMode}
               onSelectPerson={(personId) =>
                 navigation.navigate('PersonProfile', { personId })
               }
@@ -328,6 +292,7 @@ export function NetworkScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   flexShrink: { flexShrink: 1 },
   treeContent: { flex: 1 },
+  hint: { marginTop: 2 },
   treeHeader: {
     flexDirection: 'row',
     alignItems: 'center',

@@ -16,11 +16,11 @@ import { relationshipColor } from '@/theme';
  */
 
 // --- Maße eines Knotens / Layout-Raster (unskaliert) ---
-export const NODE_W = 134;
-export const NODE_H = 178;
-const H_GAP = 40; // horizontaler Abstand zwischen Geschwistern/Partnern
-const V_GAP = 96; // vertikaler Abstand zwischen Generationen
-const MARGIN = 120; // großzügiger Rand → „Weltgefühl", Platz zum Pannen
+export const NODE_W = 120;
+export const NODE_H = 132;
+const H_GAP = 38; // horizontaler Abstand zwischen Geschwistern/Partnern
+const V_GAP = 88; // vertikaler Abstand zwischen Generationen
+const MARGIN = 110; // großzügiger Rand → „Weltgefühl", Platz zum Pannen
 
 /** Generationsversatz von `to` relativ zu `from` (gen(to) − gen(from)). */
 const GENERATION_DELTA: Record<RelationshipType, number> = {
@@ -222,6 +222,7 @@ export function computeTreeLayout(
   relationships: Relationship[],
   anchorId: string | null,
   branchIndexById?: Map<string, number>,
+  allowedEdgePairs?: Set<string>,
 ): TreeLayout {
   if (persons.length === 0) {
     return { nodes: [], edges: [], width: 0, height: 0 };
@@ -289,6 +290,8 @@ export function computeTreeLayout(
     if (!a || !b) continue;
     const pairKey = [rel.from_person_id, rel.to_person_id].sort().join('|');
     if (seen.has(pairKey)) continue;
+    // Nur die „aufgeklappten" Verbindungen zeichnen (falls gefiltert wird).
+    if (allowedEdgePairs && !allowedEdgePairs.has(pairKey)) continue;
     seen.add(pairKey);
 
     const color = relationshipColor(rel.category);

@@ -90,13 +90,21 @@ Weich und großzügig (kein harter „Material"-Look):
 
 ## 7. Stammbaum / „Familienwelt"
 
-Beim Öffnen wird die **ganze Familie** eingepasst (Familienwelt), nicht auf
-eine Person gezoomt. Die eingeloggte Person wird durch einen pulsierenden
-goldenen Glow und ein kleines „Du"-Badge hervorgehoben (Doppeltipp/◎-Button
-fokussiert auf sie). Große Portraits, weiche Bézier-Verbindungen
-(Deckkraft 0.7) und dezente farbige Zweig-Bereiche mit Beschriftung
-(Vaterseite, Mutterseite, Patchwork, Angeheiratet). Ziel: Familienuniversum
-statt Organigramm.
+Konzept: **interaktives Familiennetzwerk** (eher Google-Maps/Wissensgraph
+als Stammbaum). Beim Öffnen sind nur die **nächsten Angehörigen** sichtbar
+(Eltern, Geschwister, Partner, Kinder) – keine Großeltern, Cousins oder
+entfernten Verwandten. Tippt man auf eine Person, **klappen ihre weiteren
+Zweige animiert auf** (Fade + Scale, Karten verschieben sich, Ansicht passt
+sich sanft neu ein); erneutes Tippen klappt wieder ein. Es werden **nur die
+aufgeklappten Verbindungen** gezeichnet → wenig Linien, viel Ruhe.
+
+- Kompakte Knoten: Foto, Vorname, Beziehung. Ein „＋N"-Chip signalisiert
+  weitere Familie; das ⋯-Symbol öffnet das volle Profil.
+- Eingeloggte Person: pulsierender goldener Glow + „Du"-Badge (nicht durch
+  Heranzoomen, sondern als Highlight). Doppeltipp zentriert auf sie.
+- Bedienung: Ziehen = verschieben, Pinch/Buttons = Zoom, „Übersicht" und
+  Zweig-Chips (Vaterseite/Mutterseite/Patchwork/Angeheiratet) zum gezielten
+  Erkunden. Ziel: Familienuniversum statt Organigramm.
 
 ## 8. Leitfrage
 
