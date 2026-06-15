@@ -31,6 +31,10 @@ import type {
   EventParticipant,
   Moment,
   MomentComment,
+  Trustee,
+  EstateInfo,
+  EstateCase,
+  EstateConfirmation,
 } from '@/types/models';
 import { coverImage, photoImage, portraitImage } from './images';
 
@@ -76,6 +80,11 @@ export interface DemoDataset {
   eventParticipants: EventParticipant[];
   moments: Moment[];
   momentComments: MomentComment[];
+  // Trustee & Nachlass-Freigabe
+  trustees: Trustee[];
+  estateInfos: EstateInfo[];
+  estateCases: EstateCase[];
+  estateConfirmations: EstateConfirmation[];
 }
 
 /** Erzeugt einen frischen Demo-Datensatz (Familie Mielke). */
@@ -453,6 +462,44 @@ export function createSeedData(): DemoDataset {
     { id: 'mc2', moment_id: 'mo1', author_user_id: DEMO_USER_ID, text: 'Danke! War ein super Tag.', created_at: daysFromNow(-3) },
   ];
 
+  // --- Vertrauenspersonen (Trustees) von Nick ---
+  const trustees: Trustee[] = [
+    trustee('tr-max', 'Max Mielke', 'Bruder', 'p-max', '+49 170 2223344'),
+    trustee('tr-sabine', 'Sabine Mielke', 'Mutter', 'p-mutter', '+49 170 1234567'),
+    trustee('tr-thomas', 'Thomas Mielke', 'Vater', 'p-vater', '+49 170 5556677'),
+  ];
+
+  // --- Nachlasshinweise von Nick (keine sensiblen Zugangsdaten) ---
+  const estateInfos: EstateInfo[] = [
+    {
+      id: 'est-nick',
+      family_id: DEMO_FAMILY_ID,
+      owner_user_id: DEMO_USER_ID,
+      has_will: true,
+      will_location: 'Beim Notar Dr. Berger hinterlegt',
+      has_patient_decree: true,
+      patient_decree_location: 'Ordner „Wichtiges" im Schlafzimmerschrank',
+      has_power_of_attorney: false,
+      power_of_attorney_location: null,
+      has_insurance: true,
+      insurance_location: 'Versicherungsordner im Wohnzimmer · Ansprechpartnerin: Sabine',
+      contact_person: 'Sabine Mielke',
+      contact_person_id: 'p-mutter',
+      personal_notes:
+        'Bitte kümmert euch zuerst um Oma Erika. Die Familienfotos sind mir am wichtigsten – sie sollen bei euch bleiben. 💛',
+      farewell_message:
+        'Wenn ihr das lest, denkt an die schönen Momente. Ich bin dankbar für jeden Tag mit euch.',
+      media_path: null,
+      release_audience: 'trustees',
+      recipient_person_ids: [],
+      required_confirmations: 2,
+      updated_at: daysFromNow(-10),
+    },
+  ];
+
+  const estateCases: EstateCase[] = [];
+  const estateConfirmations: EstateConfirmation[] = [];
+
   return {
     profile,
     family,
@@ -481,9 +528,35 @@ export function createSeedData(): DemoDataset {
     eventParticipants,
     moments,
     momentComments,
+    trustees,
+    estateInfos,
+    estateCases,
+    estateConfirmations,
   };
 
   // --- Fabrik-Helfer ---
+  function trustee(
+    id: string,
+    name: string,
+    relation: string,
+    personId: string | null,
+    phone: string | null,
+  ): Trustee {
+    return {
+      id,
+      family_id: DEMO_FAMILY_ID,
+      owner_user_id: DEMO_USER_ID,
+      person_id: personId,
+      name,
+      relation,
+      phone,
+      email: null,
+      role: relation,
+      can_confirm_death: true,
+      created_at: daysFromNow(-30),
+    };
+  }
+
   function person(
     id: string,
     first: string,

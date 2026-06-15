@@ -41,6 +41,11 @@ import type {
   MomentKind,
   MomentComment,
   VisibilityLevel,
+  Trustee,
+  EstateInfo,
+  EstateAudience,
+  EstateCase,
+  EstateConfirmation,
 } from '@/types/models';
 import { createSeedData, DEMO_FAMILY_ID, DEMO_USER_ID } from './demoData';
 
@@ -1120,6 +1125,187 @@ export const demoStore = {
     };
     data.momentComments.push(c);
     return { ...c, author: resolveAuthor(authorUserId) };
+  },
+
+  // ===================== Trustee & Nachlass-Freigabe =====================
+  listTrustees(ownerUserId: string): Trustee[] {
+    return data.trustees.filter((t) => t.owner_user_id === ownerUserId);
+  },
+  createTrustee(input: {
+    familyId: string;
+    ownerUserId: string;
+    personId: string | null;
+    name: string;
+    relation: string;
+    phone?: string | null;
+    email?: string | null;
+    role?: string | null;
+    canConfirmDeath?: boolean;
+  }): Trustee {
+    const t: Trustee = {
+      id: newId('tr'),
+      family_id: input.familyId,
+      owner_user_id: input.ownerUserId,
+      person_id: input.personId,
+      name: input.name,
+      relation: input.relation,
+      phone: input.phone ?? null,
+      email: input.email ?? null,
+      role: input.role ?? input.relation,
+      can_confirm_death: input.canConfirmDeath ?? true,
+      created_at: nowIso(),
+    };
+    data.trustees.push(t);
+    return t;
+  },
+  updateTrustee(id: string, patch: Partial<Trustee>): Trustee {
+    const t = data.trustees.find((x) => x.id === id);
+    if (!t) throw new Error('Trustee nicht gefunden');
+    Object.assign(t, patch);
+    return t;
+  },
+  deleteTrustee(id: string): void {
+    data.trustees = data.trustees.filter((x) => x.id !== id);
+  },
+
+  getEstateInfo(ownerUserId: string): EstateInfo | null {
+    return data.estateInfos.find((e) => e.owner_user_id === ownerUserId) ?? null;
+  },
+  upsertEstateInfo(ownerUserId: string, familyId: string, patch: Partial<EstateInfo>): EstateInfo {
+    let info = data.estateInfos.find((e) => e.owner_user_id === ownerUserId);
+    if (info) {
+      Object.assign(info, patch, { updated_at: nowIso() });
+    } else {
+      info = {
+        id: newId('est'),
+        family_id: familyId,
+        owner_user_id: ownerUserId,
+        has_will: false,
+        will_location: null,
+        has_patient_decree: false,
+        patient_decree_location: null,
+        has_power_of_attorney: false,
+        power_of_attorney_location: null,
+        has_insurance: false,
+        insurance_location: null,
+        contact_person: null,
+        contact_person_id: null,
+        personal_notes: null,
+        farewell_message: null,
+        media_path: null,
+        release_audience: 'trustees' as EstateAudience,
+        recipient_person_ids: [],
+        required_confirmations: 2,
+        updated_at: nowIso(),
+        ...patch,
+      };
+      data.estateInfos.push(info);
+    }
+    return info;
+  },
+
+  listEstateCases(familyId: string): EstateCase[] {
+    return data.estateCases
+      .filter((c) => c.family_id === familyId)
+      .map((c) => ({
+        ...c,
+        confirmations: data.estateConfirmations.filter((x) => x.case_id === c.id),
+      }))
+      .sort((a, b) => (a.created_at < b.created_at ? 1 : -1));
+  },
+  getEstateCase(id: string): EstateCase | null {
+    const c = data.estateCases.find((x) => x.id === id);
+    if (!c) return null;
+    return { ...c, confirmations: data.estateConfirmations.filter((x) => x.case_id === id) };
+  },
+  reportDeath(input: {
+    familyId: string;
+    subjectUserId: string;
+    subjectPersonId: string | null;
+    reportedByUserId: string | null;
+    reportedByTrusteeId: string | null;
+    reportedByName: string;
+    note?: string | null;
+  }): EstateCase {
+    const info = data.estateInfos.find((e) => e.owner_user_id === input.subjectUserId);
+    const required = info?.required_confirmations ?? 2;
+    const c: EstateCase = {
+      id: newId('case'),
+      family_id: input.familyId,
+      subject_user_id: input.subjectUserId,
+      subject_person_id: input.subjectPersonId,
+      reported_by_user_id: input.reportedByUserId,
+      reported_by_trustee_id: input.reportedByTrusteeId,
+      reported_by_name: input.reportedByName,
+      status: 'awaiting',
+      required_confirmations: required,
+      note: input.note ?? null,
+      created_at: nowIso(),
+      updated_at: nowIso(),
+      released_at: null,
+    };
+    data.estateCases.unshift(c);
+    // Benachrichtigung für die Familie (Missbrauchsschutz: Melder protokolliert)
+    data.notifications.unshift({
+      id: newId('nt'),
+      family_id: input.familyId,
+      recipient_user_id: null,
+      actor_user_id: input.reportedByUserId,
+      category: 'info',
+      title: 'Nachlass-Freigabe angestoßen',
+      body: `${input.reportedByName} hat eine Nachlass-Freigabe angestoßen. Vertrauenspersonen werden um Bestätigung gebeten.`,
+      data: { caseId: c.id },
+      is_read: false,
+      created_at: nowIso(),
+    });
+    return { ...c, confirmations: [] };
+  },
+  confirmEstateCase(input: {
+    caseId: string;
+    trusteeId: string | null;
+    confirmerName: string;
+    decision: 'confirm' | 'reject';
+    note?: string | null;
+  }): EstateCase {
+    const c = data.estateCases.find((x) => x.id === input.caseId);
+    if (!c) throw new Error('Fall nicht gefunden');
+    // Doppelte Bestätigung derselben Vertrauensperson verhindern.
+    const already = data.estateConfirmations.find(
+      (x) => x.case_id === c.id && x.trustee_id && x.trustee_id === input.trusteeId,
+    );
+    if (!already) {
+      data.estateConfirmations.push({
+        id: newId('conf'),
+        case_id: c.id,
+        trustee_id: input.trusteeId,
+        confirmer_name: input.confirmerName,
+        decision: input.decision,
+        note: input.note ?? null,
+        created_at: nowIso(),
+      });
+    }
+    const confirms = data.estateConfirmations.filter(
+      (x) => x.case_id === c.id && x.decision === 'confirm',
+    ).length;
+    const rejects = data.estateConfirmations.filter(
+      (x) => x.case_id === c.id && x.decision === 'reject',
+    ).length;
+    if (input.decision === 'reject' && rejects > 0) {
+      c.status = 'rejected';
+    } else if (confirms >= c.required_confirmations) {
+      c.status = 'released';
+      c.released_at = c.released_at ?? nowIso();
+    }
+    c.updated_at = nowIso();
+    return this.getEstateCase(c.id)!;
+  },
+  revokeEstateCase(caseId: string): EstateCase {
+    const c = data.estateCases.find((x) => x.id === caseId);
+    if (!c) throw new Error('Fall nicht gefunden');
+    c.status = 'rejected';
+    c.released_at = null;
+    c.updated_at = nowIso();
+    return this.getEstateCase(c.id)!;
   },
 };
 

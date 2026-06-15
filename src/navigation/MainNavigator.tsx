@@ -39,6 +39,12 @@ import { CapsuleDetailScreen } from '@/screens/capsules/CapsuleDetailScreen';
 import { ProfileScreen } from '@/screens/profile/ProfileScreen';
 import { EditProfileScreen } from '@/screens/profile/EditProfileScreen';
 import { FamilySettingsScreen } from '@/screens/profile/FamilySettingsScreen';
+// Trustee & Nachlass-Freigabe
+import { EstateHubScreen } from '@/screens/estate/EstateHubScreen';
+import { TrusteesScreen } from '@/screens/estate/TrusteesScreen';
+import { TrusteeFormScreen } from '@/screens/estate/TrusteeFormScreen';
+import { EstateInfoFormScreen } from '@/screens/estate/EstateInfoFormScreen';
+import { EstateCaseScreen } from '@/screens/estate/EstateCaseScreen';
 // Phase 2
 import { StatusScreen } from '@/screens/phase2/StatusScreen';
 import { NotificationsScreen } from '@/screens/phase2/NotificationsScreen';
@@ -179,6 +185,11 @@ function ProfileStackNavigator() {
       <ProfileStack.Screen name="Profile" component={ProfileScreen} options={{ title: 'Mein Profil' }} />
       <ProfileStack.Screen name="EditProfile" component={EditProfileScreen} options={{ title: 'Profil bearbeiten' }} />
       <ProfileStack.Screen name="FamilySettings" component={FamilySettingsScreen} options={{ title: 'Familie verwalten' }} />
+      <ProfileStack.Screen name="EstateHub" component={EstateHubScreen} options={{ title: 'Nachlass & Hinweise' }} />
+      <ProfileStack.Screen name="Trustees" component={TrusteesScreen} options={{ title: 'Vertrauenspersonen' }} />
+      <ProfileStack.Screen name="TrusteeForm" component={TrusteeFormScreen} options={{ title: 'Vertrauensperson' }} />
+      <ProfileStack.Screen name="EstateInfoForm" component={EstateInfoFormScreen} options={{ title: 'Nachlasshinweise' }} />
+      <ProfileStack.Screen name="EstateCase" component={EstateCaseScreen} options={{ title: 'Nachlass-Freigabe' }} />
     </ProfileStack.Navigator>
   );
 }

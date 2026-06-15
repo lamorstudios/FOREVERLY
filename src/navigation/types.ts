@@ -91,6 +91,12 @@ export type ProfileStackParamList = {
   Profile: undefined;
   EditProfile: undefined;
   FamilySettings: undefined;
+  // Trustee & Nachlass-Freigabe
+  EstateHub: undefined;
+  Trustees: undefined;
+  TrusteeForm: { trusteeId?: string } | undefined;
+  EstateInfoForm: undefined;
+  EstateCase: { caseId: string };
 };
 
 export type MainTabParamList = {

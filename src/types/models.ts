@@ -510,3 +510,83 @@ export interface TrustedContact {
   updated_at: string;
   person?: Person;
 }
+
+// ===================== Trustee & Nachlass-Freigabe =====================
+
+/** Vertrauensperson, die einen Todesfall bestätigen darf. */
+export interface Trustee {
+  id: string;
+  family_id: string;
+  owner_user_id: string; // wem diese Vertrauensperson zugeordnet ist
+  person_id: string | null; // verknüpftes Foreverly-Profil (optional)
+  name: string;
+  relation: string; // z.B. „Bruder", „Mutter", „Notar-Kontakt"
+  phone: string | null;
+  email: string | null;
+  role: string | null; // freie Rollenbeschreibung
+  can_confirm_death: boolean;
+  created_at: string;
+}
+
+/** Wer darf den freigegebenen Nachlassbereich sehen? */
+export type EstateAudience =
+  | 'children' // alle Kinder
+  | 'spouse' // Ehepartner
+  | 'inner' // Inner Circle
+  | 'trustees' // Vertrauenspersonen
+  | 'selected'; // ausgewählte Empfänger
+
+/** Hinterlegte Nachlasshinweise (keine sensiblen Zugangsdaten!). */
+export interface EstateInfo {
+  id: string;
+  family_id: string;
+  owner_user_id: string;
+  has_will: boolean;
+  will_location: string | null;
+  has_patient_decree: boolean;
+  patient_decree_location: string | null;
+  has_power_of_attorney: boolean;
+  power_of_attorney_location: string | null;
+  has_insurance: boolean;
+  insurance_location: string | null;
+  contact_person: string | null;
+  contact_person_id: string | null;
+  personal_notes: string | null;
+  farewell_message: string | null;
+  media_path: string | null; // optionale Audio-/Video-Botschaft
+  release_audience: EstateAudience;
+  recipient_person_ids: string[]; // bei „selected"
+  required_confirmations: number; // Standard 2
+  updated_at: string;
+}
+
+export type EstateCaseStatus = 'awaiting' | 'released' | 'rejected';
+
+/** Freigabeprozess nach Meldung eines Todesfalls. */
+export interface EstateCase {
+  id: string;
+  family_id: string;
+  subject_user_id: string; // Besitzer des Nachlasses
+  subject_person_id: string | null;
+  reported_by_user_id: string | null;
+  reported_by_trustee_id: string | null;
+  reported_by_name: string;
+  status: EstateCaseStatus;
+  required_confirmations: number;
+  note: string | null;
+  created_at: string;
+  updated_at: string;
+  released_at: string | null;
+  confirmations?: EstateConfirmation[];
+}
+
+export interface EstateConfirmation {
+  id: string;
+  case_id: string;
+  trustee_id: string | null;
+  confirmer_name: string;
+  decision: 'confirm' | 'reject';
+  note: string | null;
+  created_at: string;
+}
+
