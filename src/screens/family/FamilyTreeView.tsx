@@ -8,149 +8,132 @@ import {
   LayoutChangeEvent,
   Easing,
 } from 'react-native';
-import Svg, { Path, Rect } from 'react-native-svg';
+import Svg, { Line } from 'react-native-svg';
 import { Ionicons } from '@expo/vector-icons';
 import { AppText, Avatar } from '@/components';
 import { SignedImage } from '@/components/SignedImage';
-import { colors, spacing, radius, shadow, withAlpha } from '@/theme';
+import { colors, spacing, radius, shadow, withAlpha, relationshipColor } from '@/theme';
+import { RELATIONSHIP_LABELS } from '@/constants/relationships';
 import { fullName } from '@/lib/format';
 import type {
   Person,
   Relationship,
   RelationshipType,
-  FamilyBranch,
+  RelationshipCategory,
 } from '@/types/models';
-import {
-  computeTreeLayout,
-  NODE_W,
-  NODE_H,
-  type TreeEdge,
-  type TreeNode,
-} from './treeLayout';
 
 interface FamilyTreeViewProps {
   persons: Person[];
   relationships: Relationship[];
   anchorId: string | null;
-  branches: FamilyBranch[];
-  relationshipLabelByPerson: Record<string, string>;
   onSelectPerson: (personId: string) => void;
 }
 
-const MIN_SCALE = 0.4;
-const MAX_SCALE = 1.8;
+const MIN_SCALE = 0.5;
+const MAX_SCALE = 2;
+const HUB_D = 118; // Durchmesser des zentralen Hubs
+const NODE_D = 88; // Durchmesser der umliegenden Kreise
 
+const AnimatedLine = Animated.createAnimatedComponent(Line);
+
+// „Nahe" Beziehungen, die im Ring um den aktiven Hub erscheinen.
 const CLOSE_TYPES = new Set<RelationshipType>([
-  'vater',
-  'mutter',
-  'stiefvater',
-  'stiefmutter',
-  'sohn',
-  'tochter',
-  'stiefkind',
-  'adoptivkind',
-  'pflegekind',
-  'bruder',
-  'schwester',
-  'ehepartner',
-  'lebenspartner',
+  'vater', 'mutter', 'stiefvater', 'stiefmutter',
+  'sohn', 'tochter', 'stiefkind', 'adoptivkind', 'pflegekind',
+  'bruder', 'schwester', 'ehepartner', 'lebenspartner',
 ]);
+
+// Generische „Gegen-Beziehung" (für Personen relativ zum Hub).
+const INVERSE_LABEL: Record<RelationshipType, string> = {
+  vater: 'Kind', mutter: 'Kind',
+  sohn: 'Elternteil', tochter: 'Elternteil',
+  bruder: 'Geschwister', schwester: 'Geschwister',
+  oma: 'Enkelkind', opa: 'Enkelkind',
+  tante: 'Nichte/Neffe', onkel: 'Nichte/Neffe',
+  cousin: 'Cousin/Cousine', cousine: 'Cousin/Cousine',
+  nichte: 'Tante/Onkel', neffe: 'Tante/Onkel',
+  ehepartner: 'Ehepartner', lebenspartner: 'Lebenspartner',
+  stiefvater: 'Stiefkind', stiefmutter: 'Stiefkind',
+  stiefkind: 'Stiefelternteil',
+  adoptivkind: 'Adoptiv-Elternteil', pflegekind: 'Pflege-Elternteil',
+  sonstige: 'Familie',
+};
 
 function pairKey(a: string, b: string): string {
   return a < b ? `${a}|${b}` : `${b}|${a}`;
 }
 
 /**
- * Lebendige, interaktive Familienwelt (im Geist von Apple/Google Maps,
- * Figma, Miro) – kein statischer Stammbaum.
+ * Interaktive Familienwelt als radialer Ego-Graph (im Geist von Obsidian
+ * Graph / Miro / Apple Maps) – ausdrücklich kein Stammbaum.
  *
- * Beim Öffnen sind nur die nächsten Angehörigen sichtbar. Tippt man eine
- * Person an, gleitet die Kamera sanft zu ihr, neue Familienmitglieder
- * „wachsen" animiert aus ihr heraus (Spring + Fade + Scale), bestehende
- * Karten verschieben sich flüssig. Beim Einklappen fahren die Zweige weich
- * zusammen. Alles über die eingebaute Animated-API (Spring), damit es im
- * Web-Export zuverlässig läuft.
+ * Die aktive Person steht immer exakt im Zentrum; ihre nächsten Angehörigen
+ * liegen als Kreise rundherum. Erster Tipp auf einen Kreis macht ihn zum
+ * neuen Zentrum (die Kamera zentriert, neue Kreise wachsen heraus, Linien
+ * wachsen mit). Zweiter Tipp auf die zentrierte Person öffnet ihr Profil.
  */
-export function FamilyTreeView({
-  persons,
-  relationships,
-  anchorId,
-  branches,
-  relationshipLabelByPerson,
-  onSelectPerson,
-}: FamilyTreeViewProps) {
-  const { neighborMap, pairTypeMap } = useMemo(() => {
+export function FamilyTreeView({ persons, relationships, anchorId, onSelectPerson }: FamilyTreeViewProps) {
+  const personById = useMemo(() => new Map(persons.map((p) => [p.id, p])), [persons]);
+
+  const { neighborMap, pairTypeMap, dirLabel, pairCat } = useMemo(() => {
     const neighborMap = new Map<string, string[]>();
     const pairTypeMap = new Map<string, RelationshipType>();
+    const pairCat = new Map<string, RelationshipCategory>();
+    const dirLabel = new Map<string, string>();
     const add = (a: string, b: string) => {
       if (!neighborMap.has(a)) neighborMap.set(a, []);
       const list = neighborMap.get(a)!;
       if (!list.includes(b)) list.push(b);
     };
     for (const rel of relationships) {
-      add(rel.from_person_id, rel.to_person_id);
-      add(rel.to_person_id, rel.from_person_id);
-      const key = pairKey(rel.from_person_id, rel.to_person_id);
-      if (!pairTypeMap.has(key)) pairTypeMap.set(key, rel.type);
+      const { from_person_id: f, to_person_id: t, type, category } = rel;
+      add(f, t);
+      add(t, f);
+      const key = pairKey(f, t);
+      if (!pairTypeMap.has(key)) {
+        pairTypeMap.set(key, type);
+        pairCat.set(key, category);
+      }
+      // to ist <type> von from; from ist <inverse> von to.
+      dirLabel.set(`${f}->${t}`, RELATIONSHIP_LABELS[type]);
+      dirLabel.set(`${t}->${f}`, INVERSE_LABEL[type]);
     }
-    return { neighborMap, pairTypeMap };
+    return { neighborMap, pairTypeMap, dirLabel, pairCat };
   }, [relationships]);
 
-  const branchIndexById = useMemo(() => {
-    const map = new Map<string, number>();
-    branches.forEach((b, i) => {
-      for (const id of b.member_ids ?? []) if (!map.has(id)) map.set(id, i);
+  const [activeId, setActiveId] = useState<string | null>(anchorId);
+  useEffect(() => {
+    setActiveId((cur) => cur ?? anchorId);
+  }, [anchorId]);
+
+  const hubId = activeId ?? anchorId;
+
+  // Ring = nahe Angehörige des aktiven Hubs.
+  const ringIds = useMemo(() => {
+    if (!hubId) return [];
+    return (neighborMap.get(hubId) ?? []).filter((n) => {
+      const t = pairTypeMap.get(pairKey(hubId, n));
+      return t ? CLOSE_TYPES.has(t) : false;
     });
-    return map;
-  }, [branches]);
+  }, [hubId, neighborMap, pairTypeMap]);
 
-  const [expanded, setExpanded] = useState<Set<string>>(new Set());
-  const [activeId, setActiveId] = useState<string | null>(null);
-
-  const visible = useMemo(() => {
-    const revealedBy = new Map<string, string | null>();
-    if (!anchorId) return revealedBy;
-    revealedBy.set(anchorId, null);
-    const queue = [anchorId];
-    while (queue.length) {
-      const cur = queue.shift()!;
-      const revealAll = expanded.has(cur);
-      const revealClose = cur === anchorId;
-      if (!revealAll && !revealClose) continue;
-      for (const n of neighborMap.get(cur) ?? []) {
-        const t = pairTypeMap.get(pairKey(cur, n));
-        const isClose = t ? CLOSE_TYPES.has(t) : false;
-        if (revealAll || (revealClose && isClose)) {
-          if (!revealedBy.has(n)) {
-            revealedBy.set(n, cur);
-            queue.push(n);
-          }
-        }
-      }
-    }
-    return revealedBy;
-  }, [expanded, anchorId, neighborMap, pairTypeMap]);
-
-  const hiddenCountOf = (id: string) =>
-    (neighborMap.get(id) ?? []).filter((n) => !visible.has(n)).length;
-
+  // Radiales Layout (Hub im Zentrum, Ring rundherum).
   const layout = useMemo(() => {
-    const vp = persons.filter((p) => visible.has(p.id));
-    const vr = relationships.filter(
-      (r) => visible.has(r.from_person_id) && visible.has(r.to_person_id),
-    );
-    const allowed = new Set<string>();
-    for (const [id, by] of visible) if (by) allowed.add(pairKey(by, id));
-    return computeTreeLayout(vp, vr, anchorId, branchIndexById, allowed);
-  }, [persons, relationships, visible, anchorId, branchIndexById]);
+    const nodes: { id: string; cx: number; cy: number; size: number }[] = [];
+    if (!hubId) return { nodes, width: 600, height: 600, center: 300 };
+    const N = ringIds.length;
+    const R = N <= 1 ? 170 : Math.max(180, 64 + N * 30);
+    const half = R + HUB_D / 2 + 90;
+    const C = half;
+    nodes.push({ id: hubId, cx: C, cy: C, size: HUB_D });
+    ringIds.forEach((id, i) => {
+      const a = -Math.PI / 2 + (i * 2 * Math.PI) / N;
+      nodes.push({ id, cx: C + R * Math.cos(a), cy: C + R * Math.sin(a), size: NODE_D });
+    });
+    return { nodes, width: half * 2, height: half * 2, center: C };
+  }, [hubId, ringIds]);
 
-  const zones = useMemo(() => buildZones(branches, layout), [branches, layout]);
-  const anchorNode = useMemo(
-    () => layout.nodes.find((n) => n.person.id === anchorId) ?? null,
-    [layout, anchorId],
-  );
-
-  // ---- Kamera-Transform (Pan + Pinch + Fit) ----
+  // ---- Kamera ----
   const translate = useRef(new Animated.ValueXY({ x: 0, y: 0 })).current;
   const scale = useRef(new Animated.Value(1)).current;
   const tx = useRef(0);
@@ -159,8 +142,6 @@ export function FamilyTreeView({
   const viewport = useRef({ w: 0, h: 0 });
   const didInit = useRef(false);
   const lastTap = useRef(0);
-  const pendingFocusId = useRef<string | null>(null);
-  const pendingBranchIds = useRef<string[] | null>(null);
 
   useEffect(() => {
     const a = translate.x.addListener(({ value }) => (tx.current = value));
@@ -182,29 +163,13 @@ export function FamilyTreeView({
     ]).start();
   }
 
-  function fitToBox(x: number, y: number, w: number, h: number, cap = MAX_SCALE) {
-    const { w: vw, h: vh } = viewport.current;
-    if (!vw || !vh || w <= 0 || h <= 0) return;
-    const pad = 64;
-    const s = clamp(Math.min((vw - pad) / w, (vh - pad) / h, cap));
-    animateCam(s, vw / 2 - (x + w / 2) * s, vh / 2 - (y + h / 2) * s);
-  }
-
-  function fitWorld() {
-    fitToBox(0, 0, layout.width, layout.height, 1);
-  }
-
-  function frameNodes(ns: TreeNode[], cap: number) {
-    if (!ns.length) return;
-    const minX = Math.min(...ns.map((n) => n.x));
-    const minY = Math.min(...ns.map((n) => n.y));
-    const maxX = Math.max(...ns.map((n) => n.x + NODE_W));
-    const maxY = Math.max(...ns.map((n) => n.y + NODE_H));
-    fitToBox(minX - 48, minY - 48, maxX - minX + 96, maxY - minY + 96, cap);
-  }
-
-  function focusOnAnchor() {
-    if (anchorNode) frameNodes([anchorNode], 1.25);
+  // Hub immer exakt mittig: das gesamte (symmetrische) Layout einpassen.
+  function centerHub() {
+    const { w, h } = viewport.current;
+    if (!w || !h) return;
+    const pad = 80;
+    const s = clamp(Math.min((w - pad) / layout.width, (h - pad) / layout.height, 1.05));
+    animateCam(s, w / 2 - layout.center * s, h / 2 - layout.center * s);
   }
 
   function onLayout(e: LayoutChangeEvent) {
@@ -212,100 +177,99 @@ export function FamilyTreeView({
     viewport.current = { w: width, h: height };
     if (!didInit.current && width && height) {
       didInit.current = true;
-      requestAnimationFrame(fitWorld);
+      requestAnimationFrame(centerHub);
     }
   }
 
-  // ---- Knoten-Positionen animieren (Enter / Move / Exit) ----
+  // ---- Knoten-Positionen (Center-Koordinaten), animiert ----
   const positions = useRef(new Map<string, Animated.ValueXY>()).current;
   const appears = useRef(new Map<string, Animated.Value>()).current;
   const targets = useRef(new Map<string, { x: number; y: number }>()).current;
-  const prevNodes = useRef<TreeNode[]>([]);
-  const [exiting, setExiting] = useState<TreeNode[]>([]);
+  const prevIds = useRef<string[]>([]);
+  const [exiting, setExiting] = useState<{ id: string; size: number }[]>([]);
   const pulse = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
     const loop = Animated.loop(
       Animated.sequence([
-        Animated.timing(pulse, { toValue: 1, duration: 1500, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
-        Animated.timing(pulse, { toValue: 0, duration: 1500, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+        Animated.timing(pulse, { toValue: 1, duration: 1600, easing: Easing.inOut(Easing.ease), useNativeDriver: false }),
+        Animated.timing(pulse, { toValue: 0, duration: 1600, easing: Easing.inOut(Easing.ease), useNativeDriver: false }),
       ]),
     );
     loop.start();
     return () => loop.stop();
   }, [pulse]);
 
+  function getPos(id: string): Animated.ValueXY {
+    let p = positions.get(id);
+    if (!p) {
+      const t = targets.get(id);
+      p = new Animated.ValueXY(t ?? { x: layout.center, y: layout.center });
+      positions.set(id, p);
+    }
+    return p;
+  }
+  function getAppear(id: string): Animated.Value {
+    let a = appears.get(id);
+    if (!a) {
+      a = new Animated.Value(0);
+      appears.set(id, a);
+    }
+    return a;
+  }
+
+  // Neue Knoten in der Render-Phase am Hub starten (damit sie herauswachsen).
+  for (const n of layout.nodes) {
+    if (!positions.has(n.id)) {
+      const start = (hubId && targets.get(hubId)) || { x: layout.center, y: layout.center };
+      positions.set(n.id, new Animated.ValueXY(start));
+      appears.set(n.id, new Animated.Value(0));
+    }
+  }
+
   useEffect(() => {
     const current = layout.nodes;
-    const currentIds = new Set(current.map((n) => n.person.id));
+    const currentIds = new Set(current.map((n) => n.id));
 
-    // Enter + Move: neue Karten starten (in der Render-Phase) an der Position
-    // ihres „Eltern"-Knotens und gleiten/faden hier an ihren Zielplatz.
     for (const n of current) {
-      const id = n.person.id;
-      const pos = positions.get(id);
-      const ap = appears.get(id);
-      if (pos) Animated.spring(pos, { toValue: { x: n.x, y: n.y }, useNativeDriver: true, friction: 8, tension: 46 }).start();
-      if (ap) Animated.timing(ap, { toValue: 1, duration: 300, useNativeDriver: true }).start();
-      targets.set(id, { x: n.x, y: n.y });
+      const pos = positions.get(n.id);
+      const ap = appears.get(n.id);
+      if (pos) Animated.spring(pos, { toValue: { x: n.cx, y: n.cy }, useNativeDriver: false, friction: 8, tension: 46 }).start();
+      if (ap) Animated.timing(ap, { toValue: 1, duration: 300, useNativeDriver: false }).start();
+      targets.set(n.id, { x: n.cx, y: n.cy });
     }
 
-    // Exit (Karten fahren weich zusammen, dann ausblenden).
-    const gone = prevNodes.current.filter((n) => !currentIds.has(n.person.id));
+    const gone = prevIds.current.filter((id) => !currentIds.has(id));
     if (gone.length) {
-      gone.forEach((n) => {
-        const ap = appears.get(n.person.id);
-        if (ap) Animated.timing(ap, { toValue: 0, duration: 240, useNativeDriver: true }).start();
-        const by = visible.get(n.person.id) ?? anchorId;
-        const back = (by && targets.get(by)) || null;
-        const pos = positions.get(n.person.id);
-        if (pos && back) {
-          Animated.timing(pos, { toValue: back, duration: 260, useNativeDriver: true }).start();
-        }
+      const hubTarget = (hubId && targets.get(hubId)) || null;
+      gone.forEach((id) => {
+        const ap = appears.get(id);
+        if (ap) Animated.timing(ap, { toValue: 0, duration: 240, useNativeDriver: false }).start();
+        const pos = positions.get(id);
+        if (pos && hubTarget) Animated.timing(pos, { toValue: hubTarget, duration: 280, useNativeDriver: false }).start();
       });
-      setExiting(gone);
+      setExiting(gone.map((id) => ({ id, size: NODE_D })));
       const timer = setTimeout(() => {
-        gone.forEach((n) => {
-          positions.delete(n.person.id);
-          appears.delete(n.person.id);
-          targets.delete(n.person.id);
+        gone.forEach((id) => {
+          positions.delete(id);
+          appears.delete(id);
+          targets.delete(id);
         });
-        setExiting((prev) => prev.filter((p) => currentIds.has(p.person.id)));
+        setExiting([]);
       }, 300);
-      prevNodes.current = current;
-      // Kamera bewegen
-      runCamera(currentIds);
+      prevIds.current = current.map((n) => n.id);
+      if (didInit.current) centerHub();
       return () => clearTimeout(timer);
     }
 
-    prevNodes.current = current;
-    runCamera(currentIds);
+    prevIds.current = current.map((n) => n.id);
+    if (didInit.current) centerHub();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [layout]);
-
-  function runCamera(currentIds: Set<string>) {
-    if (!didInit.current) return;
-    if (pendingBranchIds.current) {
-      const ids = pendingBranchIds.current;
-      pendingBranchIds.current = null;
-      const ns = layout.nodes.filter((n) => ids.includes(n.person.id));
-      if (ns.length) return frameNodes(ns, 1);
-    }
-    const fid = pendingFocusId.current;
-    if (fid && currentIds.has(fid)) {
-      pendingFocusId.current = null;
-      const ids = [fid, ...(neighborMap.get(fid) ?? [])].filter((id) => currentIds.has(id));
-      const ns = layout.nodes.filter((n) => ids.includes(n.person.id));
-      return frameNodes(ns, 1.15);
-    }
-    pendingFocusId.current = null;
-    fitWorld();
-  }
 
   // ---- Gesten ----
   const panStart = useRef({ x: 0, y: 0 });
   const pinch = useRef<{ dist: number; scale: number; cx: number; cy: number } | null>(null);
-
   const responder = useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => false,
@@ -327,12 +291,7 @@ export function FamilyTreeView({
           const dist = Math.hypot(t1.pageX - t2.pageX, t1.pageY - t2.pageY);
           const { w, h } = viewport.current;
           if (!pinch.current) {
-            pinch.current = {
-              dist,
-              scale: sc.current,
-              cx: (w / 2 - tx.current) / sc.current,
-              cy: (h / 2 - ty.current) / sc.current,
-            };
+            pinch.current = { dist, scale: sc.current, cx: (w / 2 - tx.current) / sc.current, cy: (h / 2 - ty.current) / sc.current };
           } else {
             const ns = clamp((pinch.current.scale * dist) / pinch.current.dist);
             scale.setValue(ns);
@@ -351,7 +310,7 @@ export function FamilyTreeView({
 
   function handleBackgroundTap() {
     const now = Date.now();
-    if (now - lastTap.current < 300) focusOnAnchor();
+    if (now - lastTap.current < 300 && anchorId) setActiveId(anchorId);
     lastTap.current = now;
   }
 
@@ -364,66 +323,18 @@ export function FamilyTreeView({
   }
 
   function onNodePress(id: string) {
-    setActiveId(id);
-    if (hiddenCountOf(id) > 0 || expanded.has(id)) {
-      pendingFocusId.current = id; // Kamera wandert zur angetippten Person
-      setExpanded((prev) => {
-        const s = new Set(prev);
-        s.has(id) ? s.delete(id) : s.add(id);
-        return s;
-      });
-    } else {
-      onSelectPerson(id);
-    }
+    if (id === hubId) onSelectPerson(id); // zweiter Tipp = Profil
+    else setActiveId(id); // erster Tipp = erkunden / neues Zentrum
   }
 
-  function revealBranch(branch: FamilyBranch) {
-    pendingBranchIds.current = branch.member_ids ?? [];
-    setExpanded(new Set(persons.map((p) => p.id)));
-  }
-
-  function resetView() {
-    pendingFocusId.current = null;
-    pendingBranchIds.current = null;
-    setActiveId(null);
-    setExpanded(new Set());
-  }
-
-  const currentIds = useMemo(
-    () => new Set(layout.nodes.map((n) => n.person.id)),
-    [layout],
-  );
-  const exitingVisible = exiting.filter((e) => !currentIds.has(e.person.id));
-
-  // Animated-Werte für neue Knoten bereits in der Render-Phase mit korrektem
-  // Startwert anlegen (Start = Position des aufklappenden Knotens), damit neue
-  // Karten aus ihm „herauswachsen". Die Animation selbst startet im Effect.
-  for (const n of layout.nodes) {
-    const id = n.person.id;
-    if (!positions.has(id)) {
-      const by = visible.get(id);
-      const start = (by && targets.get(by)) || { x: n.x, y: n.y };
-      positions.set(id, new Animated.ValueXY(start));
-      appears.set(id, new Animated.Value(0));
-    }
-  }
-
-  function getPos(id: string): Animated.ValueXY {
-    let p = positions.get(id);
-    if (!p) {
-      p = new Animated.ValueXY({ x: 0, y: 0 });
-      positions.set(id, p);
-    }
-    return p;
-  }
-  function getAppear(id: string): Animated.Value {
-    let a = appears.get(id);
-    if (!a) {
-      a = new Animated.Value(1);
-      appears.set(id, a);
-    }
-    return a;
-  }
+  const currentIds = useMemo(() => new Set(layout.nodes.map((n) => n.id)), [layout]);
+  const exitingVisible = exiting.filter((e) => !currentIds.has(e.id));
+  const anchorVisible = !!anchorId && currentIds.has(anchorId);
+  const sizeById = useMemo(() => {
+    const m = new Map<string, number>();
+    for (const n of layout.nodes) m.set(n.id, n.size);
+    return m;
+  }, [layout]);
 
   return (
     <View style={styles.container} onLayout={onLayout}>
@@ -434,111 +345,87 @@ export function FamilyTreeView({
             {
               width: layout.width,
               height: layout.height,
-              transform: [
-                { translateX: translate.x },
-                { translateY: translate.y },
-                { scale },
-              ],
+              transform: [{ translateX: translate.x }, { translateY: translate.y }, { scale }],
             },
           ]}
         >
           <Svg width={layout.width} height={layout.height} style={StyleSheet.absoluteFill} pointerEvents="none">
-            {zones.map((z) => (
-              <Rect
-                key={z.id}
-                x={z.x}
-                y={z.y}
-                width={z.w}
-                height={z.h}
-                rx={32}
-                fill={z.color}
-                fillOpacity={0.08}
-                stroke={z.color}
-                strokeOpacity={0.4}
-                strokeWidth={2}
-                strokeDasharray="2 10"
-              />
-            ))}
-            {layout.edges.map((edge) => (
-              <Path
-                key={edge.id}
-                d={edgePath(edge)}
-                stroke={edge.color}
-                strokeWidth={2.5}
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                fill="none"
-                opacity={0.65}
-              />
-            ))}
+            {hubId
+              ? layout.nodes
+                  .filter((n) => n.id !== hubId)
+                  .map((n) => {
+                    const cat = pairCat.get(pairKey(hubId, n.id));
+                    const hubPos = getPos(hubId);
+                    const nodePos = getPos(n.id);
+                    return (
+                      <AnimatedLine
+                        key={`edge-${n.id}`}
+                        x1={hubPos.x}
+                        y1={hubPos.y}
+                        x2={nodePos.x}
+                        y2={nodePos.y}
+                        stroke={cat ? relationshipColor(cat) : colors.border}
+                        strokeWidth={2.5}
+                        strokeLinecap="round"
+                        opacity={0.55}
+                      />
+                    );
+                  })
+              : null}
           </Svg>
 
           <Pressable style={StyleSheet.absoluteFill} onPress={handleBackgroundTap} />
 
-          {zones.map((z) => (
-            <View
-              key={`label-${z.id}`}
-              style={[styles.zoneLabel, { left: z.x + 18, top: z.y + 12, backgroundColor: z.color }]}
-            >
-              <AppText variant="caption" color={colors.textOnAccent} style={styles.zoneText}>
-                {z.name}
-              </AppText>
-            </View>
-          ))}
-
-          {anchorNode ? (
+          {anchorVisible && anchorId ? (
             <Animated.View
               pointerEvents="none"
               style={[
                 styles.glow,
                 {
-                  width: NODE_W + 32,
-                  height: NODE_H + 32,
-                  opacity: pulse.interpolate({ inputRange: [0, 1], outputRange: [0.18, 0.46] }),
+                  width: (sizeById.get(anchorId) ?? NODE_D) + 26,
+                  height: (sizeById.get(anchorId) ?? NODE_D) + 26,
+                  opacity: pulse.interpolate({ inputRange: [0, 1], outputRange: [0.2, 0.5] }),
                   transform: [
-                    { translateX: Animated.subtract(getPos(anchorNode.person.id).x, 16) },
-                    { translateY: Animated.subtract(getPos(anchorNode.person.id).y, 16) },
-                    { scale: pulse.interpolate({ inputRange: [0, 1], outputRange: [1, 1.06] }) },
+                    { translateX: Animated.subtract(getPos(anchorId).x, ((sizeById.get(anchorId) ?? NODE_D) + 26) / 2) },
+                    { translateY: Animated.subtract(getPos(anchorId).y, ((sizeById.get(anchorId) ?? NODE_D) + 26) / 2) },
+                    { scale: pulse.interpolate({ inputRange: [0, 1], outputRange: [1, 1.07] }) },
                   ],
                 },
               ]}
             />
           ) : null}
 
-          {[...exitingVisible, ...layout.nodes].map((node) => (
-            <NodeCard
-              key={node.person.id}
-              node={node}
-              pos={getPos(node.person.id)}
-              appear={getAppear(node.person.id)}
-              isAnchor={node.person.id === anchorId}
-              isActive={node.person.id === activeId}
-              branchColor={zones.find((z) => z.memberIds.includes(node.person.id))?.color}
-              relLabel={relationshipLabelByPerson[node.person.id]}
-              hiddenCount={hiddenCountOf(node.person.id)}
-              expanded={expanded.has(node.person.id)}
-              onPress={() => onNodePress(node.person.id)}
-              onOpenProfile={() => onSelectPerson(node.person.id)}
-            />
-          ))}
+          {[...exitingVisible.map((e) => e.id), ...layout.nodes.map((n) => n.id)].map((id) => {
+            const person = personById.get(id);
+            if (!person) return null;
+            const size = sizeById.get(id) ?? NODE_D;
+            const isHub = id === hubId;
+            const isAnchor = id === anchorId;
+            const cat = hubId && id !== hubId ? pairCat.get(pairKey(hubId, id)) : undefined;
+            const ringColor = isAnchor
+              ? colors.gold
+              : isHub
+                ? colors.primary
+                : cat
+                  ? relationshipColor(cat)
+                  : colors.border;
+            const relLabel = hubId && id !== hubId ? dirLabel.get(`${hubId}->${id}`) : undefined;
+            return (
+              <NodeCircle
+                key={id}
+                person={person}
+                pos={getPos(id)}
+                appear={getAppear(id)}
+                size={size}
+                isHub={isHub}
+                isAnchor={isAnchor}
+                ringColor={ringColor}
+                relLabel={relLabel}
+                onPress={() => onNodePress(id)}
+              />
+            );
+          })}
         </Animated.View>
-      </View>
-
-      <View style={styles.branchBar} pointerEvents="box-none">
-        <Pressable style={[styles.branchChip, styles.resetChip]} onPress={resetView}>
-          <Ionicons name="contract-outline" size={14} color={colors.primaryDark} />
-          <AppText variant="caption" color={colors.primaryDark} style={styles.branchText}>
-            Übersicht
-          </AppText>
-        </Pressable>
-        {branches.map((b) => (
-          <Pressable key={b.id} style={styles.branchChip} onPress={() => revealBranch(b)}>
-            <View style={[styles.branchDot, { backgroundColor: b.color ?? colors.primary }]} />
-            <AppText variant="caption" color={colors.textPrimary} style={styles.branchText} numberOfLines={1}>
-              {b.name}
-            </AppText>
-          </Pressable>
-        ))}
       </View>
 
       <View style={styles.controls}>
@@ -548,63 +435,56 @@ export function FamilyTreeView({
         <Pressable style={styles.ctrlBtn} onPress={() => zoomBy(0.8)} hitSlop={6}>
           <AppText variant="heading" color={colors.primaryDark}>−</AppText>
         </Pressable>
-        <Pressable style={styles.ctrlBtn} onPress={fitWorld} hitSlop={6}>
-          <Ionicons name="scan-outline" size={20} color={colors.primaryDark} />
-        </Pressable>
+        {anchorId ? (
+          <Pressable style={styles.ctrlBtn} onPress={() => setActiveId(anchorId)} hitSlop={6}>
+            <Ionicons name="locate-outline" size={20} color={colors.primaryDark} />
+          </Pressable>
+        ) : null}
       </View>
     </View>
   );
 }
 
-function NodeCard({
-  node,
+function NodeCircle({
+  person,
   pos,
   appear,
+  size,
+  isHub,
   isAnchor,
-  isActive,
-  branchColor,
+  ringColor,
   relLabel,
-  hiddenCount,
-  expanded,
   onPress,
-  onOpenProfile,
 }: {
-  node: TreeNode;
+  person: Person;
   pos: Animated.ValueXY;
   appear: Animated.Value;
+  size: number;
+  isHub: boolean;
   isAnchor: boolean;
-  isActive: boolean;
-  branchColor?: string;
+  ringColor: string;
   relLabel?: string;
-  hiddenCount: number;
-  expanded: boolean;
   onPress: () => void;
-  onOpenProfile: () => void;
 }) {
-  const person = node.person;
   const press = useRef(new Animated.Value(0)).current;
   const animatePress = (to: number) =>
-    Animated.spring(press, { toValue: to, useNativeDriver: true, friction: 6, tension: 120 }).start();
+    Animated.spring(press, { toValue: to, useNativeDriver: false, friction: 6, tension: 120 }).start();
 
-  const ringColor = isAnchor ? colors.gold : branchColor ?? colors.border;
-  const avatarSize = isAnchor ? 58 : 50;
-  const canExpand = hiddenCount > 0 && !expanded;
-
-  // Knoten als „Hub": leichte Vergrößerung bei Aktiv/Press.
-  const baseScale = appear.interpolate({ inputRange: [0, 1], outputRange: [0.8, 1] });
-  const pressScale = press.interpolate({ inputRange: [0, 1], outputRange: [1, 1.06] });
+  const baseScale = appear.interpolate({ inputRange: [0, 1], outputRange: [0.75, 1] });
+  const pressScale = press.interpolate({ inputRange: [0, 1], outputRange: [1, 1.07] });
+  const wrapW = Math.max(size, 132);
 
   return (
     <Animated.View
+      pointerEvents="box-none"
       style={[
         styles.nodeWrap,
         {
-          width: NODE_W,
-          height: NODE_H,
+          width: wrapW,
           opacity: appear,
           transform: [
-            { translateX: pos.x },
-            { translateY: pos.y },
+            { translateX: Animated.subtract(pos.x, wrapW / 2) },
+            { translateY: Animated.subtract(pos.y, size / 2) },
             { scale: Animated.multiply(baseScale, pressScale) },
           ],
         },
@@ -616,219 +496,74 @@ function NodeCard({
         onPressOut={() => animatePress(0)}
         onHoverIn={() => animatePress(1)}
         onHoverOut={() => animatePress(0)}
-        style={[styles.node, isAnchor && styles.nodeAnchor, isActive && styles.nodeActive]}
+        style={[
+          styles.circle,
+          { width: size, height: size, borderRadius: size / 2, borderColor: ringColor, borderWidth: isHub ? 3.5 : 2.5 },
+          isHub && shadow.card,
+        ]}
       >
+        {person.avatar_url ? (
+          <SignedImage
+            bucket="photos"
+            path={person.avatar_url}
+            style={{ width: size - 8, height: size - 8, borderRadius: (size - 8) / 2 }}
+          />
+        ) : (
+          <Avatar name={fullName(person.first_name, person.last_name)} size={size - 8} />
+        )}
         {isAnchor ? (
           <View style={styles.duBadge}>
             <AppText variant="caption" color={colors.textOnAccent} style={styles.duText}>Du</AppText>
           </View>
         ) : null}
-
-        <Pressable onPress={onOpenProfile} hitSlop={6} style={styles.profileBtn}>
-          <Ionicons name="ellipsis-horizontal" size={16} color={colors.textMuted} />
-        </Pressable>
-
-        <View
-          style={[
-            styles.avatarRing,
-            { width: avatarSize + 7, height: avatarSize + 7, borderRadius: (avatarSize + 7) / 2, borderColor: ringColor },
-          ]}
-        >
-          {person.avatar_url ? (
-            <SignedImage
-              bucket="photos"
-              path={person.avatar_url}
-              style={{ width: avatarSize, height: avatarSize, borderRadius: avatarSize / 2 }}
-            />
-          ) : (
-            <Avatar name={fullName(person.first_name, person.last_name)} size={avatarSize} />
-          )}
-        </View>
-
-        <AppText variant="bodyStrong" center numberOfLines={1} style={styles.name}>
-          {person.first_name}
-        </AppText>
-        {relLabel ? (
-          <AppText variant="caption" center numberOfLines={1} color={branchColor ?? colors.primary} style={styles.relLabel}>
-            {relLabel}
-          </AppText>
-        ) : null}
       </Pressable>
 
-      {canExpand ? (
-        <Pressable style={styles.expandChip} onPress={onPress}>
-          <Ionicons name="add" size={14} color={colors.textOnAccent} />
-          <AppText variant="caption" color={colors.textOnAccent} style={styles.expandText}>
-            {hiddenCount}
-          </AppText>
-        </Pressable>
-      ) : expanded ? (
-        <Pressable style={[styles.expandChip, styles.collapseChip]} onPress={onPress}>
-          <Ionicons name="remove" size={14} color={colors.primaryDark} />
-        </Pressable>
+      <AppText variant="bodyStrong" center numberOfLines={1} style={[styles.name, { width: wrapW }]}>
+        {person.first_name}
+      </AppText>
+      {relLabel ? (
+        <AppText variant="caption" center numberOfLines={1} color={ringColor} style={[styles.rel, { width: wrapW }]}>
+          {relLabel}
+        </AppText>
       ) : null}
     </Animated.View>
   );
 }
 
-interface Zone {
-  id: string;
-  name: string;
-  color: string;
-  memberIds: string[];
-  x: number;
-  y: number;
-  w: number;
-  h: number;
-}
-
-function buildZones(branches: FamilyBranch[], layout: ReturnType<typeof computeTreeLayout>): Zone[] {
-  const posById = new Map(layout.nodes.map((n) => [n.person.id, n]));
-  const out: Zone[] = [];
-  const pad = 20;
-  for (const branch of branches) {
-    const members = (branch.member_ids ?? [])
-      .map((id) => posById.get(id))
-      .filter(Boolean) as { x: number; y: number }[];
-    if (members.length < 2) continue;
-    const minX = Math.min(...members.map((m) => m.x)) - pad;
-    const minY = Math.min(...members.map((m) => m.y)) - pad;
-    const maxX = Math.max(...members.map((m) => m.x)) + NODE_W + pad;
-    const maxY = Math.max(...members.map((m) => m.y)) + NODE_H + pad;
-    out.push({
-      id: branch.id,
-      name: branch.name,
-      color: branch.color ?? colors.primary,
-      memberIds: branch.member_ids ?? [],
-      x: minX,
-      y: minY,
-      w: maxX - minX,
-      h: maxY - minY,
-    });
-  }
-  return out;
-}
-
-function edgePath(edge: TreeEdge): string {
-  const { x1, y1, x2, y2 } = edge;
-  if (edge.kind === 'partner') {
-    const midX = (x1 + x2) / 2;
-    return `M ${x1} ${y1} Q ${midX} ${y1 + 18} ${x2} ${y2}`;
-  }
-  const dy = y2 - y1;
-  return `M ${x1} ${y1} C ${x1} ${y1 + dy * 0.5}, ${x2} ${y2 - dy * 0.5}, ${x2} ${y2}`;
-}
-
 const styles = StyleSheet.create({
   container: { flex: 1, position: 'relative', overflow: 'hidden' },
   world: { position: 'absolute', left: 0, top: 0, transformOrigin: 'left top' },
-  nodeWrap: { position: 'absolute', left: 0, top: 0 },
-  node: {
-    flex: 1,
+  nodeWrap: { position: 'absolute', left: 0, top: 0, alignItems: 'center' },
+  circle: {
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 2,
-    paddingVertical: spacing.sm,
-    paddingHorizontal: 6,
     backgroundColor: colors.surface,
-    borderRadius: radius.xl,
-    borderWidth: 1,
-    borderColor: colors.border,
-    ...shadow.card,
+    ...shadow.soft,
   },
-  nodeAnchor: { borderColor: colors.gold, borderWidth: 2.5, backgroundColor: colors.warmWhite },
-  nodeActive: { borderColor: colors.primary, borderWidth: 2 },
+  duBadge: {
+    position: 'absolute',
+    bottom: -8,
+    backgroundColor: colors.gold,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 1,
+    borderRadius: radius.pill,
+    borderWidth: 2,
+    borderColor: colors.surface,
+  },
+  duText: { fontSize: 10, fontWeight: '800' },
+  name: { marginTop: 8 },
+  rel: { fontWeight: '600', marginTop: 1 },
   glow: {
     position: 'absolute',
     left: 0,
     top: 0,
-    borderRadius: radius.xl + 12,
-    backgroundColor: withAlpha(colors.gold, 0.55),
+    borderRadius: 999,
+    backgroundColor: withAlpha(colors.gold, 0.5),
     shadowColor: colors.gold,
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.9,
-    shadowRadius: 22,
+    shadowRadius: 24,
   },
-  duBadge: {
-    position: 'absolute',
-    top: -11,
-    backgroundColor: colors.gold,
-    paddingHorizontal: spacing.md,
-    paddingVertical: 2,
-    borderRadius: radius.pill,
-    zIndex: 2,
-    shadowColor: colors.gold,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.6,
-    shadowRadius: 6,
-  },
-  duText: { fontSize: 11, fontWeight: '800' },
-  profileBtn: {
-    position: 'absolute',
-    top: 4,
-    right: 6,
-    zIndex: 3,
-    width: 22,
-    height: 22,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  avatarRing: {
-    borderWidth: 2.5,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: colors.surface,
-    marginTop: 2,
-  },
-  name: { marginTop: 5 },
-  relLabel: { fontWeight: '600' },
-  expandChip: {
-    position: 'absolute',
-    bottom: -12,
-    alignSelf: 'center',
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 1,
-    backgroundColor: colors.primary,
-    borderRadius: radius.pill,
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    ...shadow.soft,
-  },
-  collapseChip: { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.borderStrong, paddingHorizontal: 6 },
-  expandText: { fontWeight: '800', fontSize: 11 },
-  zoneLabel: {
-    position: 'absolute',
-    borderRadius: radius.pill,
-    paddingHorizontal: spacing.md,
-    paddingVertical: 3,
-    ...shadow.soft,
-  },
-  zoneText: { fontWeight: '800', letterSpacing: 0.3 },
-  branchBar: {
-    position: 'absolute',
-    top: spacing.sm,
-    left: spacing.sm,
-    right: spacing.sm,
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: spacing.xs,
-  },
-  branchChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: spacing.xs,
-    backgroundColor: withAlpha(colors.surface, 0.92),
-    borderRadius: radius.pill,
-    borderWidth: 1,
-    borderColor: colors.border,
-    paddingHorizontal: spacing.sm,
-    paddingVertical: 5,
-    ...shadow.soft,
-  },
-  resetChip: { backgroundColor: colors.surfaceAlt },
-  branchDot: { width: 9, height: 9, borderRadius: 5 },
-  branchText: { fontWeight: '700', maxWidth: 110 },
   controls: { position: 'absolute', right: spacing.md, bottom: spacing.md, gap: spacing.sm },
   ctrlBtn: {
     width: 46,

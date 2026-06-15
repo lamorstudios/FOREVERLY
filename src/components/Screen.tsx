@@ -20,6 +20,8 @@ interface ScreenProps {
   contentStyle?: ViewStyle;
   /** Welche Kanten die Safe Area berücksichtigen sollen. */
   edges?: ('top' | 'bottom' | 'left' | 'right')[];
+  /** Dezente Bereichs-Tönung des Hintergrunds (Orientierung je App-Bereich). */
+  tint?: string;
 }
 
 /**
@@ -34,6 +36,7 @@ export function Screen({
   onRefresh,
   contentStyle,
   edges = ['top'],
+  tint,
 }: ScreenProps) {
   const { mobilePadding, responsiveSpacing, contentMaxWidth } = useResponsive();
 
@@ -51,7 +54,7 @@ export function Screen({
   const inner = <View style={[paddedStyle, contentStyle]}>{children}</View>;
 
   return (
-    <SafeAreaView style={styles.safe} edges={edges}>
+    <SafeAreaView style={[styles.safe, tint ? { backgroundColor: tint } : null]} edges={edges}>
       <KeyboardAvoidingView
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}

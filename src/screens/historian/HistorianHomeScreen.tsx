@@ -82,7 +82,7 @@ export function HistorianHomeScreen({ navigation }: Props) {
   };
 
   return (
-    <Screen>
+    <Screen tint={colors.tintHistorian}>
       <AppText variant="title">Familienhistoriker</AppText>
 
       <Card style={styles.introCard}>

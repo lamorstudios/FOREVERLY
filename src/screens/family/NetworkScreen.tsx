@@ -13,12 +13,11 @@ import {
 import { SignedImage } from '@/components/SignedImage';
 import { useQuery } from '@tanstack/react-query';
 import { listPersons, listRelationships } from '@/api/persons';
-import { listBranches } from '@/api/branches';
 import { qk } from '@/api/queryKeys';
 import { useFamily } from '@/context/FamilyContext';
 import { useAuth } from '@/context/AuthContext';
 import { fullName, formatDate } from '@/lib/format';
-import { CATEGORY_LABELS, RELATIONSHIP_LABELS } from '@/constants/relationships';
+import { CATEGORY_LABELS } from '@/constants/relationships';
 import { colors, spacing, radius, useResponsive } from '@/theme';
 import type { FamilyStackParamList } from '@/navigation/types';
 import type { RelationshipCategory } from '@/types/models';
@@ -55,31 +54,14 @@ export function NetworkScreen({ navigation }: Props) {
     queryKey: qk.relationships(familyId),
     queryFn: () => listRelationships(familyId),
   });
-  const branchesQuery = useQuery({
-    queryKey: qk.branches(familyId),
-    queryFn: () => listBranches(familyId),
-  });
 
   const persons = personsQuery.data ?? [];
   const relationships = relationshipsQuery.data ?? [];
-  const branches = branchesQuery.data ?? [];
 
   const anchorId = useMemo(
     () => persons.find((p) => p.user_id === userId)?.id ?? persons[0]?.id ?? null,
     [persons, userId],
   );
-
-  // Beziehungstyp relativ zur eingeloggten Person (direkte Verbindungen).
-  const relationshipLabelByPerson = useMemo(() => {
-    const map: Record<string, string> = {};
-    if (!anchorId) return map;
-    for (const rel of relationships) {
-      if (rel.from_person_id === anchorId) {
-        map[rel.to_person_id] = RELATIONSHIP_LABELS[rel.type];
-      }
-    }
-    return map;
-  }, [relationships, anchorId]);
 
   const categoriesByPerson = useMemo(() => {
     const map = new Map<string, Set<RelationshipCategory>>();
@@ -131,7 +113,7 @@ export function NetworkScreen({ navigation }: Props) {
   // ----- Baumansicht (Standard) -----
   if (mode === 'tree') {
     return (
-      <Screen scroll={false} contentStyle={styles.treeContent}>
+      <Screen scroll={false} contentStyle={styles.treeContent} tint={colors.tintFamily}>
         <View style={styles.treeHeader}>
           <AppText variant="heading" numberOfLines={1} style={styles.flexShrink}>
             {activeFamily!.name}
@@ -140,7 +122,7 @@ export function NetworkScreen({ navigation }: Props) {
         </View>
 
         <AppText variant="caption" color={colors.textSecondary} style={styles.hint}>
-          Tippe eine Person an, um ihre Familie zu entdecken · ziehen & zoomen
+          Tippe eine Person an, um sie ins Zentrum zu holen · nochmal tippen öffnet das Profil
         </AppText>
 
         {loading ? (
@@ -159,8 +141,6 @@ export function NetworkScreen({ navigation }: Props) {
               persons={persons}
               relationships={relationships}
               anchorId={anchorId}
-              branches={branches}
-              relationshipLabelByPerson={relationshipLabelByPerson}
               onSelectPerson={(personId) =>
                 navigation.navigate('PersonProfile', { personId })
               }
@@ -173,7 +153,7 @@ export function NetworkScreen({ navigation }: Props) {
 
   // ----- Listenansicht -----
   return (
-    <Screen refreshing={refreshing} onRefresh={onRefresh}>
+    <Screen refreshing={refreshing} onRefresh={onRefresh} tint={colors.tintFamily}>
       <View style={styles.listHeader}>
         <AppText variant="display" numberOfLines={2} style={styles.flexShrink}>
           {activeFamily!.name}
@@ -348,7 +328,7 @@ const styles = StyleSheet.create({
   worldBtnText: { fontWeight: '700' },
   treeArea: {
     flex: 1,
-    backgroundColor: colors.background,
+    backgroundColor: colors.tintFamily,
     borderRadius: radius.lg,
     overflow: 'hidden',
   },

@@ -90,21 +90,33 @@ Weich und großzügig (kein harter „Material"-Look):
 
 ## 7. Stammbaum / „Familienwelt"
 
-Konzept: **interaktives Familiennetzwerk** (eher Google-Maps/Wissensgraph
-als Stammbaum). Beim Öffnen sind nur die **nächsten Angehörigen** sichtbar
-(Eltern, Geschwister, Partner, Kinder) – keine Großeltern, Cousins oder
-entfernten Verwandten. Tippt man auf eine Person, **klappen ihre weiteren
-Zweige animiert auf** (Fade + Scale, Karten verschieben sich, Ansicht passt
-sich sanft neu ein); erneutes Tippen klappt wieder ein. Es werden **nur die
-aufgeklappten Verbindungen** gezeichnet → wenig Linien, viel Ruhe.
+Konzept: **radialer Ego-Graph** (im Geist von Obsidian Graph / Miro / Apple
+Maps) – ausdrücklich **kein Stammbaum**. Die aktive Person steht **immer
+exakt im Zentrum** als Hub; ihre nächsten Angehörigen liegen als **Kreise**
+(keine Karten) rundherum.
 
-- Kompakte Knoten: Foto, Vorname, Beziehung. Ein „＋N"-Chip signalisiert
-  weitere Familie; das ⋯-Symbol öffnet das volle Profil.
-- Eingeloggte Person: pulsierender goldener Glow + „Du"-Badge (nicht durch
-  Heranzoomen, sondern als Highlight). Doppeltipp zentriert auf sie.
-- Bedienung: Ziehen = verschieben, Pinch/Buttons = Zoom, „Übersicht" und
-  Zweig-Chips (Vaterseite/Mutterseite/Patchwork/Angeheiratet) zum gezielten
-  Erkunden. Ziel: Familienuniversum statt Organigramm.
+- **Erster Tipp** auf einen Kreis macht ihn zum neuen Zentrum: die Kamera
+  zentriert sanft, neue Kreise **wachsen aus dem Hub heraus**, die
+  Verbindungslinien **wachsen mit** (an die animierten Positionen gebunden),
+  bestehende Kreise gleiten an ihren neuen Platz.
+- **Zweiter Tipp** auf die bereits zentrierte Person öffnet ihr **Profil**
+  (Fotos, Erinnerungen, Audios, Zeitkapseln).
+- Kreis = Foto + Vorname + Beziehung (relativ zum Hub). Eingeloggte Person:
+  goldener Glow-Puls + „Du"-Badge. Doppeltipp/„Locate"-Button zentriert auf
+  mich. Ziehen = verschieben, Pinch/Buttons = Zoom.
+- Linien & Ringe sind nach Beziehungskategorie eingefärbt (grün/blau/gelb/
+  lila). Ziel: lebendige Familienwelt zum Erkunden.
+
+## 9. Bereichs-Tönungen
+
+Sehr dezente Hintergrund-Tönungen je App-Bereich zur Orientierung
+(seniorenfreundlich) – über `tint`-Prop von `Screen`:
+
+- Startseite: warmes Beige (`tintHome`)
+- Familienwelt: leichtes Blau (`tintFamily`)
+- Erinnerungen: warmes Gold (`tintMemories`)
+- Zeitkapseln: sanftes Violett (`tintCapsules`)
+- Historiker: dezentes Grün (`tintHistorian`)
 
 ## 8. Leitfrage
 

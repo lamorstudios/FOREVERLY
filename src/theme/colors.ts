@@ -40,6 +40,13 @@ export const colors = {
   relationPatchwork: '#D6A93B', // Gelb  – Patchwork / Stieffamilie
   relationAdoption: '#8A6BB0', // Lila  – Adoption / Pflegefamilie
 
+  // Sehr dezente Bereichs-Tönungen (Orientierung je App-Bereich, seniorengerecht)
+  tintHome: '#FAF7F2', // warmes Beige (Standard)
+  tintFamily: '#EEF3F8', // leichtes Blau – Familienwelt
+  tintMemories: '#FAF3E6', // warmes Gold – Erinnerungen
+  tintCapsules: '#F4F0F8', // sanftes Violett – Zeitkapseln
+  tintHistorian: '#EEF4EE', // dezentes Grün – Historiker
+
   // Linien & Ränder – weicher, kaum sichtbar
   border: '#ECE4D6',
   borderStrong: '#E0D6C4',

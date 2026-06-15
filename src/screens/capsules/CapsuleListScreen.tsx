@@ -54,7 +54,7 @@ export function CapsuleListScreen({ navigation }: Props) {
 
   if (isLoading) {
     return (
-      <Screen>
+      <Screen tint={colors.tintCapsules}>
         <Loading message="Zeitkapseln werden geladen …" />
       </Screen>
     );
@@ -69,6 +69,7 @@ export function CapsuleListScreen({ navigation }: Props) {
       refreshing={isRefetching}
       onRefresh={refetch}
       contentStyle={styles.content}
+      tint={colors.tintCapsules}
     >
       <Button
         label="+ Zeitkapsel erstellen"
