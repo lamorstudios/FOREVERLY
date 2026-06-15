@@ -1,7 +1,11 @@
 name: Deploy Web Preview (GitHub Pages)
 
-# Baut die Foreverly-Web-App im Demo-Modus und veröffentlicht sie auf
-# GitHub Pages. Ergebnis-URL: https://<user>.github.io/<repo>/
+# Baut die Foreverly-Web-App im Demo-Modus und veröffentlicht sie in den
+# Branch `gh-pages`. GitHub Pages liefert diesen Branch aus.
+# Dieser Weg funktioniert aus jedem Branch (umgeht die Branch-Schutzregel
+# der `github-pages`-Umgebung).
+#
+# Ergebnis-URL: https://lamorstudios.github.io/FOREVERLY/
 
 on:
   push:
@@ -12,20 +16,19 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+  contents: write
 
-# Nur ein gleichzeitiger Deploy; laufende werden nicht abgebrochen.
 concurrency:
-  group: pages
-  cancel-in-progress: false
+  group: deploy-web
+  cancel-in-progress: true
 
 jobs:
-  build:
+  build-and-deploy:
     runs-on: ubuntu-latest
     env:
       EXPO_PUBLIC_DEMO_MODE: 'true'
+      # Unterpfad = Repository-Name (case-sensitive). Seite liegt unter /FOREVERLY/
+      EXPO_BASE_URL: '/FOREVERLY'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -38,35 +41,18 @@ jobs:
       - name: Install dependencies
         run: npm install --no-audit --no-fund
 
-      - name: Configure Pages
-        id: pages
-        uses: actions/configure-pages@v5
-        with:
-          enablement: true
-
       - name: Build web bundle
-        # base_path kommt von actions/configure-pages (z.B. /foreverly)
-        env:
-          EXPO_BASE_URL: ${{ steps.pages.outputs.base_path }}
         run: npx expo export --platform web
 
-      - name: Add SPA & Pages helpers
+      - name: SPA-Fallback & Jekyll deaktivieren
         run: |
           touch dist/.nojekyll
           cp dist/index.html dist/404.html
 
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
+      - name: Deploy to gh-pages branch
+        uses: peaceiris/actions-gh-pages@v4
         with:
-          path: dist
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./dist
+          publish_branch: gh-pages
+          force_orphan: true
