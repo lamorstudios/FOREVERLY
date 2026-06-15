@@ -75,7 +75,10 @@ export function FamilyProvider({ children }: { children: ReactNode }) {
       activeFamily: activeEntry?.family ?? null,
       activeRole: activeEntry?.role ?? null,
       isAdmin: activeEntry?.role === 'admin',
-      loading: isLoading || !restored,
+      // Solange Familien existieren, aber die aktive Familie noch nicht
+      // gesetzt ist (Effekt läuft erst nach dem Render), weiter laden lassen –
+      // sonst rendern Screens mit activeFamily === null.
+      loading: isLoading || !restored || (families.length > 0 && !activeEntry),
       setActiveFamily,
       refetch,
     }),
