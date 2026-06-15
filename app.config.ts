@@ -48,6 +48,11 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     favicon: './assets/favicon.png',
     output: 'single',
   },
+  // Für GitHub Pages wird die App unter einem Unterpfad (/foreverly) ausgeliefert.
+  // Lokal bleibt baseUrl leer. Gesetzt über EXPO_BASE_URL im CI.
+  experiments: {
+    baseUrl: process.env.EXPO_BASE_URL ?? '',
+  },
   plugins: [
     'expo-av',
     'expo-image-picker',

@@ -1,0 +1,72 @@
+name: Deploy Web Preview (GitHub Pages)
+
+# Baut die Foreverly-Web-App im Demo-Modus und veröffentlicht sie auf
+# GitHub Pages. Ergebnis-URL: https://<user>.github.io/<repo>/
+
+on:
+  push:
+    branches:
+      - claude/optimistic-curie-9fue6s
+      - main
+      - master
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Nur ein gleichzeitiger Deploy; laufende werden nicht abgebrochen.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      EXPO_PUBLIC_DEMO_MODE: 'true'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Configure Pages
+        id: pages
+        uses: actions/configure-pages@v5
+        with:
+          enablement: true
+
+      - name: Build web bundle
+        # base_path kommt von actions/configure-pages (z.B. /foreverly)
+        env:
+          EXPO_BASE_URL: ${{ steps.pages.outputs.base_path }}
+        run: npx expo export --platform web
+
+      - name: Add SPA & Pages helpers
+        run: |
+          touch dist/.nojekyll
+          cp dist/index.html dist/404.html
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
