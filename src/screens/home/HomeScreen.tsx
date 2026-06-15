@@ -72,8 +72,9 @@ const QUICK_ACTIONS: QuickAction[] = [
 export function HomeScreen({ navigation }: Props) {
   const { activeFamily } = useFamily();
   const familyId = activeFamily!.id;
-  const { isSmall } = useResponsive();
-  const tileBasis = isSmall ? '47%' : '31%';
+  const { isTablet } = useResponsive();
+  // 2 Kacheln pro Reihe auf Smartphones, 3 auf Tablets (mehr Platz für Labels)
+  const tileBasis = isTablet ? '31%' : '47%';
 
   const activities = useQuery({
     queryKey: qk.activities(familyId),
@@ -196,7 +197,14 @@ export function HomeScreen({ navigation }: Props) {
               <View style={[styles.quickIcon, { backgroundColor: a.color }]}>
                 <Ionicons name={a.icon} size={26} color={colors.textOnAccent} />
               </View>
-              <AppText variant="label" center>
+              <AppText
+                variant="label"
+                center
+                numberOfLines={2}
+                adjustsFontSizeToFit
+                minimumFontScale={0.7}
+                style={styles.quickLabel}
+              >
                 {a.label}
               </AppText>
             </Pressable>
@@ -341,10 +349,11 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: colors.border,
     paddingVertical: spacing.md,
-    paddingHorizontal: spacing.xs,
+    paddingHorizontal: spacing.sm,
     alignItems: 'center',
     gap: spacing.xs,
   },
+  quickLabel: { width: '100%' },
   quickIcon: {
     width: 48,
     height: 48,
