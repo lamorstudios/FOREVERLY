@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabase';
-import { config } from '@/lib/config';
+import { config, DEMO_MODE } from '@/lib/config';
+import { demoStore } from '@/demo/store';
 import type { Invitation, MemberRole } from '@/types/models';
 
 /** Erzeugt einen Einladungscode (DB-Funktion) und legt die Einladung an. */
@@ -9,6 +10,7 @@ export async function createInvitation(input: {
   role: MemberRole;
   email?: string | null;
 }): Promise<Invitation> {
+  if (DEMO_MODE) return demoStore.createInvitation(input);
   const { data: codeData, error: codeError } = await supabase.rpc(
     'generate_invite_code',
   );
@@ -32,6 +34,7 @@ export async function createInvitation(input: {
 export async function listInvitations(
   familyId: string,
 ): Promise<Invitation[]> {
+  if (DEMO_MODE) return demoStore.listInvitations();
   const { data, error } = await supabase
     .from('invitations')
     .select('*')
@@ -42,6 +45,7 @@ export async function listInvitations(
 }
 
 export async function revokeInvitation(id: string): Promise<void> {
+  if (DEMO_MODE) return demoStore.revokeInvitation(id);
   const { error } = await supabase
     .from('invitations')
     .update({ status: 'revoked' })
@@ -51,6 +55,7 @@ export async function revokeInvitation(id: string): Promise<void> {
 
 /** Löst eine Einladung ein (DB-Funktion). Gibt die family_id zurück. */
 export async function acceptInvitation(code: string): Promise<string> {
+  if (DEMO_MODE) return demoStore.acceptInvitation();
   const { data, error } = await supabase.rpc('accept_invitation', {
     p_code: code.trim().toUpperCase(),
   });

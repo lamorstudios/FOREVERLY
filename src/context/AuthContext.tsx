@@ -9,7 +9,24 @@ import {
 } from 'react';
 import { Session } from '@supabase/supabase-js';
 import { supabase } from '@/lib/supabase';
-import { config } from '@/lib/config';
+import { config, DEMO_MODE } from '@/lib/config';
+import { DEMO_USER_ID } from '@/demo/demoData';
+
+/** Minimale Demo-Sitzung, damit die App ohne echtes Login funktioniert. */
+const demoSession = {
+  access_token: 'demo',
+  refresh_token: 'demo',
+  expires_in: 3600,
+  token_type: 'bearer',
+  user: {
+    id: DEMO_USER_ID,
+    email: 'nick@foreverly.demo',
+    app_metadata: {},
+    user_metadata: { full_name: 'Nick Mielke' },
+    aud: 'authenticated',
+    created_at: new Date().toISOString(),
+  },
+} as unknown as Session;
 
 interface AuthContextValue {
   session: Session | null;
@@ -29,10 +46,13 @@ interface AuthContextValue {
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [session, setSession] = useState<Session | null>(null);
-  const [initializing, setInitializing] = useState(true);
+  const [session, setSession] = useState<Session | null>(
+    DEMO_MODE ? demoSession : null,
+  );
+  const [initializing, setInitializing] = useState(!DEMO_MODE);
 
   useEffect(() => {
+    if (DEMO_MODE) return; // Im Demo-Modus keine echte Auth.
     supabase.auth.getSession().then(({ data }) => {
       setSession(data.session);
       setInitializing(false);
@@ -46,6 +66,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signUp = useCallback<AuthContextValue['signUp']>(
     async ({ email, password, fullName }) => {
+      if (DEMO_MODE) {
+        setSession(demoSession);
+        return { needsConfirmation: false };
+      }
       const { data, error } = await supabase.auth.signUp({
         email: email.trim(),
         password,
@@ -63,6 +87,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signIn = useCallback<AuthContextValue['signIn']>(
     async (email, password) => {
+      if (DEMO_MODE) {
+        setSession(demoSession);
+        return;
+      }
       const { error } = await supabase.auth.signInWithPassword({
         email: email.trim(),
         password,
@@ -73,11 +101,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 
   const signOut = useCallback(async () => {
+    if (DEMO_MODE) {
+      setSession(null);
+      return;
+    }
     await supabase.auth.signOut();
   }, []);
 
   const resetPassword = useCallback<AuthContextValue['resetPassword']>(
     async (email) => {
+      if (DEMO_MODE) return;
       const { error } = await supabase.auth.resetPasswordForEmail(
         email.trim(),
         { redirectTo: 'foreverly://reset-password' },
@@ -90,6 +123,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const resendConfirmation = useCallback<
     AuthContextValue['resendConfirmation']
   >(async (email) => {
+    if (DEMO_MODE) return;
     const { error } = await supabase.auth.resend({
       type: 'signup',
       email: email.trim(),

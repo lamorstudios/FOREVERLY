@@ -5,6 +5,7 @@ import { Loading } from '@/components';
 import { useAuth } from '@/context/AuthContext';
 import { useFamily } from '@/context/FamilyContext';
 import { registerForNotifications } from '@/lib/notifications';
+import { DEMO_MODE } from '@/lib/config';
 import { colors } from '@/theme';
 import { AuthNavigator } from './AuthNavigator';
 import { OnboardingNavigator } from './OnboardingNavigator';
@@ -44,7 +45,9 @@ export function RootNavigator() {
   const { families, loading } = useFamily();
 
   useEffect(() => {
-    if (session) registerForNotifications().catch(() => undefined);
+    if (session && !DEMO_MODE) {
+      registerForNotifications().catch(() => undefined);
+    }
   }, [session]);
 
   return (

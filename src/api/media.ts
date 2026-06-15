@@ -1,5 +1,7 @@
 import { supabase } from '@/lib/supabase';
 import { uploadFile, makeFileName, getSignedUrl } from '@/lib/storage';
+import { DEMO_MODE } from '@/lib/config';
+import { demoStore } from '@/demo/store';
 import { mimeForImage } from './profiles';
 import { logActivity } from './activities';
 import type { Audio, Photo } from '@/types/models';
@@ -10,6 +12,7 @@ export async function listPhotos(
   familyId: string,
   opts?: { personId?: string; memoryId?: string },
 ): Promise<Photo[]> {
+  if (DEMO_MODE) return demoStore.listPhotos(familyId, opts);
   let query = supabase
     .from('photos')
     .select('*')
@@ -33,6 +36,18 @@ export async function uploadPhoto(input: {
   width?: number | null;
   height?: number | null;
 }): Promise<Photo> {
+  if (DEMO_MODE) {
+    const p = demoStore.uploadPhoto(input);
+    demoStore.logActivity({
+      familyId: input.familyId,
+      actorId: input.uploadedBy,
+      action: 'photo.uploaded',
+      entityType: 'photo',
+      entityId: p.id,
+      summary: input.caption ?? 'Neues Foto',
+    });
+    return p;
+  }
   const ext = input.localUri.split('.').pop()?.toLowerCase() || 'jpg';
   const path = `${input.familyId}/gallery/${makeFileName(ext)}`;
   await uploadFile('photos', path, input.localUri, mimeForImage(ext));
@@ -65,6 +80,7 @@ export async function uploadPhoto(input: {
 }
 
 export async function deletePhoto(id: string): Promise<void> {
+  if (DEMO_MODE) return demoStore.deletePhoto(id);
   const { error } = await supabase.from('photos').delete().eq('id', id);
   if (error) throw error;
 }
@@ -79,6 +95,7 @@ export async function listAudios(
   familyId: string,
   opts?: { personId?: string; memoryId?: string },
 ): Promise<Audio[]> {
+  if (DEMO_MODE) return demoStore.listAudios(familyId, opts);
   let query = supabase
     .from('audios')
     .select('*')
@@ -101,6 +118,18 @@ export async function uploadAudio(input: {
   personId?: string | null;
   memoryId?: string | null;
 }): Promise<Audio> {
+  if (DEMO_MODE) {
+    const a = demoStore.uploadAudio(input);
+    demoStore.logActivity({
+      familyId: input.familyId,
+      actorId: input.recordedBy,
+      action: 'audio.created',
+      entityType: 'audio',
+      entityId: a.id,
+      summary: input.title ?? 'Neue Audioaufnahme',
+    });
+    return a;
+  }
   const ext = input.localUri.split('.').pop()?.toLowerCase() || 'm4a';
   const path = `${input.familyId}/audio/${makeFileName(ext)}`;
   await uploadFile('audios', path, input.localUri, mimeForAudio(ext));
@@ -132,6 +161,7 @@ export async function uploadAudio(input: {
 }
 
 export async function deleteAudio(id: string): Promise<void> {
+  if (DEMO_MODE) return demoStore.deleteAudio(id);
   const { error } = await supabase.from('audios').delete().eq('id', id);
   if (error) throw error;
 }

@@ -1,4 +1,6 @@
 import { supabase } from '@/lib/supabase';
+import { DEMO_MODE } from '@/lib/config';
+import { demoStore } from '@/demo/store';
 import { logActivity } from './activities';
 import type { ContentType, Memory } from '@/types/models';
 
@@ -14,6 +16,7 @@ export async function listMemories(
   familyId: string,
   personId?: string,
 ): Promise<Memory[]> {
+  if (DEMO_MODE) return demoStore.listMemories(familyId, personId);
   let query = supabase
     .from('memories')
     .select('*')
@@ -27,6 +30,7 @@ export async function listMemories(
 }
 
 export async function getMemory(id: string): Promise<Memory | null> {
+  if (DEMO_MODE) return demoStore.getMemory(id);
   const { data, error } = await supabase
     .from('memories')
     .select('*')
@@ -41,6 +45,18 @@ export async function createMemory(
   authorId: string,
   input: MemoryInput,
 ): Promise<Memory> {
+  if (DEMO_MODE) {
+    const m = demoStore.createMemory(familyId, authorId, input);
+    demoStore.logActivity({
+      familyId,
+      actorId: authorId,
+      action: 'memory.created',
+      entityType: 'memory',
+      entityId: m.id,
+      summary: m.title,
+    });
+    return m;
+  }
   const { data, error } = await supabase
     .from('memories')
     .insert({ ...input, family_id: familyId, author_id: authorId })
@@ -64,6 +80,7 @@ export async function updateMemory(
   id: string,
   input: Partial<MemoryInput>,
 ): Promise<Memory> {
+  if (DEMO_MODE) return demoStore.updateMemory(id, input);
   const { data, error } = await supabase
     .from('memories')
     .update(input)
@@ -75,6 +92,7 @@ export async function updateMemory(
 }
 
 export async function deleteMemory(id: string): Promise<void> {
+  if (DEMO_MODE) return demoStore.deleteMemory(id);
   const { error } = await supabase.from('memories').delete().eq('id', id);
   if (error) throw error;
 }

@@ -1,6 +1,7 @@
 import * as FileSystem from 'expo-file-system';
 import { decode } from 'base64-arraybuffer';
 import { supabase } from './supabase';
+import { DEMO_MODE } from './config';
 
 export type BucketName = 'avatars' | 'photos' | 'audios';
 
@@ -40,6 +41,8 @@ export async function getSignedUrl(
   expiresInSeconds = 3600,
 ): Promise<string | null> {
   if (!path) return null;
+  // Im Demo-Modus (oder bei bereits vollständigen URLs) den Pfad direkt liefern.
+  if (DEMO_MODE || /^(https?:|data:|blob:|file:)/.test(path)) return path;
   const { data, error } = await supabase.storage
     .from(bucket)
     .createSignedUrl(path, expiresInSeconds);

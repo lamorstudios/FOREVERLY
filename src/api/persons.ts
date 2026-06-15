@@ -1,5 +1,7 @@
 import { supabase } from '@/lib/supabase';
 import { uploadFile, makeFileName } from '@/lib/storage';
+import { DEMO_MODE } from '@/lib/config';
+import { demoStore } from '@/demo/store';
 import { mimeForImage } from './profiles';
 import type { Person, Relationship } from '@/types/models';
 
@@ -14,6 +16,7 @@ export interface PersonInput {
 }
 
 export async function listPersons(familyId: string): Promise<Person[]> {
+  if (DEMO_MODE) return demoStore.listPersons();
   const { data, error } = await supabase
     .from('persons')
     .select('*')
@@ -24,6 +27,7 @@ export async function listPersons(familyId: string): Promise<Person[]> {
 }
 
 export async function getPerson(id: string): Promise<Person | null> {
+  if (DEMO_MODE) return demoStore.getPerson(id);
   const { data, error } = await supabase
     .from('persons')
     .select('*')
@@ -38,6 +42,7 @@ export async function createPerson(
   createdBy: string,
   input: PersonInput,
 ): Promise<Person> {
+  if (DEMO_MODE) return demoStore.createPerson(familyId, createdBy, input);
   const { data, error } = await supabase
     .from('persons')
     .insert({ ...input, family_id: familyId, created_by: createdBy })
@@ -51,6 +56,7 @@ export async function updatePerson(
   id: string,
   input: PersonInput,
 ): Promise<Person> {
+  if (DEMO_MODE) return demoStore.updatePerson(id, input);
   const { data, error } = await supabase
     .from('persons')
     .update(input)
@@ -62,6 +68,7 @@ export async function updatePerson(
 }
 
 export async function deletePerson(id: string): Promise<void> {
+  if (DEMO_MODE) return demoStore.deletePerson(id);
   const { error } = await supabase.from('persons').delete().eq('id', id);
   if (error) throw error;
 }
@@ -70,6 +77,7 @@ export async function uploadPersonAvatar(
   familyId: string,
   localUri: string,
 ): Promise<string> {
+  if (DEMO_MODE) return localUri;
   const ext = localUri.split('.').pop()?.toLowerCase() || 'jpg';
   const path = `${familyId}/persons/${makeFileName(ext)}`;
   return uploadFile('photos', path, localUri, mimeForImage(ext));
@@ -80,6 +88,7 @@ export async function uploadPersonAvatar(
 export async function listRelationships(
   familyId: string,
 ): Promise<Relationship[]> {
+  if (DEMO_MODE) return demoStore.listRelationships();
   const { data, error } = await supabase
     .from('relationships')
     .select('*')
@@ -96,6 +105,7 @@ export async function createRelationship(input: {
   category: Relationship['category'];
   created_by: string;
 }): Promise<Relationship> {
+  if (DEMO_MODE) return demoStore.createRelationship(input);
   const { data, error } = await supabase
     .from('relationships')
     .insert(input)
@@ -106,6 +116,7 @@ export async function createRelationship(input: {
 }
 
 export async function deleteRelationship(id: string): Promise<void> {
+  if (DEMO_MODE) return demoStore.deleteRelationship(id);
   const { error } = await supabase.from('relationships').delete().eq('id', id);
   if (error) throw error;
 }

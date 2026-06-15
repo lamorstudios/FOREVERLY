@@ -1,8 +1,11 @@
 import { supabase } from '@/lib/supabase';
 import { uploadFile, makeFileName } from '@/lib/storage';
+import { DEMO_MODE } from '@/lib/config';
+import { demoStore } from '@/demo/store';
 import type { Profile } from '@/types/models';
 
 export async function getProfile(userId: string): Promise<Profile | null> {
+  if (DEMO_MODE) return demoStore.getProfile(userId);
   const { data, error } = await supabase
     .from('profiles')
     .select('*')
@@ -22,6 +25,7 @@ export async function updateProfile(
   userId: string,
   input: UpdateProfileInput,
 ): Promise<Profile> {
+  if (DEMO_MODE) return demoStore.updateProfile(userId, input);
   const { data, error } = await supabase
     .from('profiles')
     .update(input)
@@ -37,6 +41,7 @@ export async function uploadAvatar(
   userId: string,
   localUri: string,
 ): Promise<string> {
+  if (DEMO_MODE) return localUri;
   const ext = localUri.split('.').pop()?.toLowerCase() || 'jpg';
   const path = `${userId}/${makeFileName(ext)}`;
   return uploadFile('avatars', path, localUri, mimeForImage(ext));

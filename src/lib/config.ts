@@ -4,24 +4,29 @@ type Extra = {
   supabaseUrl?: string;
   supabaseAnonKey?: string;
   inviteBaseUrl?: string;
+  demoMode?: string;
 };
 
 const extra = (Constants.expoConfig?.extra ?? {}) as Extra;
 
-function required(value: string | undefined, name: string): string {
-  if (!value) {
-    throw new Error(
-      `Konfiguration fehlt: ${name}. Bitte .env anlegen (siehe .env.example) und die App neu starten.`,
-    );
-  }
-  return value;
-}
+/** Sind echte Supabase-Zugangsdaten konfiguriert? */
+export const isSupabaseConfigured =
+  !!extra.supabaseUrl && !!extra.supabaseAnonKey;
+
+/**
+ * Demo-Modus: ermöglicht es, die App ohne Supabase-Setup (z.B. im Browser)
+ * mit Beispiel-Daten zu testen.
+ *
+ * Aktiv, wenn EXPO_PUBLIC_DEMO_MODE === 'true' ODER wenn keine Supabase-
+ * Zugangsdaten hinterlegt sind.
+ */
+export const DEMO_MODE =
+  extra.demoMode === 'true' || !isSupabaseConfigured;
 
 export const config = {
-  supabaseUrl: required(extra.supabaseUrl, 'EXPO_PUBLIC_SUPABASE_URL'),
-  supabaseAnonKey: required(
-    extra.supabaseAnonKey,
-    'EXPO_PUBLIC_SUPABASE_ANON_KEY',
-  ),
+  // Im Demo-Modus dienen Platzhalterwerte nur dazu, dass der Supabase-Client
+  // konstruiert werden kann – er wird dann nie aufgerufen.
+  supabaseUrl: extra.supabaseUrl ?? 'https://demo.foreverly.invalid',
+  supabaseAnonKey: extra.supabaseAnonKey ?? 'demo-anon-key',
   inviteBaseUrl: extra.inviteBaseUrl ?? 'https://foreverly.app/invite',
 };

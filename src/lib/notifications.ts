@@ -1,18 +1,23 @@
 import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: true,
-    shouldSetBadge: false,
-    shouldShowBanner: true,
-    shouldShowList: true,
-  }),
-});
+const NOTIFICATIONS_SUPPORTED = Platform.OS !== 'web';
+
+if (NOTIFICATIONS_SUPPORTED) {
+  Notifications.setNotificationHandler({
+    handleNotification: async () => ({
+      shouldShowAlert: true,
+      shouldPlaySound: true,
+      shouldSetBadge: false,
+      shouldShowBanner: true,
+      shouldShowList: true,
+    }),
+  });
+}
 
 /** Fordert Benachrichtigungsrechte an (für Zeitkapsel-Hinweise). */
 export async function registerForNotifications(): Promise<boolean> {
+  if (!NOTIFICATIONS_SUPPORTED) return false;
   if (Platform.OS === 'android') {
     await Notifications.setNotificationChannelAsync('default', {
       name: 'Foreverly',
@@ -37,6 +42,7 @@ export async function scheduleCapsuleReminder(input: {
   title: string;
   openAt: string;
 }): Promise<void> {
+  if (!NOTIFICATIONS_SUPPORTED) return;
   const openDate = new Date(input.openAt);
   if (Number.isNaN(openDate.getTime()) || openDate.getTime() <= Date.now()) {
     return;

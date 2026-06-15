@@ -10,6 +10,7 @@ import type {
   MemoriesStackParamList,
   CapsulesStackParamList,
   ProfileStackParamList,
+  HistorianStackParamList,
 } from './types';
 
 // Screens
@@ -33,6 +34,25 @@ import { CapsuleDetailScreen } from '@/screens/capsules/CapsuleDetailScreen';
 import { ProfileScreen } from '@/screens/profile/ProfileScreen';
 import { EditProfileScreen } from '@/screens/profile/EditProfileScreen';
 import { FamilySettingsScreen } from '@/screens/profile/FamilySettingsScreen';
+// Phase 2
+import { StatusScreen } from '@/screens/phase2/StatusScreen';
+import { NotificationsScreen } from '@/screens/phase2/NotificationsScreen';
+import { CalendarScreen } from '@/screens/phase2/CalendarScreen';
+import { CalendarEventFormScreen } from '@/screens/phase2/CalendarEventFormScreen';
+import { EmergencyScreen } from '@/screens/phase2/EmergencyScreen';
+import { EmergencyContactFormScreen } from '@/screens/phase2/EmergencyContactFormScreen';
+import { DocumentsScreen } from '@/screens/phase2/DocumentsScreen';
+import { DocumentFormScreen } from '@/screens/phase2/DocumentFormScreen';
+import { SeniorModeScreen } from '@/screens/phase2/SeniorModeScreen';
+// Phase 3 · Familienhistoriker
+import { HistorianHomeScreen } from '@/screens/historian/HistorianHomeScreen';
+import { HistorianAnswerScreen } from '@/screens/historian/HistorianAnswerScreen';
+import { HistorianSearchScreen } from '@/screens/historian/HistorianSearchScreen';
+import { WisdomsScreen } from '@/screens/historian/WisdomsScreen';
+import { TimelineScreen } from '@/screens/historian/TimelineScreen';
+import { ImportantPeopleScreen } from '@/screens/historian/ImportantPeopleScreen';
+import { PersonInsightScreen } from '@/screens/historian/PersonInsightScreen';
+import { KnowledgeGapsScreen } from '@/screens/historian/KnowledgeGapsScreen';
 
 const HomeStack = createNativeStackNavigator<HomeStackParamList>();
 function HomeStackNavigator() {
@@ -43,6 +63,15 @@ function HomeStackNavigator() {
         component={HomeScreen}
         options={{ title: 'Foreverly' }}
       />
+      <HomeStack.Screen name="SeniorMode" component={SeniorModeScreen} options={{ title: 'Seniorenmodus' }} />
+      <HomeStack.Screen name="Status" component={StatusScreen} options={{ title: 'Familienstatus' }} />
+      <HomeStack.Screen name="Notifications" component={NotificationsScreen} options={{ title: 'Benachrichtigungen' }} />
+      <HomeStack.Screen name="Calendar" component={CalendarScreen} options={{ title: 'Familienkalender' }} />
+      <HomeStack.Screen name="CalendarEventForm" component={CalendarEventFormScreen} options={{ title: 'Neuer Termin' }} />
+      <HomeStack.Screen name="Emergency" component={EmergencyScreen} options={{ title: 'Notfall' }} />
+      <HomeStack.Screen name="EmergencyContactForm" component={EmergencyContactFormScreen} options={{ title: 'Notfallkontakt' }} />
+      <HomeStack.Screen name="Documents" component={DocumentsScreen} options={{ title: 'Dokumente' }} />
+      <HomeStack.Screen name="DocumentForm" component={DocumentFormScreen} options={{ title: 'Dokument' }} />
     </HomeStack.Navigator>
   );
 }
@@ -98,6 +127,22 @@ function ProfileStackNavigator() {
   );
 }
 
+const HistorianStack = createNativeStackNavigator<HistorianStackParamList>();
+function HistorianStackNavigator() {
+  return (
+    <HistorianStack.Navigator screenOptions={stackScreenOptions}>
+      <HistorianStack.Screen name="HistorianHome" component={HistorianHomeScreen} options={{ title: 'Familienhistoriker' }} />
+      <HistorianStack.Screen name="HistorianAnswer" component={HistorianAnswerScreen} options={{ title: 'Antwort' }} />
+      <HistorianStack.Screen name="HistorianSearch" component={HistorianSearchScreen} options={{ title: 'Suche' }} />
+      <HistorianStack.Screen name="Wisdoms" component={WisdomsScreen} options={{ title: 'Lebensweisheiten' }} />
+      <HistorianStack.Screen name="Timeline" component={TimelineScreen} options={{ title: 'Zeitleiste' }} />
+      <HistorianStack.Screen name="ImportantPeople" component={ImportantPeopleScreen} options={{ title: 'Wichtige Personen' }} />
+      <HistorianStack.Screen name="PersonInsight" component={PersonInsightScreen} options={{ title: 'Person' }} />
+      <HistorianStack.Screen name="KnowledgeGaps" component={KnowledgeGapsScreen} options={{ title: 'Familienwissen retten' }} />
+    </HistorianStack.Navigator>
+  );
+}
+
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
 const TAB_ICONS: Record<
@@ -108,6 +153,7 @@ const TAB_ICONS: Record<
   FamilyTab: { focused: 'people', unfocused: 'people-outline', label: 'Familie' },
   MemoriesTab: { focused: 'heart', unfocused: 'heart-outline', label: 'Erinnerungen' },
   CapsulesTab: { focused: 'time', unfocused: 'time-outline', label: 'Zeitkapseln' },
+  HistorianTab: { focused: 'sparkles', unfocused: 'sparkles-outline', label: 'Historiker' },
   ProfileTab: { focused: 'person', unfocused: 'person-outline', label: 'Profil' },
 };
 
@@ -146,6 +192,7 @@ export function MainNavigator() {
       <Tab.Screen name="FamilyTab" component={FamilyStackNavigator} />
       <Tab.Screen name="MemoriesTab" component={MemoriesStackNavigator} />
       <Tab.Screen name="CapsulesTab" component={CapsulesStackNavigator} />
+      <Tab.Screen name="HistorianTab" component={HistorianStackNavigator} />
       <Tab.Screen name="ProfileTab" component={ProfileStackNavigator} />
     </Tab.Navigator>
   );

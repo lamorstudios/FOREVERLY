@@ -1,5 +1,7 @@
 import { supabase } from '@/lib/supabase';
 import { uploadFile, makeFileName, getSignedUrl } from '@/lib/storage';
+import { DEMO_MODE } from '@/lib/config';
+import { demoStore } from '@/demo/store';
 import { mimeForImage } from './profiles';
 import { logActivity } from './activities';
 import type {
@@ -30,6 +32,7 @@ export interface CreateCapsuleInput {
 export async function listMyCapsules(
   familyId: string,
 ): Promise<TimeCapsule[]> {
+  if (DEMO_MODE) return demoStore.listMyCapsules();
   const { data, error } = await supabase
     .from('time_capsules')
     .select('*')
@@ -41,12 +44,14 @@ export async function listMyCapsules(
 
 /** Anstehende (gesperrte) Kapseln für mich – nur Metadaten (DB-Funktion). */
 export async function listUpcomingForMe(): Promise<UpcomingCapsule[]> {
+  if (DEMO_MODE) return demoStore.listUpcomingForMe();
   const { data, error } = await supabase.rpc('upcoming_capsules_for_me');
   if (error) throw error;
   return (data ?? []) as UpcomingCapsule[];
 }
 
 export async function getCapsule(id: string): Promise<TimeCapsule | null> {
+  if (DEMO_MODE) return demoStore.getCapsule(id);
   const { data, error } = await supabase
     .from('time_capsules')
     .select('*')
@@ -59,6 +64,18 @@ export async function getCapsule(id: string): Promise<TimeCapsule | null> {
 export async function createCapsule(
   input: CreateCapsuleInput,
 ): Promise<TimeCapsule> {
+  if (DEMO_MODE) {
+    const c = demoStore.createCapsule(input);
+    demoStore.logActivity({
+      familyId: input.familyId,
+      actorId: input.creatorId,
+      action: 'time_capsule.created',
+      entityType: 'time_capsule',
+      entityId: c.id,
+      summary: c.title,
+    });
+    return c;
+  }
   let storagePath: string | null = null;
 
   if (input.mediaUri && input.contentType !== 'text') {
@@ -116,6 +133,7 @@ export async function createCapsule(
 }
 
 export async function deleteCapsule(id: string): Promise<void> {
+  if (DEMO_MODE) return demoStore.deleteCapsule(id);
   const { error } = await supabase
     .from('time_capsules')
     .delete()

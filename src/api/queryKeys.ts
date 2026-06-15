@@ -20,4 +20,25 @@ export const qk = {
   activities: (familyId: string) => ['activities', familyId] as const,
   signedUrl: (bucket: string, path: string) =>
     ['signedUrl', bucket, path] as const,
+  // Phase 2
+  statuses: (familyId: string) => ['statuses', familyId] as const,
+  notifications: (familyId: string) => ['notifications', familyId] as const,
+  emergencyContacts: (familyId: string) => ['emergencyContacts', familyId] as const,
+  emergencyEvents: (familyId: string) => ['emergencyEvents', familyId] as const,
+  calendar: (familyId: string) => ['calendar', familyId] as const,
+  calendarEvent: (id: string) => ['calendarEvent', id] as const,
+  documents: (familyId: string) => ['documents', familyId] as const,
+  // Phase 3 · Familienhistoriker
+  historianAsk: (familyId: string, query: string) =>
+    ['historian', 'ask', familyId, query] as const,
+  historianSearch: (familyId: string, query: string) =>
+    ['historian', 'search', familyId, query] as const,
+  wisdoms: (familyId: string) => ['historian', 'wisdoms', familyId] as const,
+  timeline: (familyId: string) => ['historian', 'timeline', familyId] as const,
+  importantPeople: (familyId: string) =>
+    ['historian', 'people', familyId] as const,
+  personInsight: (familyId: string, personId: string) =>
+    ['historian', 'insight', familyId, personId] as const,
+  knowledgeGaps: (familyId: string) =>
+    ['historian', 'gaps', familyId] as const,
 };

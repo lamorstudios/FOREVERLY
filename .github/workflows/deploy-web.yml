@@ -1,0 +1,58 @@
+name: Deploy Web Preview (GitHub Pages)
+
+# Baut die Foreverly-Web-App im Demo-Modus und veröffentlicht sie in den
+# Branch `gh-pages`. GitHub Pages liefert diesen Branch aus.
+# Dieser Weg funktioniert aus jedem Branch (umgeht die Branch-Schutzregel
+# der `github-pages`-Umgebung).
+#
+# Ergebnis-URL: https://lamorstudios.github.io/FOREVERLY/
+
+on:
+  push:
+    branches:
+      - claude/optimistic-curie-9fue6s
+      - main
+      - master
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: deploy-web
+  cancel-in-progress: true
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    env:
+      EXPO_PUBLIC_DEMO_MODE: 'true'
+      # Unterpfad = Repository-Name (case-sensitive). Seite liegt unter /FOREVERLY/
+      EXPO_BASE_URL: '/FOREVERLY'
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Build web bundle
+        run: npx expo export --platform web
+
+      - name: SPA-Fallback & Jekyll deaktivieren
+        run: |
+          touch dist/.nojekyll
+          cp dist/index.html dist/404.html
+
+      - name: Deploy to gh-pages branch
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./dist
+          publish_branch: gh-pages
+          force_orphan: true

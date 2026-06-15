@@ -16,6 +16,15 @@ export type OnboardingStackParamList = {
 
 export type HomeStackParamList = {
   Home: undefined;
+  SeniorMode: undefined;
+  Status: undefined;
+  Notifications: undefined;
+  Calendar: undefined;
+  CalendarEventForm: undefined;
+  Emergency: undefined;
+  EmergencyContactForm: undefined;
+  Documents: undefined;
+  DocumentForm: { documentId?: string } | undefined;
 };
 
 export type FamilyStackParamList = {
@@ -49,10 +58,22 @@ export type ProfileStackParamList = {
   FamilySettings: undefined;
 };
 
+export type HistorianStackParamList = {
+  HistorianHome: undefined;
+  HistorianAnswer: { query: string };
+  HistorianSearch: undefined;
+  Wisdoms: undefined;
+  Timeline: undefined;
+  ImportantPeople: undefined;
+  PersonInsight: { personId: string };
+  KnowledgeGaps: undefined;
+};
+
 export type MainTabParamList = {
   HomeTab: NavigatorScreenParams<HomeStackParamList>;
   FamilyTab: NavigatorScreenParams<FamilyStackParamList>;
   MemoriesTab: NavigatorScreenParams<MemoriesStackParamList>;
   CapsulesTab: NavigatorScreenParams<CapsulesStackParamList>;
+  HistorianTab: NavigatorScreenParams<HistorianStackParamList>;
   ProfileTab: NavigatorScreenParams<ProfileStackParamList>;
 };

@@ -43,6 +43,16 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     },
     permissions: ['RECORD_AUDIO', 'READ_EXTERNAL_STORAGE', 'CAMERA'],
   },
+  web: {
+    bundler: 'metro',
+    favicon: './assets/favicon.png',
+    output: 'single',
+  },
+  // Für GitHub Pages wird die App unter einem Unterpfad (/foreverly) ausgeliefert.
+  // Lokal bleibt baseUrl leer. Gesetzt über EXPO_BASE_URL im CI.
+  experiments: {
+    baseUrl: process.env.EXPO_BASE_URL ?? '',
+  },
   plugins: [
     'expo-av',
     'expo-image-picker',
@@ -59,5 +69,6 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     supabaseAnonKey: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY,
     inviteBaseUrl:
       process.env.EXPO_PUBLIC_INVITE_BASE_URL ?? 'https://foreverly.app/invite',
+    demoMode: process.env.EXPO_PUBLIC_DEMO_MODE,
   },
 });
