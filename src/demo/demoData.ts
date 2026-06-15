@@ -27,6 +27,10 @@ import type {
   FamilyBranch,
   VisibilityLevel,
   RelationshipSuggestion,
+  FamilyEvent,
+  EventParticipant,
+  Moment,
+  MomentComment,
 } from '@/types/models';
 import { coverImage, photoImage, portraitImage } from './images';
 
@@ -68,6 +72,10 @@ export interface DemoDataset {
   closenessRatings: ClosenessRating[];
   branches: FamilyBranch[];
   suggestions: RelationshipSuggestion[];
+  events: FamilyEvent[];
+  eventParticipants: EventParticipant[];
+  moments: Moment[];
+  momentComments: MomentComment[];
 }
 
 /** Erzeugt einen frischen Demo-Datensatz (Familie Mielke). */
@@ -378,6 +386,48 @@ export function createSeedData(): DemoDataset {
     },
   ];
 
+  // --- Phase 6: Familienevent „Sommergrillen bei Nick" ---
+  const events: FamilyEvent[] = [
+    {
+      id: 'ev-grill',
+      family_id: DEMO_FAMILY_ID,
+      type: 'grillfest',
+      title: 'Sommergrillen bei Nick',
+      description: 'Großes Grillfest im Garten – die ganze Familie ist eingeladen!',
+      event_date: daysFromNow(-3).slice(0, 10),
+      event_time: '16:00',
+      location: 'Nicks Garten, Hamburg',
+      host_user_id: DEMO_USER_ID,
+      host_person_id: 'p-nick',
+      visibility: 'family',
+      created_by: DEMO_USER_ID,
+      created_at: daysFromNow(-20),
+      updated_at: daysFromNow(-20),
+    },
+  ];
+
+  const eventParticipants: EventParticipant[] = [
+    part('ep1', 'p-nick', DEMO_USER_ID, 'yes', null, '🔥 Grillkohle'),
+    part('ep2', 'p-max', 'demo-user-max', 'yes', 'Ich freu mich riesig!', '🥤 Getränke'),
+    part('ep3', 'p-oma', null, 'maybe', null, null),
+    part('ep4', 'p-opa', null, 'yes', null, '🍰 Kuchen'),
+  ];
+
+  const moments: Moment[] = [
+    moment('mo1', 'photo', 'Das Grillen war ein Fest! 🔥', photoImage('Sommergrillen', '#D6A93B'), DEMO_USER_ID, 'ev-grill', -3),
+    moment('mo2', 'photo', 'Max am Grill 😄', photoImage('Am Grill', '#B07D4B'), 'demo-user-max', 'ev-grill', -3),
+    moment('mo3', 'audio', 'Opas Anekdote vom Grill', '', DEMO_USER_ID, 'ev-grill', -3),
+    moment('mo4', 'text', 'Schön war es mit der ganzen Familie 💛', null, DEMO_USER_ID, 'ev-grill', -3),
+    // Familienfeed (ohne Event)
+    moment('mo5', 'text', 'Guten Morgen, liebe Familie! ☀️', null, DEMO_USER_ID, null, -1),
+    moment('mo6', 'photo', 'Sonntagsspaziergang', photoImage('Spaziergang', '#5B8A5A'), DEMO_USER_ID, null, -2),
+  ];
+
+  const momentComments: MomentComment[] = [
+    { id: 'mc1', moment_id: 'mo1', author_user_id: 'demo-user-max', text: 'Tolle Aufnahme!', created_at: daysFromNow(-3) },
+    { id: 'mc2', moment_id: 'mo1', author_user_id: DEMO_USER_ID, text: 'Danke! War ein super Tag.', created_at: daysFromNow(-3) },
+  ];
+
   return {
     profile,
     family,
@@ -402,6 +452,10 @@ export function createSeedData(): DemoDataset {
     closenessRatings,
     branches,
     suggestions,
+    events,
+    eventParticipants,
+    moments,
+    momentComments,
   };
 
   // --- Fabrik-Helfer ---
@@ -691,6 +745,50 @@ export function createSeedData(): DemoDataset {
       created_at: daysFromNow(-10),
       updated_at: daysFromNow(-10),
       participant_ids: participantIds,
+    };
+  }
+
+  function part(
+    id: string,
+    personId: string,
+    userId: string | null,
+    rsvp: EventParticipant['rsvp'],
+    comment: string | null,
+    bringing: string | null,
+  ): EventParticipant {
+    return {
+      id,
+      event_id: 'ev-grill',
+      person_id: personId,
+      user_id: userId,
+      rsvp,
+      comment,
+      bringing,
+      responded_at: rsvp ? daysFromNow(-5) : null,
+      created_at: daysFromNow(-18),
+    };
+  }
+
+  function moment(
+    id: string,
+    kind: Moment['kind'],
+    text: string | null,
+    storagePath: string | null,
+    authorUserId: string,
+    eventId: string | null,
+    offset: number,
+  ): Moment {
+    return {
+      id,
+      family_id: DEMO_FAMILY_ID,
+      author_user_id: authorUserId,
+      kind,
+      text,
+      storage_path: storagePath,
+      duration_seconds: kind === 'audio' ? 47 : null,
+      visibility: 'family',
+      event_id: eventId,
+      created_at: daysFromNow(offset),
     };
   }
 

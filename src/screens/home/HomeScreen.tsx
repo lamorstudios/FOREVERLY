@@ -44,6 +44,7 @@ type QuickRoute =
   | 'TrustedCircle'
   | 'Closeness'
   | 'Branches'
+  | 'MomentsHome'
   | 'SeniorMode';
 
 interface QuickAction {
@@ -54,6 +55,7 @@ interface QuickAction {
 }
 
 const QUICK_ACTIONS: QuickAction[] = [
+  { label: 'Familienmomente', icon: 'images-outline', color: colors.gold, route: 'MomentsHome' },
   { label: 'Status senden', icon: 'happy-outline', color: colors.success, route: 'Status' },
   { label: 'Kalender', icon: 'calendar-outline', color: colors.relationMarried, route: 'Calendar' },
   { label: 'Notfall', icon: 'alert-circle-outline', color: colors.error, route: 'Emergency' },

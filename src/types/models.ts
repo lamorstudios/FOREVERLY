@@ -108,6 +108,94 @@ export interface RelationshipSuggestion {
   created_at: string;
 }
 
+// ===================== Phase 6 · Familienmomente & Events =====================
+
+export type FamilyEventType =
+  | 'grillfest'
+  | 'geburtstag'
+  | 'weihnachten'
+  | 'hochzeit'
+  | 'taufe'
+  | 'einschulung'
+  | 'urlaub'
+  | 'feier'
+  | 'sonstige';
+
+export type RsvpStatus = 'yes' | 'maybe' | 'no';
+export type MomentKind = 'text' | 'photo' | 'video' | 'audio';
+
+export interface FamilyEvent {
+  id: string;
+  family_id: string;
+  type: FamilyEventType;
+  title: string;
+  description: string | null;
+  event_date: string;
+  event_time: string | null;
+  location: string | null;
+  host_user_id: string | null;
+  host_person_id: string | null;
+  visibility: VisibilityLevel;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+  participant_count?: number;
+}
+
+export interface EventParticipant {
+  id: string;
+  event_id: string;
+  person_id: string | null;
+  user_id: string | null;
+  rsvp: RsvpStatus | null;
+  comment: string | null;
+  bringing: string | null;
+  responded_at: string | null;
+  created_at: string;
+  person?: Person;
+}
+
+export interface Moment {
+  id: string;
+  family_id: string;
+  author_user_id: string | null;
+  kind: MomentKind;
+  text: string | null;
+  storage_path: string | null;
+  duration_seconds: number | null;
+  visibility: VisibilityLevel;
+  event_id: string | null;
+  created_at: string;
+  author?: Profile;
+  comment_count?: number;
+}
+
+export interface MomentComment {
+  id: string;
+  moment_id: string;
+  author_user_id: string | null;
+  text: string;
+  created_at: string;
+  author?: Profile;
+}
+
+export interface ChronicleEntry {
+  id: string;
+  year: number;
+  date: string | null;
+  title: string;
+  source_type: string;
+  source_id: string | null;
+}
+
+export interface MemoryChallenge {
+  key: string;
+  title: string;
+  description: string;
+  prompt_type: 'photo' | 'audio' | 'memory';
+  month: number;
+}
+
 export interface Person {
   id: string;
   family_id: string;

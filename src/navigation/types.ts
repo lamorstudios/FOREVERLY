@@ -36,6 +36,17 @@ export type HomeStackParamList = {
   // Phase 4.5 · Familiennähe & Zweige
   Closeness: undefined;
   Branches: undefined;
+  // Phase 6 · Familienmomente & Events
+  MomentsHome: undefined;
+  Feed: undefined;
+  MomentCompose: { eventId?: string } | undefined;
+  MomentDetail: { momentId: string };
+  Events: undefined;
+  EventForm: undefined;
+  EventDetail: { eventId: string };
+  Chronik: undefined;
+  Challenges: undefined;
+  PhotoMemories: undefined;
 };
 
 export type FamilyStackParamList = {

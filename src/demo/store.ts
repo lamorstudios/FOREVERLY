@@ -33,6 +33,14 @@ import type {
   ClosenessLevel,
   FamilyBranch,
   RelationshipSuggestion,
+  FamilyEvent,
+  FamilyEventType,
+  EventParticipant,
+  RsvpStatus,
+  Moment,
+  MomentKind,
+  MomentComment,
+  VisibilityLevel,
 } from '@/types/models';
 import { createSeedData, DEMO_FAMILY_ID, DEMO_USER_ID } from './demoData';
 
@@ -948,4 +956,196 @@ export const demoStore = {
     });
     return s;
   },
+
+  // --- Phase 6: Familienevents ---
+  listEvents(): FamilyEvent[] {
+    return [...data.events]
+      .map((e) => ({
+        ...e,
+        participant_count: data.eventParticipants.filter((p) => p.event_id === e.id).length,
+      }))
+      .sort((a, b) => b.event_date.localeCompare(a.event_date));
+  },
+  getEvent(id: string): FamilyEvent | null {
+    return data.events.find((e) => e.id === id) ?? null;
+  },
+  createEvent(input: {
+    familyId: string;
+    type: FamilyEventType;
+    title: string;
+    description?: string | null;
+    eventDate: string;
+    eventTime?: string | null;
+    location?: string | null;
+    visibility?: VisibilityLevel;
+    hostUserId: string;
+    hostPersonId?: string | null;
+    participantPersonIds?: string[];
+    createdBy: string;
+  }): FamilyEvent {
+    const e: FamilyEvent = {
+      id: newId('ev'),
+      family_id: input.familyId,
+      type: input.type,
+      title: input.title,
+      description: input.description ?? null,
+      event_date: input.eventDate,
+      event_time: input.eventTime ?? null,
+      location: input.location ?? null,
+      host_user_id: input.hostUserId,
+      host_person_id: input.hostPersonId ?? null,
+      visibility: input.visibility ?? 'family',
+      created_by: input.createdBy,
+      created_at: nowIso(),
+      updated_at: nowIso(),
+    };
+    data.events.unshift(e);
+    for (const pid of input.participantPersonIds ?? []) {
+      const person = data.persons.find((p) => p.id === pid);
+      data.eventParticipants.push({
+        id: newId('ep'),
+        event_id: e.id,
+        person_id: pid,
+        user_id: person?.user_id ?? null,
+        rsvp: null,
+        comment: null,
+        bringing: null,
+        responded_at: null,
+        created_at: nowIso(),
+      });
+    }
+    return e;
+  },
+  deleteEvent(id: string): void {
+    data.events = data.events.filter((e) => e.id !== id);
+    data.eventParticipants = data.eventParticipants.filter((p) => p.event_id !== id);
+    data.moments = data.moments.filter((m) => m.event_id !== id);
+  },
+  listParticipants(eventId: string): EventParticipant[] {
+    return data.eventParticipants
+      .filter((p) => p.event_id === eventId)
+      .map((p) => ({ ...p, person: data.persons.find((x) => x.id === p.person_id) }));
+  },
+  setRsvp(input: {
+    eventId: string;
+    personId: string;
+    userId: string;
+    rsvp: RsvpStatus;
+    comment?: string | null;
+    bringing?: string | null;
+  }): EventParticipant {
+    let p = data.eventParticipants.find(
+      (x) => x.event_id === input.eventId && x.person_id === input.personId,
+    );
+    if (!p) {
+      p = {
+        id: newId('ep'),
+        event_id: input.eventId,
+        person_id: input.personId,
+        user_id: input.userId,
+        rsvp: null,
+        comment: null,
+        bringing: null,
+        responded_at: null,
+        created_at: nowIso(),
+      };
+      data.eventParticipants.push(p);
+    }
+    p.rsvp = input.rsvp;
+    p.comment = input.comment ?? p.comment;
+    p.bringing = input.bringing ?? p.bringing;
+    p.responded_at = nowIso();
+    return p;
+  },
+
+  // --- Phase 6: Familienmomente (Feed + Album) ---
+  listMoments(opts?: { eventId?: string | null; feedOnly?: boolean }): Moment[] {
+    let list = [...data.moments];
+    if (opts?.eventId) list = list.filter((m) => m.event_id === opts.eventId);
+    else if (opts?.feedOnly) list = list.filter((m) => !m.event_id);
+    return list
+      .map((m) => ({
+        ...m,
+        author: resolveAuthor(m.author_user_id),
+        comment_count: data.momentComments.filter((c) => c.moment_id === m.id).length,
+      }))
+      .sort((a, b) => b.created_at.localeCompare(a.created_at));
+  },
+  getMoment(id: string): Moment | null {
+    const m = data.moments.find((x) => x.id === id);
+    return m ? { ...m, author: resolveAuthor(m.author_user_id) } : null;
+  },
+  createMoment(input: {
+    familyId: string;
+    authorUserId: string;
+    kind: MomentKind;
+    text?: string | null;
+    storagePath?: string | null;
+    durationSeconds?: number | null;
+    visibility?: VisibilityLevel;
+    eventId?: string | null;
+  }): Moment {
+    const m: Moment = {
+      id: newId('mo'),
+      family_id: input.familyId,
+      author_user_id: input.authorUserId,
+      kind: input.kind,
+      text: input.text ?? null,
+      storage_path: input.storagePath ?? null,
+      duration_seconds: input.durationSeconds ?? null,
+      visibility: input.visibility ?? 'family',
+      event_id: input.eventId ?? null,
+      created_at: nowIso(),
+    };
+    data.moments.unshift(m);
+    return { ...m, author: resolveAuthor(m.author_user_id) };
+  },
+  deleteMoment(id: string): void {
+    data.moments = data.moments.filter((m) => m.id !== id);
+    data.momentComments = data.momentComments.filter((c) => c.moment_id !== id);
+  },
+  listMomentComments(momentId: string): MomentComment[] {
+    return data.momentComments
+      .filter((c) => c.moment_id === momentId)
+      .map((c) => ({ ...c, author: resolveAuthor(c.author_user_id) }))
+      .sort((a, b) => a.created_at.localeCompare(b.created_at));
+  },
+  addMomentComment(momentId: string, authorUserId: string, text: string): MomentComment {
+    const c: MomentComment = {
+      id: newId('mc'),
+      moment_id: momentId,
+      author_user_id: authorUserId,
+      text,
+      created_at: nowIso(),
+    };
+    data.momentComments.push(c);
+    return { ...c, author: resolveAuthor(authorUserId) };
+  },
 };
+
+/** Ermittelt ein Profil zu einer Nutzer-ID (Demo). */
+function resolveAuthor(userId: string | null): Profile | undefined {
+  if (!userId) return undefined;
+  if (userId === data.profile.id) return data.profile;
+  const person = data.persons.find((p) => p.user_id === userId);
+  if (person) {
+    return {
+      id: userId,
+      email: null,
+      full_name: [person.first_name, person.last_name].filter(Boolean).join(' '),
+      avatar_url: person.avatar_url,
+      bio: null,
+      created_at: person.created_at,
+      updated_at: person.updated_at,
+    };
+  }
+  return {
+    id: userId,
+    email: null,
+    full_name: 'Familienmitglied',
+    avatar_url: null,
+    bio: null,
+    created_at: nowIso(),
+    updated_at: nowIso(),
+  };
+}

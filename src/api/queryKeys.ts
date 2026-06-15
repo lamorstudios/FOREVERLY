@@ -55,4 +55,14 @@ export const qk = {
   // Phase 5 · Smart Invites
   smartInvites: (familyId: string) => ['smartInvites', familyId] as const,
   suggestions: (familyId: string) => ['suggestions', familyId] as const,
+  // Phase 6 · Familienmomente & Events
+  events: (familyId: string) => ['events', familyId] as const,
+  event: (id: string) => ['event', id] as const,
+  eventParticipants: (eventId: string) => ['eventParticipants', eventId] as const,
+  moments: (familyId: string, scope: string) =>
+    ['moments', familyId, scope] as const,
+  moment: (id: string) => ['moment', id] as const,
+  momentComments: (momentId: string) => ['momentComments', momentId] as const,
+  chronicle: (familyId: string) => ['chronicle', familyId] as const,
+  photoMemories: (familyId: string) => ['photoMemories', familyId] as const,
 };

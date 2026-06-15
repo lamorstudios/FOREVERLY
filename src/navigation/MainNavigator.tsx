@@ -68,6 +68,17 @@ import { TrustedContactFormScreen } from '@/screens/trusted/TrustedContactFormSc
 // Phase 4.5 · Familiennähe & Zweige
 import { ClosenessScreen } from '@/screens/closeness/ClosenessScreen';
 import { BranchesScreen } from '@/screens/closeness/BranchesScreen';
+// Phase 6 · Familienmomente & Events
+import { MomentsHomeScreen } from '@/screens/moments/MomentsHomeScreen';
+import { FeedScreen } from '@/screens/moments/FeedScreen';
+import { MomentComposeScreen } from '@/screens/moments/MomentComposeScreen';
+import { MomentDetailScreen } from '@/screens/moments/MomentDetailScreen';
+import { EventsScreen } from '@/screens/moments/EventsScreen';
+import { EventFormScreen } from '@/screens/moments/EventFormScreen';
+import { EventDetailScreen } from '@/screens/moments/EventDetailScreen';
+import { ChronikScreen } from '@/screens/moments/ChronikScreen';
+import { ChallengesScreen } from '@/screens/moments/ChallengesScreen';
+import { PhotoMemoriesScreen } from '@/screens/moments/PhotoMemoriesScreen';
 
 const HomeStack = createNativeStackNavigator<HomeStackParamList>();
 function HomeStackNavigator() {
@@ -95,6 +106,16 @@ function HomeStackNavigator() {
       <HomeStack.Screen name="TrustedContactForm" component={TrustedContactFormScreen} options={{ title: 'Vertrauensperson' }} />
       <HomeStack.Screen name="Closeness" component={ClosenessScreen} options={{ title: 'Familiennähe' }} />
       <HomeStack.Screen name="Branches" component={BranchesScreen} options={{ title: 'Familienzweige' }} />
+      <HomeStack.Screen name="MomentsHome" component={MomentsHomeScreen} options={{ title: 'Familienmomente' }} />
+      <HomeStack.Screen name="Feed" component={FeedScreen} options={{ title: 'Familienfeed' }} />
+      <HomeStack.Screen name="MomentCompose" component={MomentComposeScreen} options={{ title: 'Moment teilen' }} />
+      <HomeStack.Screen name="MomentDetail" component={MomentDetailScreen} options={{ title: 'Moment' }} />
+      <HomeStack.Screen name="Events" component={EventsScreen} options={{ title: 'Familienevents' }} />
+      <HomeStack.Screen name="EventForm" component={EventFormScreen} options={{ title: 'Neues Event' }} />
+      <HomeStack.Screen name="EventDetail" component={EventDetailScreen} options={{ title: 'Event' }} />
+      <HomeStack.Screen name="Chronik" component={ChronikScreen} options={{ title: 'Familienchronik' }} />
+      <HomeStack.Screen name="Challenges" component={ChallengesScreen} options={{ title: 'Challenges' }} />
+      <HomeStack.Screen name="PhotoMemories" component={PhotoMemoriesScreen} options={{ title: 'Foto-Erinnerungen' }} />
     </HomeStack.Navigator>
   );
 }
