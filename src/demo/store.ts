@@ -32,6 +32,7 @@ import type {
   ClosenessRating,
   ClosenessLevel,
   FamilyBranch,
+  RelationshipSuggestion,
 } from '@/types/models';
 import { createSeedData, DEMO_FAMILY_ID, DEMO_USER_ID } from './demoData';
 
@@ -815,5 +816,136 @@ export const demoStore = {
   },
   deleteBranch(id: string): void {
     data.branches = data.branches.filter((b) => b.id !== id);
+  },
+
+  // --- Phase 5: Smart Invites ---
+  createSmartInvite(input: {
+    familyId: string;
+    invitedBy: string;
+    role: MemberRole;
+    personId: string | null;
+    inviterPersonId: string | null;
+    relationshipType: RelationshipType | null;
+    suggestedCloseness: ClosenessLevel | null;
+    message: string | null;
+  }): Invitation {
+    const code = Array.from({ length: 8 }, () =>
+      'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'[Math.floor(Math.random() * 32)],
+    ).join('');
+    const inv: Invitation = {
+      id: newId('inv'),
+      family_id: input.familyId,
+      code,
+      role: input.role,
+      email: null,
+      status: 'pending',
+      invited_by: input.invitedBy,
+      accepted_by: null,
+      accepted_at: null,
+      expires_at: new Date(Date.now() + 30 * 864e5).toISOString(),
+      created_at: nowIso(),
+      person_id: input.personId,
+      inviter_person_id: input.inviterPersonId,
+      relationship_type: input.relationshipType,
+      suggested_closeness: input.suggestedCloseness,
+      message: input.message,
+    };
+    data.invitations.unshift(inv);
+    return inv;
+  },
+  /** Simuliert die Annahme einer Einladung (Vorschau ohne echte Registrierung). */
+  acceptSmartInviteDemo(code: string): Invitation | null {
+    const inv = data.invitations.find((i) => i.code === code.trim().toUpperCase());
+    if (!inv) return null;
+    const guestId = `demo-guest-${inv.id}`;
+    inv.status = 'accepted';
+    inv.accepted_by = guestId;
+    inv.accepted_at = nowIso();
+    // Profil mit „neuem Konto" verknüpfen
+    if (inv.person_id) {
+      const person = data.persons.find((p) => p.id === inv.person_id);
+      if (person && !person.user_id) person.user_id = guestId;
+      // Beziehung Einladender -> Person automatisch anlegen
+      if (inv.inviter_person_id && inv.relationship_type) {
+        const exists = data.relationships.some(
+          (r) => r.from_person_id === inv.inviter_person_id && r.to_person_id === inv.person_id && r.type === inv.relationship_type,
+        );
+        if (!exists) {
+          data.relationships.push({
+            id: newId('r'),
+            family_id: inv.family_id,
+            from_person_id: inv.inviter_person_id,
+            to_person_id: inv.person_id,
+            type: inv.relationship_type,
+            category: 'biological',
+            created_by: inv.invited_by,
+            created_at: nowIso(),
+          });
+        }
+      }
+      // Familiennähe des Einladenden anwenden (kein Vollzugriff automatisch)
+      if (inv.suggested_closeness && inv.person_id) {
+        this.setCloseness(inv.family_id, inv.invited_by, inv.person_id, inv.suggested_closeness);
+      }
+    }
+    return inv;
+  },
+
+  // --- Phase 5: Beziehungsvorschläge ---
+  listSuggestions(): RelationshipSuggestion[] {
+    return data.suggestions.filter((s) => s.status === 'pending');
+  },
+  addSuggestions(
+    candidates: {
+      family_id: string;
+      from_person_id: string;
+      to_person_id: string;
+      suggested_type: RelationshipType;
+      suggested_category: RelationshipCategory;
+      reason: string;
+      created_by: string;
+    }[],
+  ): RelationshipSuggestion[] {
+    const added: RelationshipSuggestion[] = [];
+    for (const c of candidates) {
+      const dup = data.suggestions.some(
+        (s) => s.from_person_id === c.from_person_id && s.to_person_id === c.to_person_id,
+      );
+      if (dup) continue;
+      const s: RelationshipSuggestion = {
+        id: newId('sug'),
+        family_id: c.family_id,
+        from_person_id: c.from_person_id,
+        to_person_id: c.to_person_id,
+        suggested_type: c.suggested_type,
+        suggested_category: c.suggested_category,
+        reason: c.reason,
+        status: 'pending',
+        created_by: c.created_by,
+        created_at: nowIso(),
+      };
+      data.suggestions.push(s);
+      added.push(s);
+    }
+    return added;
+  },
+  updateSuggestion(id: string, patch: Partial<RelationshipSuggestion>): RelationshipSuggestion {
+    const idx = data.suggestions.findIndex((s) => s.id === id);
+    data.suggestions[idx] = { ...data.suggestions[idx]!, ...patch };
+    return data.suggestions[idx]!;
+  },
+  confirmSuggestion(id: string): RelationshipSuggestion | null {
+    const s = data.suggestions.find((x) => x.id === id);
+    if (!s) return null;
+    s.status = 'confirmed';
+    this.createRelationship({
+      family_id: s.family_id,
+      from_person_id: s.from_person_id,
+      to_person_id: s.to_person_id,
+      type: s.suggested_type,
+      category: s.suggested_category,
+      created_by: s.created_by ?? '',
+    });
+    return s;
   },
 };

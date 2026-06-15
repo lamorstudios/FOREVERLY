@@ -21,6 +21,10 @@ import { PersonFormScreen } from '@/screens/family/PersonFormScreen';
 import { AddRelationshipScreen } from '@/screens/family/AddRelationshipScreen';
 import { MembersScreen } from '@/screens/family/MembersScreen';
 import { InviteScreen } from '@/screens/family/InviteScreen';
+// Phase 5 · Smart Invites
+import { SmartInviteScreen } from '@/screens/invites/SmartInviteScreen';
+import { InvitesListScreen } from '@/screens/invites/InvitesListScreen';
+import { SuggestionsScreen } from '@/screens/invites/SuggestionsScreen';
 import { MemoriesHubScreen } from '@/screens/memories/MemoriesHubScreen';
 import { MemoryListScreen } from '@/screens/memories/MemoryListScreen';
 import { MemoryDetailScreen } from '@/screens/memories/MemoryDetailScreen';
@@ -105,6 +109,9 @@ function FamilyStackNavigator() {
       <FamilyStack.Screen name="AddRelationship" component={AddRelationshipScreen} options={{ title: 'Beziehung hinzufügen' }} />
       <FamilyStack.Screen name="Members" component={MembersScreen} options={{ title: 'Mitglieder' }} />
       <FamilyStack.Screen name="Invite" component={InviteScreen} options={{ title: 'Einladen' }} />
+      <FamilyStack.Screen name="SmartInvite" component={SmartInviteScreen} options={{ title: 'Familienmitglied einladen' }} />
+      <FamilyStack.Screen name="InvitesList" component={InvitesListScreen} options={{ title: 'Einladungen' }} />
+      <FamilyStack.Screen name="Suggestions" component={SuggestionsScreen} options={{ title: 'Beziehungsvorschläge' }} />
     </FamilyStack.Navigator>
   );
 }

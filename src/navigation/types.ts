@@ -45,6 +45,10 @@ export type FamilyStackParamList = {
   AddRelationship: { personId: string };
   Members: undefined;
   Invite: undefined;
+  // Phase 5 · Smart Invites
+  SmartInvite: { personId?: string } | undefined;
+  InvitesList: undefined;
+  Suggestions: undefined;
 };
 
 export type MemoriesStackParamList = {

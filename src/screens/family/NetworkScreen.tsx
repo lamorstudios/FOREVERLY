@@ -93,9 +93,25 @@ export function NetworkScreen({ navigation }: Props) {
           style={styles.headerButton}
           onPress={() => navigation.navigate('Members')}
         />
+        <Button
+          label="Einladen"
+          icon="person-add-outline"
+          variant="secondary"
+          fullWidth={false}
+          style={styles.headerButton}
+          onPress={() => navigation.navigate('InvitesList')}
+        />
+        <Button
+          label="Vorschläge"
+          icon="bulb-outline"
+          variant="secondary"
+          fullWidth={false}
+          style={styles.headerButton}
+          onPress={() => navigation.navigate('Suggestions')}
+        />
         {isAdmin ? (
           <Button
-            label="Einladen"
+            label="Code"
             icon="mail-outline"
             variant="secondary"
             fullWidth={false}

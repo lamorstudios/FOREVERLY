@@ -28,6 +28,8 @@ export type RelationshipType =
   | 'onkel'
   | 'cousin'
   | 'cousine'
+  | 'nichte'
+  | 'neffe'
   | 'ehepartner'
   | 'lebenspartner'
   | 'stiefvater'
@@ -82,6 +84,27 @@ export interface Invitation {
   accepted_by: string | null;
   accepted_at: string | null;
   expires_at: string;
+  created_at: string;
+  // Phase 5 · Smart Invites
+  person_id?: string | null;
+  inviter_person_id?: string | null;
+  relationship_type?: RelationshipType | null;
+  suggested_closeness?: ClosenessLevel | null;
+  message?: string | null;
+}
+
+export type SuggestionStatus = 'pending' | 'confirmed' | 'dismissed';
+
+export interface RelationshipSuggestion {
+  id: string;
+  family_id: string;
+  from_person_id: string;
+  to_person_id: string;
+  suggested_type: RelationshipType;
+  suggested_category: RelationshipCategory;
+  reason: string | null;
+  status: SuggestionStatus;
+  created_by: string | null;
   created_at: string;
 }
 

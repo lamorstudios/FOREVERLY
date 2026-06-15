@@ -26,6 +26,7 @@ import type {
   ClosenessLevel,
   FamilyBranch,
   VisibilityLevel,
+  RelationshipSuggestion,
 } from '@/types/models';
 import { coverImage, photoImage, portraitImage } from './images';
 
@@ -66,6 +67,7 @@ export interface DemoDataset {
   trustedContacts: TrustedContact[];
   closenessRatings: ClosenessRating[];
   branches: FamilyBranch[];
+  suggestions: RelationshipSuggestion[];
 }
 
 /** Erzeugt einen frischen Demo-Datensatz (Familie Mielke). */
@@ -116,6 +118,9 @@ export function createSeedData(): DemoDataset {
     person('p-stiefmutter', 'Claudia', 'Mielke', '1970-03-03', 'Kiel', null, 'CM'),
     person('p-cousin', 'Max', 'Krüger', '1996-08-08', 'Berlin', null, 'MK'),
     person('p-schwager', 'Peter', 'Wagner', '1985-01-01', 'Hamburg', null, 'PW'),
+    // Phase 5 · Smart Invites: Nick lud Bruder Max ein; Max fügte Tochter Lea hinzu
+    person('p-max', 'Max', 'Mielke', '1992-02-02', 'Hamburg', null, 'MX', 'demo-user-max'),
+    person('p-lea', 'Lea', 'Mielke', '2018-06-06', 'Hamburg', null, 'LE'),
   ];
 
   // Biografien (vorhandene Daten – Grundlage für Kurzbiografien & Lebensweisheiten)
@@ -161,6 +166,47 @@ export function createSeedData(): DemoDataset {
     rel('r16', 'p-nick', 'p-stiefmutter', 'stiefmutter', 'patchwork'),
     rel('r17', 'p-nick', 'p-cousin', 'cousin', 'biological'),
     rel('r18', 'p-nick', 'p-schwager', 'sonstige', 'married'),
+    // Phase 5: Nick → Max (Bruder), Max → Lea (Tochter)
+    rel('r19', 'p-nick', 'p-max', 'bruder', 'biological'),
+    rel('r20', 'p-max', 'p-lea', 'tochter', 'biological'),
+  ];
+
+  // Phase 5 · Smart Invites: gesendete Einladung (Nick lud Max ein, angenommen)
+  const invitations: Invitation[] = [
+    {
+      id: 'inv-max',
+      family_id: DEMO_FAMILY_ID,
+      code: 'MAXBRUDER',
+      role: 'member',
+      email: null,
+      status: 'accepted',
+      invited_by: DEMO_USER_ID,
+      accepted_by: 'demo-user-max',
+      accepted_at: daysFromNow(-12),
+      expires_at: daysFromNow(18),
+      created_at: daysFromNow(-14),
+      person_id: 'p-max',
+      inviter_person_id: 'p-nick',
+      relationship_type: 'bruder',
+      suggested_closeness: 'inner',
+      message: 'Nick lädt dich ein, Teil der Familiengeschichte auf Foreverly zu werden.',
+    },
+  ];
+
+  // Phase 5 · Beziehungsvorschlag: „Lea könnte deine Nichte sein"
+  const suggestions: RelationshipSuggestion[] = [
+    {
+      id: 'sug-lea',
+      family_id: DEMO_FAMILY_ID,
+      from_person_id: 'p-nick',
+      to_person_id: 'p-lea',
+      suggested_type: 'nichte',
+      suggested_category: 'biological',
+      reason: 'Lea ist das Kind von Max (deinem Bruder).',
+      status: 'pending',
+      created_by: DEMO_USER_ID,
+      created_at: daysFromNow(-2),
+    },
   ];
 
   // Phase 4.5: individuelle Familiennähe von Nick (Beziehung ≠ Nähe!)
@@ -172,6 +218,7 @@ export function createSeedData(): DemoDataset {
     closeness('cl5', 'p-schwager', 'erweitert'),// 🤍 Erweiterter Kreis
     closeness('cl6', 'p-mutter', 'inner'),
     closeness('cl7', 'p-vater', 'inner'),
+    closeness('cl8', 'p-max', 'inner'), // Nick stuft Bruder Max als Inner Circle ein
   ];
 
   // Phase 4.5: Familienzweige
@@ -335,7 +382,7 @@ export function createSeedData(): DemoDataset {
     profile,
     family,
     members,
-    invitations: [],
+    invitations,
     persons,
     relationships,
     memories,
@@ -354,6 +401,7 @@ export function createSeedData(): DemoDataset {
     trustedContacts,
     closenessRatings,
     branches,
+    suggestions,
   };
 
   // --- Fabrik-Helfer ---

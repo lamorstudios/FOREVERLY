@@ -52,4 +52,7 @@ export const qk = {
   closeness: (familyId: string, userId: string) =>
     ['closeness', familyId, userId] as const,
   branches: (familyId: string) => ['branches', familyId] as const,
+  // Phase 5 · Smart Invites
+  smartInvites: (familyId: string) => ['smartInvites', familyId] as const,
+  suggestions: (familyId: string) => ['suggestions', familyId] as const,
 };
