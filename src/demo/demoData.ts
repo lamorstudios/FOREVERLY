@@ -102,6 +102,24 @@ export function createSeedData(): DemoDataset {
     person('p-pflege', 'Mia', 'Mielke', '2012-03-15', 'Hamburg', null, 'MM'),
   ];
 
+  // Biografien (vorhandene Daten – Grundlage für Kurzbiografien & Lebensweisheiten)
+  const biographies: Record<string, string> = {
+    'p-nick': 'Nick sammelt die Erinnerungen der Familie Mielke.',
+    'p-mutter': 'Sabine arbeitet als Krankenschwester in Lübeck.',
+    'p-vater': 'Thomas ist Ingenieur und begeisterter Hobbygärtner.',
+    'p-oma':
+      'Erika wuchs in Rostock auf und arbeitete viele Jahre als Lehrerin. Sie sagte oft: Familie ist wichtiger als Geld.',
+    'p-opa':
+      'Hans war Tischler und liebte die Seefahrt. Seine Lebensweisheit war: Ehrliche Arbeit bringt Zufriedenheit.',
+    'p-uroma':
+      'Anna war bekannt für ihren Streuselkuchen und ihre Gastfreundschaft. Sie sagte: Wahres Glück liegt in der Familie.',
+    'p-uropa':
+      'Karl stammte aus Stettin und führte einen kleinen Handwerksbetrieb.',
+  };
+  for (const person of persons) {
+    if (biographies[person.id]) person.biography = biographies[person.id]!;
+  }
+
   // --- Beziehungen (farblich codiert) ---
   const relationships: Relationship[] = [
     // Grün – biologische Verwandtschaft

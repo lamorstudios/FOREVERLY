@@ -58,10 +58,22 @@ export type ProfileStackParamList = {
   FamilySettings: undefined;
 };
 
+export type HistorianStackParamList = {
+  HistorianHome: undefined;
+  HistorianAnswer: { query: string };
+  HistorianSearch: undefined;
+  Wisdoms: undefined;
+  Timeline: undefined;
+  ImportantPeople: undefined;
+  PersonInsight: { personId: string };
+  KnowledgeGaps: undefined;
+};
+
 export type MainTabParamList = {
   HomeTab: NavigatorScreenParams<HomeStackParamList>;
   FamilyTab: NavigatorScreenParams<FamilyStackParamList>;
   MemoriesTab: NavigatorScreenParams<MemoriesStackParamList>;
   CapsulesTab: NavigatorScreenParams<CapsulesStackParamList>;
+  HistorianTab: NavigatorScreenParams<HistorianStackParamList>;
   ProfileTab: NavigatorScreenParams<ProfileStackParamList>;
 };
