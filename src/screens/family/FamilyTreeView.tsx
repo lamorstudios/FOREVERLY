@@ -63,6 +63,37 @@ function pairKey(a: string, b: string): string {
   return a < b ? `${a}|${b}` : `${b}|${a}`;
 }
 
+const PARENT_TYPES = new Set<RelationshipType>(['vater', 'mutter', 'stiefvater', 'stiefmutter']);
+const CHILD_TYPES = new Set<RelationshipType>(['sohn', 'tochter', 'stiefkind', 'adoptivkind', 'pflegekind']);
+const SIBLING_TYPES = new Set<RelationshipType>(['bruder', 'schwester']);
+const PARTNER_TYPES = new Set<RelationshipType>(['ehepartner', 'lebenspartner']);
+
+type Role = 'parent' | 'child' | 'sibling' | 'partner' | 'other';
+
+/** Rolle des Knotens relativ zum Hub (für die Himmelsrichtung im Layout). */
+function roleOf(
+  hub: string,
+  node: string,
+  dirType: Map<string, RelationshipType>,
+): Role {
+  const fwd = dirType.get(`${hub}->${node}`); // node ist <fwd> von hub
+  if (fwd) {
+    if (PARENT_TYPES.has(fwd)) return 'parent';
+    if (CHILD_TYPES.has(fwd)) return 'child';
+    if (SIBLING_TYPES.has(fwd)) return 'sibling';
+    if (PARTNER_TYPES.has(fwd)) return 'partner';
+    return 'other';
+  }
+  const bwd = dirType.get(`${node}->${hub}`); // hub ist <bwd> von node → node invers
+  if (bwd) {
+    if (PARENT_TYPES.has(bwd)) return 'child';
+    if (CHILD_TYPES.has(bwd)) return 'parent';
+    if (SIBLING_TYPES.has(bwd)) return 'sibling';
+    if (PARTNER_TYPES.has(bwd)) return 'partner';
+  }
+  return 'other';
+}
+
 /**
  * Interaktive Familienwelt als radialer Ego-Graph (im Geist von Obsidian
  * Graph / Miro / Apple Maps) – ausdrücklich kein Stammbaum.
@@ -75,11 +106,12 @@ function pairKey(a: string, b: string): string {
 export function FamilyTreeView({ persons, relationships, anchorId, onSelectPerson }: FamilyTreeViewProps) {
   const personById = useMemo(() => new Map(persons.map((p) => [p.id, p])), [persons]);
 
-  const { neighborMap, pairTypeMap, dirLabel, pairCat } = useMemo(() => {
+  const { neighborMap, pairTypeMap, dirLabel, dirType, pairCat } = useMemo(() => {
     const neighborMap = new Map<string, string[]>();
     const pairTypeMap = new Map<string, RelationshipType>();
     const pairCat = new Map<string, RelationshipCategory>();
     const dirLabel = new Map<string, string>();
+    const dirType = new Map<string, RelationshipType>();
     const add = (a: string, b: string) => {
       if (!neighborMap.has(a)) neighborMap.set(a, []);
       const list = neighborMap.get(a)!;
@@ -97,8 +129,9 @@ export function FamilyTreeView({ persons, relationships, anchorId, onSelectPerso
       // to ist <type> von from; from ist <inverse> von to.
       dirLabel.set(`${f}->${t}`, RELATIONSHIP_LABELS[type]);
       dirLabel.set(`${t}->${f}`, INVERSE_LABEL[type]);
+      if (!dirType.has(`${f}->${t}`)) dirType.set(`${f}->${t}`, type);
     }
-    return { neighborMap, pairTypeMap, dirLabel, pairCat };
+    return { neighborMap, pairTypeMap, dirLabel, dirType, pairCat };
   }, [relationships]);
 
   const [activeId, setActiveId] = useState<string | null>(anchorId);
@@ -117,21 +150,53 @@ export function FamilyTreeView({ persons, relationships, anchorId, onSelectPerso
     });
   }, [hubId, neighborMap, pairTypeMap]);
 
-  // Radiales Layout (Hub im Zentrum, Ring rundherum).
+  // Radiales Layout: Hub im Zentrum, Angehörige nach Himmelsrichtung —
+  // Eltern oben, Kinder unten, Geschwister/Partner seitlich.
   const layout = useMemo(() => {
     const nodes: { id: string; cx: number; cy: number; size: number }[] = [];
     if (!hubId) return { nodes, width: 600, height: 600, center: 300 };
+
+    // In Richtungs-Gruppen einsortieren.
+    const top: string[] = []; // Eltern
+    const bottom: string[] = []; // Kinder
+    const left: string[] = [];
+    const right: string[] = [];
+    let sideToggle = true;
+    for (const id of ringIds) {
+      const role = roleOf(hubId, id, dirType);
+      if (role === 'parent') top.push(id);
+      else if (role === 'child') bottom.push(id);
+      else if (role === 'partner') right.push(id);
+      else {
+        (sideToggle ? left : right).push(id);
+        sideToggle = !sideToggle;
+      }
+    }
+
     const N = ringIds.length;
-    const R = N <= 1 ? 170 : Math.max(180, 64 + N * 30);
-    const half = R + HUB_D / 2 + 90;
+    const R = N <= 1 ? 168 : Math.max(186, 70 + N * 24);
+    const half = R + HUB_D / 2 + 96;
     const C = half;
     nodes.push({ id: hubId, cx: C, cy: C, size: HUB_D });
-    ringIds.forEach((id, i) => {
-      const a = -Math.PI / 2 + (i * 2 * Math.PI) / N;
-      nodes.push({ id, cx: C + R * Math.cos(a), cy: C + R * Math.sin(a), size: NODE_D });
-    });
+
+    // Eine Gruppe entlang eines Bogens um eine Mittelrichtung verteilen.
+    const place = (ids: string[], centerAngle: number, maxSpread: number) => {
+      const k = ids.length;
+      const spread = k <= 1 ? 0 : Math.min(maxSpread, 0.5 * k);
+      ids.forEach((id, i) => {
+        const a = k <= 1 ? centerAngle : centerAngle - spread / 2 + (spread * (i + 0.5)) / k;
+        nodes.push({ id, cx: C + R * Math.cos(a), cy: C + R * Math.sin(a), size: NODE_D });
+      });
+    };
+    const UP = -Math.PI / 2;
+    const DOWN = Math.PI / 2;
+    place(top, UP, 2.2);
+    place(bottom, DOWN, 2.2);
+    place(left, Math.PI, 1.6);
+    place(right, 0, 1.6);
+
     return { nodes, width: half * 2, height: half * 2, center: C };
-  }, [hubId, ringIds]);
+  }, [hubId, ringIds, dirType]);
 
   // ---- Kamera ----
   const translate = useRef(new Animated.ValueXY({ x: 0, y: 0 })).current;
@@ -158,8 +223,8 @@ export function FamilyTreeView({ persons, relationships, anchorId, onSelectPerso
 
   function animateCam(s: number, x: number, y: number) {
     Animated.parallel([
-      Animated.spring(scale, { toValue: s, useNativeDriver: false, friction: 9, tension: 50 }),
-      Animated.spring(translate, { toValue: { x, y }, useNativeDriver: false, friction: 9, tension: 50 }),
+      Animated.spring(scale, { toValue: s, useNativeDriver: false, friction: 7, tension: 48 }),
+      Animated.spring(translate, { toValue: { x, y }, useNativeDriver: false, friction: 7, tension: 48 }),
     ]).start();
   }
 
@@ -175,7 +240,7 @@ export function FamilyTreeView({ persons, relationships, anchorId, onSelectPerso
   function onLayout(e: LayoutChangeEvent) {
     const { width, height } = e.nativeEvent.layout;
     viewport.current = { w: width, h: height };
-    if (!didInit.current && width && height) {
+    if (width && height) {
       didInit.current = true;
       requestAnimationFrame(centerHub);
     }
@@ -186,6 +251,7 @@ export function FamilyTreeView({ persons, relationships, anchorId, onSelectPerso
   const appears = useRef(new Map<string, Animated.Value>()).current;
   const targets = useRef(new Map<string, { x: number; y: number }>()).current;
   const prevIds = useRef<string[]>([]);
+  const justEntered = useRef<Set<string>>(new Set()).current;
   const [exiting, setExiting] = useState<{ id: string; size: number }[]>([]);
   const pulse = useRef(new Animated.Value(0)).current;
 
@@ -224,6 +290,7 @@ export function FamilyTreeView({ persons, relationships, anchorId, onSelectPerso
       const start = (hubId && targets.get(hubId)) || { x: layout.center, y: layout.center };
       positions.set(n.id, new Animated.ValueXY(start));
       appears.set(n.id, new Animated.Value(0));
+      justEntered.add(n.id);
     }
   }
 
@@ -231,13 +298,25 @@ export function FamilyTreeView({ persons, relationships, anchorId, onSelectPerso
     const current = layout.nodes;
     const currentIds = new Set(current.map((n) => n.id));
 
+    let enterIdx = 0;
     for (const n of current) {
       const pos = positions.get(n.id);
       const ap = appears.get(n.id);
-      if (pos) Animated.spring(pos, { toValue: { x: n.cx, y: n.cy }, useNativeDriver: false, friction: 8, tension: 46 }).start();
-      if (ap) Animated.timing(ap, { toValue: 1, duration: 300, useNativeDriver: false }).start();
+      const isNew = justEntered.has(n.id);
+      // Neue Kreise „poppen" mit leichter Überschwingung und versetzt herein.
+      const delay = isNew ? enterIdx++ * 55 : 0;
+      if (pos)
+        Animated.spring(pos, {
+          toValue: { x: n.cx, y: n.cy },
+          useNativeDriver: false,
+          friction: isNew ? 6.5 : 8,
+          tension: isNew ? 70 : 46,
+          delay,
+        }).start();
+      if (ap) Animated.timing(ap, { toValue: 1, duration: 320, delay, useNativeDriver: false }).start();
       targets.set(n.id, { x: n.cx, y: n.cy });
     }
+    justEntered.clear();
 
     const gone = prevIds.current.filter((id) => !currentIds.has(id));
     if (gone.length) {
@@ -365,9 +444,9 @@ export function FamilyTreeView({ persons, relationships, anchorId, onSelectPerso
                         x2={nodePos.x}
                         y2={nodePos.y}
                         stroke={cat ? relationshipColor(cat) : colors.border}
-                        strokeWidth={2.5}
+                        strokeWidth={3}
                         strokeLinecap="round"
-                        opacity={0.55}
+                        opacity={0.6}
                       />
                     );
                   })
@@ -420,6 +499,7 @@ export function FamilyTreeView({ persons, relationships, anchorId, onSelectPerso
                 isHub={isHub}
                 isAnchor={isAnchor}
                 ringColor={ringColor}
+                glowColor={cat ? relationshipColor(cat) : isAnchor ? colors.gold : isHub ? colors.primary : undefined}
                 relLabel={relLabel}
                 onPress={() => onNodePress(id)}
               />
@@ -453,6 +533,7 @@ function NodeCircle({
   isHub,
   isAnchor,
   ringColor,
+  glowColor,
   relLabel,
   onPress,
 }: {
@@ -463,6 +544,7 @@ function NodeCircle({
   isHub: boolean;
   isAnchor: boolean;
   ringColor: string;
+  glowColor?: string;
   relLabel?: string;
   onPress: () => void;
 }) {
@@ -473,6 +555,7 @@ function NodeCircle({
   const baseScale = appear.interpolate({ inputRange: [0, 1], outputRange: [0.75, 1] });
   const pressScale = press.interpolate({ inputRange: [0, 1], outputRange: [1, 1.07] });
   const wrapW = Math.max(size, 132);
+  const halo = glowColor ?? colors.border;
 
   return (
     <Animated.View
@@ -498,8 +581,19 @@ function NodeCircle({
         onHoverOut={() => animatePress(0)}
         style={[
           styles.circle,
-          { width: size, height: size, borderRadius: size / 2, borderColor: ringColor, borderWidth: isHub ? 3.5 : 2.5 },
-          isHub && shadow.card,
+          {
+            width: size,
+            height: size,
+            borderRadius: size / 2,
+            borderColor: ringColor,
+            borderWidth: isHub ? 3.5 : 3,
+            backgroundColor: withAlpha(halo, 0.1),
+            shadowColor: halo,
+            shadowOpacity: isHub ? 0.45 : 0.32,
+            shadowRadius: isHub ? 22 : 16,
+            shadowOffset: { width: 0, height: 0 },
+            elevation: isHub ? 8 : 5,
+          },
         ]}
       >
         {person.avatar_url ? (

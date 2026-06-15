@@ -93,7 +93,11 @@ Weich und großzügig (kein harter „Material"-Look):
 Konzept: **radialer Ego-Graph** (im Geist von Obsidian Graph / Miro / Apple
 Maps) – ausdrücklich **kein Stammbaum**. Die aktive Person steht **immer
 exakt im Zentrum** als Hub; ihre nächsten Angehörigen liegen als **Kreise**
-(keine Karten) rundherum.
+(keine Karten) **nach Himmelsrichtung**: Eltern oben, Kinder unten,
+Geschwister/Partner seitlich. Jeder Kreis trägt einen **dezenten, nach
+Beziehungsart eingefärbten Glow** (Grün/Blau/Gold/Lila) – subtil, aber sofort
+erkennbar. Neue Kreise **poppen versetzt herein** (Stagger), die Kamera
+gleitet weich.
 
 - **Erster Tipp** auf einen Kreis macht ihn zum neuen Zentrum: die Kamera
   zentriert sanft, neue Kreise **wachsen aus dem Hub heraus**, die
