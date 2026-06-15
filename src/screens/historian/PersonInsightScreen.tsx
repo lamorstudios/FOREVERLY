@@ -17,7 +17,7 @@ import { qk } from '@/api/queryKeys';
 import { getPersonInsight } from '@/api/historian';
 import { fullName } from '@/lib/format';
 import { useFamily } from '@/context/FamilyContext';
-import type { HistorianStackParamList } from '@/navigation/types';
+import type { HomeStackParamList } from '@/navigation/types';
 import { SourceLine } from './_shared';
 
 const AVATAR_SIZE = 88;
@@ -30,7 +30,7 @@ interface CountItem {
 
 export function PersonInsightScreen({
   route,
-}: NativeStackScreenProps<HistorianStackParamList, 'PersonInsight'>) {
+}: NativeStackScreenProps<HomeStackParamList, 'PersonInsight'>) {
   const { personId } = route.params;
   const { activeFamily } = useFamily();
   const familyId = activeFamily!.id;

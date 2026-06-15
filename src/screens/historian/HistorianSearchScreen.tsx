@@ -18,10 +18,10 @@ import { formatDate } from '@/lib/format';
 import { searchHistorian } from '@/api/historian';
 import { qk } from '@/api/queryKeys';
 import { useFamily } from '@/context/FamilyContext';
-import type { HistorianStackParamList } from '@/navigation/types';
+import type { HomeStackParamList } from '@/navigation/types';
 import type { KnowledgeDoc, KnowledgeKind } from '@/historian/engine';
 
-type Props = NativeStackScreenProps<HistorianStackParamList, 'HistorianSearch'>;
+type Props = NativeStackScreenProps<HomeStackParamList, 'HistorianSearch'>;
 
 const SOURCE_ICON: Record<KnowledgeKind, keyof typeof Ionicons.glyphMap> = {
   person: 'person-circle-outline',

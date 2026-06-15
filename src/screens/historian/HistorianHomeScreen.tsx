@@ -11,9 +11,9 @@ import {
   Chip,
 } from '@/components';
 import { colors, radius, spacing } from '@/theme';
-import type { HistorianStackParamList } from '@/navigation/types';
+import type { HomeStackParamList } from '@/navigation/types';
 
-type Props = NativeStackScreenProps<HistorianStackParamList, 'HistorianHome'>;
+type Props = NativeStackScreenProps<HomeStackParamList, 'HistorianHome'>;
 
 const EXAMPLE_QUESTIONS = [
   'Wo wurde Opa geboren?',

@@ -16,10 +16,10 @@ import { formatDate } from '@/lib/format';
 import { askHistorian } from '@/api/historian';
 import { qk } from '@/api/queryKeys';
 import { useFamily } from '@/context/FamilyContext';
-import type { HistorianStackParamList } from '@/navigation/types';
+import type { HomeStackParamList } from '@/navigation/types';
 import type { HistorianSource, KnowledgeKind } from '@/historian/engine';
 
-type Props = NativeStackScreenProps<HistorianStackParamList, 'HistorianAnswer'>;
+type Props = NativeStackScreenProps<HomeStackParamList, 'HistorianAnswer'>;
 
 const SOURCE_ICON: Record<KnowledgeKind, keyof typeof Ionicons.glyphMap> = {
   person: 'person-circle-outline',

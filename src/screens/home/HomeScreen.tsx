@@ -22,7 +22,7 @@ import { listNotifications, unreadCount } from '@/api/familyNotifications';
 import { qk } from '@/api/queryKeys';
 import { STATUS_LEVELS } from '@/constants/phase2';
 import { formatRelative, openingCountdown, fullName } from '@/lib/format';
-import { colors, radius, spacing } from '@/theme';
+import { colors, radius, spacing, useResponsive } from '@/theme';
 import type { HomeStackParamList } from '@/navigation/types';
 import type { Activity, MemberStatus } from '@/types/models';
 
@@ -45,6 +45,7 @@ type QuickRoute =
   | 'Closeness'
   | 'Branches'
   | 'MomentsHome'
+  | 'HistorianHome'
   | 'SeniorMode';
 
 interface QuickAction {
@@ -56,6 +57,7 @@ interface QuickAction {
 
 const QUICK_ACTIONS: QuickAction[] = [
   { label: 'Familienmomente', icon: 'images-outline', color: colors.gold, route: 'MomentsHome' },
+  { label: 'Historiker', icon: 'sparkles-outline', color: colors.relationAdoption, route: 'HistorianHome' },
   { label: 'Status senden', icon: 'happy-outline', color: colors.success, route: 'Status' },
   { label: 'Kalender', icon: 'calendar-outline', color: colors.relationMarried, route: 'Calendar' },
   { label: 'Notfall', icon: 'alert-circle-outline', color: colors.error, route: 'Emergency' },
@@ -70,6 +72,8 @@ const QUICK_ACTIONS: QuickAction[] = [
 export function HomeScreen({ navigation }: Props) {
   const { activeFamily } = useFamily();
   const familyId = activeFamily!.id;
+  const { isSmall } = useResponsive();
+  const tileBasis = isSmall ? '47%' : '31%';
 
   const activities = useQuery({
     queryKey: qk.activities(familyId),
@@ -185,7 +189,7 @@ export function HomeScreen({ navigation }: Props) {
             <Pressable
               key={a.route}
               onPress={() => navigation.navigate(a.route)}
-              style={({ pressed }) => [styles.quickTile, pressed && styles.pressed]}
+              style={({ pressed }) => [styles.quickTile, { width: tileBasis }, pressed && styles.pressed]}
               accessibilityRole="button"
               accessibilityLabel={a.label}
             >
@@ -332,7 +336,6 @@ const styles = StyleSheet.create({
   // Schnellzugriff
   quickGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
   quickTile: {
-    width: '31%',
     backgroundColor: colors.surface,
     borderRadius: radius.lg,
     borderWidth: 1,

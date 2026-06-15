@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { View, StyleSheet, Pressable, ScrollView } from 'react-native';
+import { View, StyleSheet, Pressable } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import {
   Screen,
@@ -19,7 +19,7 @@ import { fullName, formatDate } from '@/lib/format';
 import { CATEGORY_LABELS } from '@/constants/relationships';
 import { colors, spacing, radius, useResponsive } from '@/theme';
 import type { FamilyStackParamList } from '@/navigation/types';
-import type { Person, RelationshipCategory } from '@/types/models';
+import type { RelationshipCategory } from '@/types/models';
 
 type Props = NativeStackScreenProps<FamilyStackParamList, 'Network'>;
 
@@ -29,15 +29,6 @@ const LEGEND: { category: RelationshipCategory; color: string }[] = [
   { category: 'patchwork', color: colors.relationPatchwork },
   { category: 'adoption', color: colors.relationAdoption },
 ];
-
-function years(person: Person): string {
-  const birth = person.birth_date ? formatDate(person.birth_date) : null;
-  const death = person.death_date ? formatDate(person.death_date) : null;
-  if (birth && death) return `${birth} – ${death}`;
-  if (birth) return `* ${birth}`;
-  if (death) return `† ${death}`;
-  return '';
-}
 
 export function NetworkScreen({ navigation }: Props) {
   const { activeFamily, isAdmin } = useFamily();
@@ -87,46 +78,22 @@ export function NetworkScreen({ navigation }: Props) {
         </AppText>
       </View>
 
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.headerButtons}
-      >
-        <Button
-          label="Mitglieder"
-          icon="people-outline"
-          variant="secondary"
-          fullWidth={false}
-          style={styles.headerButton}
-          onPress={() => navigation.navigate('Members')}
-        />
-        <Button
-          label="Einladen"
-          icon="person-add-outline"
-          variant="secondary"
-          fullWidth={false}
-          style={styles.headerButton}
-          onPress={() => navigation.navigate('InvitesList')}
-        />
-        <Button
-          label="Vorschläge"
-          icon="bulb-outline"
-          variant="secondary"
-          fullWidth={false}
-          style={styles.headerButton}
-          onPress={() => navigation.navigate('Suggestions')}
-        />
+      <View style={styles.headerButtons}>
+        <View style={styles.btnCell}>
+          <Button label="Mitglieder" icon="people-outline" variant="secondary" onPress={() => navigation.navigate('Members')} />
+        </View>
+        <View style={styles.btnCell}>
+          <Button label="Einladen" icon="person-add-outline" variant="secondary" onPress={() => navigation.navigate('InvitesList')} />
+        </View>
+        <View style={styles.btnCell}>
+          <Button label="Vorschläge" icon="bulb-outline" variant="secondary" onPress={() => navigation.navigate('Suggestions')} />
+        </View>
         {isAdmin ? (
-          <Button
-            label="Code"
-            icon="mail-outline"
-            variant="secondary"
-            fullWidth={false}
-            style={styles.headerButton}
-            onPress={() => navigation.navigate('Invite')}
-          />
+          <View style={styles.btnCell}>
+            <Button label="Code" icon="mail-outline" variant="secondary" onPress={() => navigation.navigate('Invite')} />
+          </View>
         ) : null}
-      </ScrollView>
+      </View>
 
       <Card style={styles.legend}>
         <AppText variant="bodyStrong">Legende</AppText>
@@ -174,19 +141,20 @@ export function NetworkScreen({ navigation }: Props) {
                   ) : (
                     <Avatar
                       name={fullName(person.first_name, person.last_name)}
-                      size={72}
+                      size={88}
                     />
                   )}
                   <AppText variant="bodyStrong" center numberOfLines={2}>
                     {fullName(person.first_name, person.last_name)}
                   </AppText>
-                  {years(person) ? (
-                    <AppText
-                      variant="caption"
-                      color={colors.textMuted}
-                      center
-                    >
-                      {years(person)}
+                  {person.birth_date ? (
+                    <AppText variant="caption" color={colors.textMuted} center>
+                      {`* ${formatDate(person.birth_date)}`}
+                    </AppText>
+                  ) : null}
+                  {person.death_date ? (
+                    <AppText variant="caption" color={colors.textMuted} center>
+                      {`† ${formatDate(person.death_date)}`}
                     </AppText>
                   ) : null}
                   {cats && cats.size > 0 ? (
@@ -222,12 +190,12 @@ const styles = StyleSheet.create({
   header: { gap: spacing.xs, marginBottom: spacing.md },
   headerButtons: {
     flexDirection: 'row',
-    gap: spacing.sm,
-    paddingVertical: spacing.xs,
-    paddingRight: spacing.md,
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    rowGap: spacing.sm,
     marginBottom: spacing.md,
   },
-  headerButton: { minWidth: 120 },
+  btnCell: { width: '48%' },
   legend: { gap: spacing.sm, marginBottom: spacing.lg },
   legendRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   dot: { width: 16, height: 16, borderRadius: 8 },
@@ -244,7 +212,7 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
     paddingVertical: spacing.md,
   },
-  avatar: { width: 72, height: 72, borderRadius: 36 },
+  avatar: { width: 88, height: 88, borderRadius: 44 },
   personDots: { flexDirection: 'row', gap: spacing.xs, marginTop: spacing.xs },
   smallDot: { width: 10, height: 10, borderRadius: 5 },
 });
