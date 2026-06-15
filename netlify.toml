@@ -1,0 +1,17 @@
+# Netlify-Konfiguration für die Foreverly Web-Vorschau (Demo-Modus).
+# Ohne gesetzte EXPO_PUBLIC_SUPABASE_*-Variablen startet die App automatisch
+# im Demo-Modus mit den Beispiel-Daten der Familie Mielke.
+
+[build]
+  command = "npx expo export --platform web"
+  publish = "dist"
+
+[build.environment]
+  NODE_VERSION = "20"
+  EXPO_PUBLIC_DEMO_MODE = "true"
+
+# Single-Page-App: alle Routen auf index.html umleiten
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

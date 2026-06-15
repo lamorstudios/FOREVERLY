@@ -1,4 +1,6 @@
 import { supabase } from '@/lib/supabase';
+import { DEMO_MODE } from '@/lib/config';
+import { demoStore } from '@/demo/store';
 import type { Activity } from '@/types/models';
 
 interface LogActivityInput {
@@ -12,6 +14,7 @@ interface LogActivityInput {
 
 /** Schreibt einen Eintrag in den Aktivitäts-Feed (best effort). */
 export async function logActivity(input: LogActivityInput): Promise<void> {
+  if (DEMO_MODE) return demoStore.logActivity(input);
   await supabase.from('activities').insert({
     family_id: input.familyId,
     actor_id: input.actorId,
@@ -26,6 +29,7 @@ export async function listActivities(
   familyId: string,
   limit = 30,
 ): Promise<Activity[]> {
+  if (DEMO_MODE) return demoStore.listActivities(familyId, limit);
   const { data, error } = await supabase
     .from('activities')
     .select('*, actor:profiles!activities_actor_id_fkey(*)')

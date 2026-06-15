@@ -14,6 +14,48 @@ würdige Optik (Cremeweiß, Beigetöne, sanfte Erdtöne, dezente Gold-Akzente).
 
 ---
 
+## 🌐 Web-Vorschau & Demo-Modus
+
+Phase 1 lässt sich **sofort im Browser testen – ohne Supabase-Setup**. Ein
+eingebauter **Demo-Modus** lädt die Beispiel-Familie **„Familie Mielke"** mit
+Personen, farbcodierten Beziehungen, Erinnerungen, Fotos, Audios und
+Zeitkapseln.
+
+Der Demo-Modus ist automatisch aktiv, wenn **keine** Supabase-Zugangsdaten
+hinterlegt sind, oder explizit per `EXPO_PUBLIC_DEMO_MODE=true`. Er benötigt
+keine Registrierung und führt direkt zur Demo-Familie. (Änderungen sind nur
+temporär und werden beim Neuladen zurückgesetzt.)
+
+### Lokal im Browser
+
+```bash
+npm install
+npm run web          # Dev-Server, öffnet http://localhost:8081
+```
+
+Oder als statisches Build (wie beim Deployment):
+
+```bash
+npm run build:web    # erzeugt ./dist
+npm run preview:web  # statischer Server auf http://localhost:3000
+```
+
+### Online (Netlify / Vercel)
+
+Das Repository enthält fertige Konfigurationen (`netlify.toml`, `vercel.json`),
+die im Demo-Modus bauen:
+
+- **Netlify:** Neues Projekt aus dem Repo → Build-Command und Publish-Verzeichnis
+  werden aus `netlify.toml` übernommen (`npx expo export --platform web` → `dist`).
+- **Vercel:** Neues Projekt aus dem Repo importieren → Einstellungen kommen aus
+  `vercel.json`. Kein „Framework Preset" nötig.
+
+Beide setzen `EXPO_PUBLIC_DEMO_MODE=true`, sodass die Vorschau ohne Backend läuft.
+Sobald du echte `EXPO_PUBLIC_SUPABASE_*`-Variablen setzt, nutzt die App das echte
+Backend statt des Demo-Modus.
+
+---
+
 ## Funktionen (Phase 1)
 
 - **Authentifizierung** – Registrierung, Login, Passwort vergessen,

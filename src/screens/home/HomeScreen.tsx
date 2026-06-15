@@ -13,6 +13,7 @@ import {
   Loading,
 } from '@/components';
 import { useFamily } from '@/context/FamilyContext';
+import { DemoBanner } from '@/demo/DemoBanner';
 import { listActivities } from '@/api/activities';
 import { listUpcomingForMe } from '@/api/timeCapsules';
 import { qk } from '@/api/queryKeys';
@@ -54,6 +55,8 @@ export function HomeScreen(_props: Props) {
 
   return (
     <Screen onRefresh={onRefresh} refreshing={refreshing}>
+      <DemoBanner />
+
       {/* Familienbild & Begrüßung */}
       <View style={styles.hero}>
         {activeFamily!.image_url ? (
