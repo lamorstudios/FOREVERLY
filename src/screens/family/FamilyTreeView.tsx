@@ -327,6 +327,10 @@ export function FamilyTreeView({ persons, relationships, anchorId, onSelectPerso
     return { nodes, edges, width, height, hubX, hubY };
   }, [hubId, anchorId, neighborMap, dirType, dirLabel, pairCat, personById]);
 
+  // Stabile Referenz auf das aktuelle Layout (PanResponder wird nur 1× erzeugt).
+  const layoutRef = useRef(layout);
+  layoutRef.current = layout;
+
   // ---- Kamera ----
   const translate = useRef(new Animated.ValueXY({ x: 0, y: 0 })).current;
   const scale = useRef(new Animated.Value(1)).current;
@@ -385,6 +389,7 @@ export function FamilyTreeView({ persons, relationships, anchorId, onSelectPerso
   const justEntered = useRef<Set<string>>(new Set()).current;
   // Frei verschobene Knoten (Long-Press-Drag) – Layout überschreibt sie nicht.
   const overridden = useRef<Set<string>>(new Set()).current;
+  const avoiding = useRef<Set<string>>(new Set()).current;
   const grabbed = useRef<string | null>(null);
   const grabStart = useRef({ x: 0, y: 0 });
   const [grabbedId, setGrabbedId] = useState<string | null>(null);
@@ -507,13 +512,37 @@ export function FamilyTreeView({ persons, relationships, anchorId, onSelectPerso
       },
       onPanResponderMove: (e, g) => {
         const touches = e.nativeEvent.touches;
-        // Long-Press-Drag: gegriffenen Kreis frei verschieben.
+        // Long-Press-Drag: gegriffenen Kreis frei verschieben, andere weichen aus.
         if (grabbed.current && (!touches || touches.length < 2)) {
           const s = sc.current || 1;
-          const p = positions.get(grabbed.current);
-          if (p) {
-            overridden.add(grabbed.current);
-            p.setValue({ x: grabStart.current.x + g.dx / s, y: grabStart.current.y + g.dy / s });
+          const gid = grabbed.current;
+          const gx = grabStart.current.x + g.dx / s;
+          const gy = grabStart.current.y + g.dy / s;
+          const gp = positions.get(gid);
+          if (gp) {
+            overridden.add(gid);
+            gp.setValue({ x: gx, y: gy });
+          }
+          const nodes = layoutRef.current.nodes;
+          const gSize = nodes.find((n) => n.id === gid)?.size ?? NODE_D;
+          for (const n of nodes) {
+            if (n.id === gid) continue;
+            const p = positions.get(n.id);
+            if (!p) continue;
+            const home = targets.get(n.id) ?? { x: n.cx, y: n.cy };
+            const dx = home.x - gx;
+            const dy = home.y - gy;
+            const dd = Math.hypot(dx, dy) || 0.0001;
+            const minD = (gSize + n.size) / 2 + 30;
+            if (dd < minD) {
+              const k = minD / dd;
+              p.setValue({ x: gx + dx * k, y: gy + dy * k });
+              avoiding.add(n.id);
+            } else if (avoiding.has(n.id)) {
+              // Platz wieder frei → sanft an die Heimatposition zurück.
+              avoiding.delete(n.id);
+              Animated.spring(p, { toValue: home, useNativeDriver: false, friction: 7, tension: 60 }).start();
+            }
           }
           return;
         }
@@ -536,11 +565,16 @@ export function FamilyTreeView({ persons, relationships, anchorId, onSelectPerso
       },
       onPanResponderRelease: () => {
         pinch.current = null;
+        // ausgewichene Kreise an ihrer ausgewichenen Position belassen (kein Overlap)
+        avoiding.forEach((id) => overridden.add(id));
+        avoiding.clear();
         grabbed.current = null;
         setGrabbedId(null);
       },
       onPanResponderTerminate: () => {
         pinch.current = null;
+        avoiding.forEach((id) => overridden.add(id));
+        avoiding.clear();
         grabbed.current = null;
         setGrabbedId(null);
       },
