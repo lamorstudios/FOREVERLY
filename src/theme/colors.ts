@@ -1,46 +1,52 @@
 /**
- * Foreverly Farbpalette
+ * Foreverly Farbwelt 2.0
  *
- * Warm, emotional und vertrauenswürdig: Cremeweiß, Beigetöne, sanfte
- * Erdtöne und dezente Gold-Akzente. Bewusst keine Corporate-Optik.
+ * Ruhig, hochwertig und emotional. Helle, warme Cremetöne als Basis,
+ * dezentes Gold/Bronze als Akzent. Weniger Braun, mehr Weißraum-Gefühl –
+ * im Geist moderner Premium-Apps (Apple, Headspace, Airbnb).
  */
 export const colors = {
-  // Hintergründe
-  background: '#FBF6EE', // Cremeweiß
+  // Hintergründe – heller, luftiger
+  background: '#FAF7F2', // warmes Cremeweiß
   surface: '#FFFFFF',
-  surfaceAlt: '#F3EADB', // sanftes Beige
-  overlay: 'rgba(58, 47, 36, 0.45)',
+  surfaceAlt: '#F4EFE7', // sehr helles Sand
+  surfaceMuted: '#EFE8DC', // dezente Tönung für Chips/Felder
+  warmWhite: '#FFFDF9',
+  sand: '#EDE5D7',
+  overlay: 'rgba(34, 28, 22, 0.42)',
 
-  // Schrift
-  textPrimary: '#3A2F24', // warmes Dunkelbraun
-  textSecondary: '#6F6253',
-  textMuted: '#9C8F7E',
+  // Schrift – warmes Anthrazit statt Braun
+  textPrimary: '#2B2620',
+  textSecondary: '#6E6557',
+  textMuted: '#A69C8C',
   textOnAccent: '#FFFFFF',
 
-  // Akzente
-  primary: '#B07D4B', // warmes Karamell/Erdton
-  primaryDark: '#8A5F35',
-  primarySoft: '#E8D6BF',
-  gold: '#C8A24A', // dezenter Gold-Akzent
-  goldSoft: '#EBD9A8',
+  // Akzente – warmes Gold & Bronze
+  primary: '#BE8A4E', // warmes Bronze-Gold
+  primaryDark: '#9A6B38',
+  primarySoft: '#F1E6D4',
+  gold: '#D4A95C', // leuchtendes, dezentes Gold
+  goldSoft: '#F4E8CC',
+  bronze: '#A9763F',
 
   // Status
-  success: '#5B8A5A',
-  error: '#B4524A',
-  warning: '#CC9A3F',
+  success: '#5E9C7B', // ruhiges Salbeigrün
+  error: '#C25B52',
+  warning: '#D6A24A',
 
-  // Beziehungs-Kategorien (farbliche Verbindungen)
+  // Beziehungs-Kategorien (farbliche Verbindungen im Stammbaum)
   relationBiological: '#5B8A5A', // Grün  – biologische Verwandtschaft
   relationMarried: '#4A78A8', // Blau  – angeheiratete Familie
   relationPatchwork: '#D6A93B', // Gelb  – Patchwork / Stieffamilie
   relationAdoption: '#8A6BB0', // Lila  – Adoption / Pflegefamilie
 
-  // Linien & Ränder
-  border: '#E3D7C4',
-  divider: '#EDE4D5',
+  // Linien & Ränder – weicher, kaum sichtbar
+  border: '#ECE4D6',
+  borderStrong: '#E0D6C4',
+  divider: '#F1EBE0',
 
   // Schatten
-  shadow: '#3A2F24',
+  shadow: '#2B2620',
 } as const;
 
 export type ColorName = keyof typeof colors;

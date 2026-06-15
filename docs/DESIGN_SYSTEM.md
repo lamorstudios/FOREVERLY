@@ -1,0 +1,100 @@
+# Foreverly – Design System 2.0
+
+Ein ruhiges, hochwertiges und emotionales Designsystem. Leitbild: *modern,
+minimalistisch, warm, vertrauenswürdig* – im Geist von Apple, Notion,
+Airbnb, Headspace, Arc und Linear. Die Familie steht im Mittelpunkt, nicht
+die Verwaltung.
+
+Alle Tokens liegen unter `src/theme` und werden über `@/theme` importiert.
+Screens und Komponenten sollen **ausschließlich** diese Tokens verwenden –
+keine hartkodierten Farben, Größen oder Schatten.
+
+---
+
+## 1. Farbwelt (`src/theme/colors.ts`)
+
+Helle, warme Cremetöne als Basis, dezentes Gold/Bronze als Akzent. Bewusst
+weniger Braun, mehr Luft.
+
+| Token | Wert | Einsatz |
+|---|---|---|
+| `background` | `#FAF7F2` | App-Hintergrund (warmes Cremeweiß) |
+| `surface` | `#FFFFFF` | Karten, Flächen |
+| `surfaceAlt` | `#F4EFE7` | sekundäre Flächen, Strips |
+| `surfaceMuted` | `#EFE8DC` | Felder, Chips |
+| `warmWhite` | `#FFFDF9` | hervorgehobene Flächen |
+| `textPrimary` | `#2B2620` | warmes Anthrazit (kein Braun) |
+| `textSecondary` | `#6E6557` | Fließtext sekundär |
+| `textMuted` | `#A69C8C` | Metadaten |
+| `primary` | `#BE8A4E` | warmes Bronze-Gold (Hauptakzent) |
+| `primaryDark` | `#9A6B38` | Druck/aktiv |
+| `gold` / `goldSoft` | `#D4A95C` / `#F4E8CC` | Highlights, Emotion |
+| `bronze` | `#A9763F` | sekundärer Akzent |
+| `success` / `error` / `warning` | `#5E9C7B` / `#C25B52` / `#D6A24A` | Status |
+| `relationBiological/Married/Patchwork/Adoption` | grün/blau/gelb/lila | Stammbaum-Verbindungen |
+| `border` / `borderStrong` / `divider` | sehr helle Sandtöne | Ränder |
+
+Helfer: `withAlpha(hex, alpha)` für sanfte Tönungen (z. B. Icon-Hintergründe).
+
+## 2. Typografie (`src/theme/typography.ts`)
+
+Klare Hierarchie mit großen, etwas enger laufenden Überschriften
+(negatives `letterSpacing`) und ruhig lesbaren Texten.
+
+| Variante | Größe / Zeilenhöhe | Gewicht | letterSpacing |
+|---|---|---|---|
+| `display` | 40 / 46 | 800 | −0.6 |
+| `title` | 32 / 38 | 700 | −0.5 |
+| `heading` | 26 / 32 | 700 | −0.4 |
+| `subheading` | 21 / 28 | 600 | −0.2 |
+| `body` / `bodyStrong` | 17 / 26 | 400 / 600 | 0 |
+| `label` | 15 / 20 | 600 | 0.1 |
+| `caption` | 13.5 / 18 | 500 | 0.1 |
+| `button` | 17 / 22 | 700 | 0.2 |
+
+`AppText` skaliert Größen responsiv (`fontScale`) und übernimmt
+`letterSpacing` automatisch.
+
+## 3. Spacing & Radius (`src/theme/spacing.ts`)
+
+- Spacing: `xs 4 · sm 8 · md 16 · lg 24 · xl 32 · xxl 48`
+- Radius: `sm 8 · md 14 · lg 22 · xl 30 · pill 999`
+- Karten nutzen `radius.xl`, Buttons `radius.pill`.
+
+## 4. Schatten (`src/theme/index.ts → shadow`)
+
+Weich und großzügig (kein harter „Material"-Look):
+
+- `soft` – y2, opacity 0.05, radius 10
+- `card` – y8, opacity 0.08, radius 24
+- `floating` – y16, opacity 0.12, radius 36
+
+## 5. Komponenten
+
+- **Card** – `radius.xl`, weicher `shadow.card`, dezente Press-/Hover-
+  Skalierung (Animated).
+- **Button** – Pillform (`radius.pill`), Varianten primary/secondary/ghost/
+  danger, weiche Press-Animation.
+- **Avatar** – runder Platzhalter mit Initialen, weiche Tönung
+  (`withAlpha(primary)`) und goldener Rand.
+- **Appear** – Einblend-Animation (Fade + leichtes Aufsteigen) zum sanften,
+  gestaffelten Erscheinen von Inhalten.
+- **Chip / SectionHeader / EmptyState / Loading / Screen** – nutzen dieselben
+  Tokens.
+
+## 6. Microanimationen
+
+- Karten/Buttons: Press-Skalierung (`scale 0.97`) + Web-Hover (`scale 1.01`).
+- Inhalte: gestaffeltes `Appear` (Verzögerung 80–320 ms).
+- Stammbaum: Spring-basiertes Zoomen/Fokussieren, weiche Bézier-Linien.
+
+## 7. Stammbaum / „Familienwelt"
+
+Große Portraits, weiche Bézier-Verbindungen (Deckkraft 0.7), dezente
+farbige Zweig-Bereiche, eingeloggte Person im Zentrum. Ziel:
+Familienuniversum statt Organigramm.
+
+## 8. Leitfrage
+
+Für jeden Screen gilt: *„Würde diese Ansicht neben Apple, Notion oder
+Airbnb bestehen?"* – wenn nein, weiter verfeinern.

@@ -16,10 +16,10 @@ import { relationshipColor } from '@/theme';
  */
 
 // --- Maße eines Knotens / Layout-Raster (unskaliert) ---
-export const NODE_W = 132;
-export const NODE_H = 156;
+export const NODE_W = 134;
+export const NODE_H = 178;
 const H_GAP = 40; // horizontaler Abstand zwischen Geschwistern/Partnern
-const V_GAP = 104; // vertikaler Abstand zwischen Generationen
+const V_GAP = 96; // vertikaler Abstand zwischen Generationen
 const MARGIN = 120; // großzügiger Rand → „Weltgefühl", Platz zum Pannen
 
 /** Generationsversatz von `to` relativ zu `from` (gen(to) − gen(from)). */

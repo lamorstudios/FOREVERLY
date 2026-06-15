@@ -276,10 +276,11 @@ export function FamilyTreeView({
                 key={edge.id}
                 d={edgePath(edge)}
                 stroke={edge.color}
-                strokeWidth={3}
+                strokeWidth={2.5}
                 strokeLinecap="round"
+                strokeLinejoin="round"
                 fill="none"
-                opacity={0.9}
+                opacity={0.7}
               />
             ))}
           </Svg>
@@ -312,7 +313,7 @@ export function FamilyTreeView({
               : branchColor ?? colors.border;
             const closeness = closenessByPerson[person.id];
             const relLabel = relationshipLabelByPerson[person.id];
-            const avatarSize = isAnchor ? 70 : 60;
+            const avatarSize = isAnchor ? 80 : 66;
 
             return (
               <Pressable
@@ -478,7 +479,7 @@ const styles = StyleSheet.create({
     paddingVertical: spacing.sm,
     paddingHorizontal: 6,
     backgroundColor: colors.surface,
-    borderRadius: radius.lg,
+    borderRadius: radius.xl,
     borderWidth: 1,
     borderColor: colors.border,
     ...shadow.card,

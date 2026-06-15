@@ -26,6 +26,7 @@ export function AppText({
     fontSize: Math.round(base.fontSize * fontScale),
     lineHeight: Math.round(base.lineHeight * fontScale),
     fontWeight: base.fontWeight,
+    letterSpacing: base.letterSpacing,
   };
 
   return (

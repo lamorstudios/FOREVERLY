@@ -9,23 +9,39 @@ export type { ResponsiveInfo } from './responsive';
 
 export const theme = { colors, typography, spacing, radius, touch } as const;
 
-/** Weiche Schatten für Karten. */
+/** Weiche, großzügige Schatten für ein hochwertiges, ruhiges Gefühl. */
 export const shadow = {
-  card: {
-    shadowColor: colors.shadow,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 3,
-  },
   soft: {
     shadowColor: colors.shadow,
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.06,
-    shadowRadius: 6,
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
     elevation: 2,
   },
+  card: {
+    shadowColor: colors.shadow,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.08,
+    shadowRadius: 24,
+    elevation: 5,
+  },
+  floating: {
+    shadowColor: colors.shadow,
+    shadowOffset: { width: 0, height: 16 },
+    shadowOpacity: 0.12,
+    shadowRadius: 36,
+    elevation: 10,
+  },
 } as const;
+
+/** Hex-Farbe in rgba mit Deckkraft umwandeln (für sanfte Tönungen). */
+export function withAlpha(hex: string, alpha: number): string {
+  const h = hex.replace('#', '');
+  const r = parseInt(h.slice(0, 2), 16);
+  const g = parseInt(h.slice(2, 4), 16);
+  const b = parseInt(h.slice(4, 6), 16);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
 
 /** Farbe für eine Beziehungs-Kategorie. */
 export function relationshipColor(category: RelationshipCategory): string {

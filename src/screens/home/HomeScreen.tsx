@@ -6,6 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import {
   Screen,
   AppText,
+  Appear,
   Card,
   Avatar,
   SignedImage,
@@ -18,13 +19,14 @@ import { DemoBanner } from '@/demo/DemoBanner';
 import { listActivities } from '@/api/activities';
 import { listUpcomingForMe } from '@/api/timeCapsules';
 import { listStatuses } from '@/api/status';
+import { listMoments } from '@/api/moments';
 import { listNotifications, unreadCount } from '@/api/familyNotifications';
 import { qk } from '@/api/queryKeys';
 import { STATUS_LEVELS } from '@/constants/phase2';
 import { formatRelative, openingCountdown, fullName } from '@/lib/format';
-import { colors, radius, spacing, useResponsive } from '@/theme';
+import { colors, radius, spacing, shadow, withAlpha, useResponsive } from '@/theme';
 import type { HomeStackParamList } from '@/navigation/types';
-import type { Activity, MemberStatus } from '@/types/models';
+import type { Activity, MemberStatus, Moment } from '@/types/models';
 
 type Props = NativeStackScreenProps<HomeStackParamList, 'Home'>;
 
@@ -73,12 +75,15 @@ export function HomeScreen({ navigation }: Props) {
   const { activeFamily } = useFamily();
   const familyId = activeFamily!.id;
   const { isTablet } = useResponsive();
-  // 2 Kacheln pro Reihe auf Smartphones, 3 auf Tablets (mehr Platz für Labels)
   const tileBasis = isTablet ? '31%' : '47%';
 
   const activities = useQuery({
     queryKey: qk.activities(familyId),
     queryFn: () => listActivities(familyId, 20),
+  });
+  const moments = useQuery({
+    queryKey: qk.moments(familyId, 'all'),
+    queryFn: () => listMoments(familyId),
   });
   const upcoming = useQuery({
     queryKey: qk.upcomingCapsules(),
@@ -94,8 +99,10 @@ export function HomeScreen({ navigation }: Props) {
   });
 
   const unread = unreadCount(notifications.data ?? []);
+  const photoMoments = (moments.data ?? [])
+    .filter((m) => m.kind === 'photo' && m.storage_path)
+    .slice(0, 8);
 
-  // Glocke mit Zähler im Header
   useLayoutEffect(() => {
     navigation.setOptions({
       headerRight: () => (
@@ -120,12 +127,14 @@ export function HomeScreen({ navigation }: Props) {
 
   const refreshing =
     activities.isRefetching ||
+    moments.isRefetching ||
     upcoming.isRefetching ||
     statuses.isRefetching ||
     notifications.isRefetching;
 
   function onRefresh() {
     activities.refetch();
+    moments.refetch();
     upcoming.refetch();
     statuses.refetch();
     notifications.refetch();
@@ -137,123 +146,178 @@ export function HomeScreen({ navigation }: Props) {
     <Screen onRefresh={onRefresh} refreshing={refreshing}>
       <DemoBanner />
 
-      {/* Familienbild & Begrüßung */}
-      <View style={styles.hero}>
-        {activeFamily!.image_url ? (
-          <SignedImage bucket="photos" path={activeFamily!.image_url} style={styles.heroImage} />
-        ) : (
-          <View style={[styles.heroImage, styles.heroPlaceholder]}>
-            <Ionicons name="heart" size={40} color={colors.gold} />
+      {/* Emotionaler Held: Familienbild & warme Begrüßung */}
+      <Appear>
+        <View style={styles.hero}>
+          {activeFamily!.image_url ? (
+            <SignedImage bucket="photos" path={activeFamily!.image_url} style={styles.heroImage} />
+          ) : (
+            <View style={[styles.heroImage, styles.heroPlaceholder]}>
+              <Ionicons name="heart" size={48} color={colors.gold} />
+            </View>
+          )}
+          <View style={styles.heroScrim} />
+          <View style={styles.heroOverlay}>
+            <AppText variant="label" color={colors.goldSoft}>
+              Willkommen zurück
+            </AppText>
+            <AppText variant="title" color={colors.textOnAccent}>
+              {activeFamily!.name}
+            </AppText>
+            <AppText variant="body" color={colors.surfaceAlt}>
+              Schön, dass du da bist. 💛
+            </AppText>
           </View>
-        )}
-        <View style={styles.heroOverlay}>
-          <AppText variant="caption" color={colors.textOnAccent}>
-            Willkommen zurück
-          </AppText>
-          <AppText variant="title" color={colors.textOnAccent}>
-            {activeFamily!.name}
-          </AppText>
         </View>
-      </View>
+      </Appear>
+
+      {/* Familienmomente – Fotos im Vordergrund */}
+      {photoMoments.length > 0 ? (
+        <Appear delay={80}>
+          <View style={styles.section}>
+            <SectionHeader
+              title="Familienmomente"
+              actionLabel="Alle ansehen"
+              onAction={() => navigation.navigate('MomentsHome')}
+            />
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.momentStrip}
+            >
+              {photoMoments.map((m) => (
+                <MomentCard
+                  key={m.id}
+                  moment={m}
+                  onPress={() => navigation.navigate('MomentsHome')}
+                />
+              ))}
+            </ScrollView>
+          </View>
+        </Appear>
+      ) : null}
 
       {/* Familienstatus */}
-      <View style={styles.section}>
-        <SectionHeader
-          title="Familienstatus"
-          actionLabel="Status senden"
-          onAction={() => navigation.navigate('Status')}
-        />
-        {statuses.data && statuses.data.length > 0 ? (
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.statusStrip}
-          >
-            {statuses.data.map((s) => (
-              <StatusBubble key={s.id} status={s} />
-            ))}
-          </ScrollView>
-        ) : (
-          <Card>
-            <AppText variant="body" color={colors.textSecondary}>
-              Noch keine Status gesetzt. Teile, wie es dir geht. 💛
-            </AppText>
-          </Card>
-        )}
-      </View>
-
-      {/* Schnellzugriff */}
-      <View style={styles.section}>
-        <SectionHeader title="Schnellzugriff" />
-        <View style={styles.quickGrid}>
-          {QUICK_ACTIONS.map((a) => (
-            <Pressable
-              key={a.route}
-              onPress={() => navigation.navigate(a.route)}
-              style={({ pressed }) => [styles.quickTile, { width: tileBasis }, pressed && styles.pressed]}
-              accessibilityRole="button"
-              accessibilityLabel={a.label}
+      <Appear delay={140}>
+        <View style={styles.section}>
+          <SectionHeader
+            title="Familienstatus"
+            actionLabel="Status senden"
+            onAction={() => navigation.navigate('Status')}
+          />
+          {statuses.data && statuses.data.length > 0 ? (
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.statusStrip}
             >
-              <View style={[styles.quickIcon, { backgroundColor: a.color }]}>
-                <Ionicons name={a.icon} size={26} color={colors.textOnAccent} />
-              </View>
-              <AppText
-                variant="label"
-                center
-                numberOfLines={2}
-                adjustsFontSizeToFit
-                minimumFontScale={0.7}
-                style={styles.quickLabel}
-              >
-                {a.label}
+              {statuses.data.map((s) => (
+                <StatusBubble key={s.id} status={s} />
+              ))}
+            </ScrollView>
+          ) : (
+            <Card>
+              <AppText variant="body" color={colors.textSecondary}>
+                Noch keine Status gesetzt. Teile, wie es dir geht. 💛
               </AppText>
-            </Pressable>
-          ))}
+            </Card>
+          )}
         </View>
-      </View>
+      </Appear>
 
       {/* Anstehende Zeitkapseln */}
-      <View style={styles.section}>
-        <SectionHeader title="Anstehende Zeitkapseln" />
-        {upcoming.data && upcoming.data.length > 0 ? (
-          upcoming.data.slice(0, 3).map((c) => (
-            <Card key={c.id}>
-              <View style={styles.row}>
-                <View style={styles.iconCircle}>
-                  <Ionicons name="lock-closed-outline" size={22} color={colors.gold} />
+      <Appear delay={200}>
+        <View style={styles.section}>
+          <SectionHeader title="Anstehende Zeitkapseln" />
+          {upcoming.data && upcoming.data.length > 0 ? (
+            upcoming.data.slice(0, 3).map((c) => (
+              <Card key={c.id}>
+                <View style={styles.row}>
+                  <View style={[styles.iconCircle, { backgroundColor: colors.goldSoft }]}>
+                    <Ionicons name="lock-closed-outline" size={22} color={colors.bronze} />
+                  </View>
+                  <View style={styles.rowText}>
+                    <AppText variant="bodyStrong">{c.title}</AppText>
+                    <AppText variant="caption" color={colors.textSecondary}>
+                      {openingCountdown(c.open_at)}
+                    </AppText>
+                  </View>
                 </View>
-                <View style={styles.rowText}>
-                  <AppText variant="bodyStrong">{c.title}</AppText>
-                  <AppText variant="caption" color={colors.textSecondary}>
-                    {openingCountdown(c.open_at)}
-                  </AppText>
-                </View>
-              </View>
+              </Card>
+            ))
+          ) : (
+            <Card>
+              <AppText variant="body" color={colors.textSecondary}>
+                Aktuell warten keine Zeitkapseln auf dich.
+              </AppText>
             </Card>
-          ))
-        ) : (
-          <Card>
-            <AppText variant="body" color={colors.textSecondary}>
-              Aktuell warten keine Zeitkapseln auf dich.
-            </AppText>
-          </Card>
-        )}
-      </View>
+          )}
+        </View>
+      </Appear>
+
+      {/* Entdecken (vormals Schnellzugriff) */}
+      <Appear delay={260}>
+        <View style={styles.section}>
+          <SectionHeader title="Entdecken" />
+          <View style={styles.quickGrid}>
+            {QUICK_ACTIONS.map((a) => (
+              <Pressable
+                key={a.route}
+                onPress={() => navigation.navigate(a.route)}
+                style={({ pressed }) => [styles.quickTile, { width: tileBasis }, pressed && styles.pressed]}
+                accessibilityRole="button"
+                accessibilityLabel={a.label}
+              >
+                <View style={[styles.quickIcon, { backgroundColor: withAlpha(a.color, 0.14) }]}>
+                  <Ionicons name={a.icon} size={24} color={a.color} />
+                </View>
+                <AppText
+                  variant="label"
+                  center
+                  numberOfLines={2}
+                  adjustsFontSizeToFit
+                  minimumFontScale={0.7}
+                  style={styles.quickLabel}
+                >
+                  {a.label}
+                </AppText>
+              </Pressable>
+            ))}
+          </View>
+        </View>
+      </Appear>
 
       {/* Letzte Aktivitäten */}
-      <View style={styles.section}>
-        <SectionHeader title="Letzte Aktivitäten" />
-        {activities.data && activities.data.length > 0 ? (
-          activities.data.map((a) => <ActivityRow key={a.id} activity={a} />)
-        ) : (
-          <EmptyState
-            icon="leaf-outline"
-            title="Noch keine Aktivitäten"
-            message="Fügt eure ersten Erinnerungen, Fotos oder Zeitkapseln hinzu – sie erscheinen dann hier."
-          />
-        )}
-      </View>
+      <Appear delay={320}>
+        <View style={styles.section}>
+          <SectionHeader title="Was es Neues gibt" />
+          {activities.data && activities.data.length > 0 ? (
+            activities.data.map((a) => <ActivityRow key={a.id} activity={a} />)
+          ) : (
+            <EmptyState
+              icon="leaf-outline"
+              title="Noch keine Aktivitäten"
+              message="Fügt eure ersten Erinnerungen, Fotos oder Zeitkapseln hinzu – sie erscheinen dann hier."
+            />
+          )}
+        </View>
+      </Appear>
     </Screen>
+  );
+}
+
+function MomentCard({ moment, onPress }: { moment: Moment; onPress: () => void }) {
+  return (
+    <Pressable onPress={onPress} style={({ pressed }) => [styles.momentCard, pressed && styles.pressed]}>
+      <SignedImage bucket="photos" path={moment.storage_path} style={styles.momentImage} />
+      {moment.text ? (
+        <View style={styles.momentScrim}>
+          <AppText variant="caption" color={colors.textOnAccent} numberOfLines={2}>
+            {moment.text}
+          </AppText>
+        </View>
+      ) : null}
+    </Pressable>
   );
 }
 
@@ -263,7 +327,7 @@ function StatusBubble({ status }: { status: MemberStatus }) {
   return (
     <View style={styles.bubble}>
       <View style={styles.bubbleAvatar}>
-        <Avatar uri={status.person?.avatar_url} name={name} size={56} />
+        <Avatar uri={status.person?.avatar_url} name={name} size={60} />
         <View style={[styles.bubbleEmoji, { borderColor: meta.color }]}>
           <AppText variant="body">{meta.emoji}</AppText>
         </View>
@@ -301,10 +365,11 @@ function ActivityRow({ activity }: { activity: Activity }) {
 
 const styles = StyleSheet.create({
   hero: {
-    borderRadius: radius.lg,
+    borderRadius: radius.xl,
     overflow: 'hidden',
-    height: 200,
+    height: 240,
     justifyContent: 'flex-end',
+    ...shadow.card,
   },
   heroImage: { ...StyleSheet.absoluteFillObject, width: '100%', height: '100%' },
   heroPlaceholder: {
@@ -312,22 +377,40 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  heroOverlay: { backgroundColor: colors.overlay, padding: spacing.md },
+  heroScrim: {
+    ...StyleSheet.absoluteFillObject,
+    top: '45%',
+    backgroundColor: colors.overlay,
+  },
+  heroOverlay: { padding: spacing.lg, gap: 2 },
   section: { gap: spacing.sm },
   row: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   rowText: { flex: 1, gap: 2 },
   iconCircle: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 46,
+    height: 46,
+    borderRadius: 23,
     backgroundColor: colors.surfaceAlt,
     alignItems: 'center',
     justifyContent: 'center',
   },
+  // Familienmomente-Strip
+  momentStrip: { gap: spacing.md, paddingVertical: spacing.xs, paddingRight: spacing.md },
+  momentCard: {
+    width: 156,
+    height: 200,
+    borderRadius: radius.lg,
+    overflow: 'hidden',
+    backgroundColor: colors.surfaceAlt,
+    justifyContent: 'flex-end',
+    ...shadow.soft,
+  },
+  momentImage: { ...StyleSheet.absoluteFillObject, width: '100%', height: '100%' },
+  momentScrim: { backgroundColor: colors.overlay, padding: spacing.sm },
   // Status-Strip
   statusStrip: { gap: spacing.md, paddingVertical: spacing.xs, paddingRight: spacing.md },
-  bubble: { alignItems: 'center', width: 72, gap: spacing.xs },
-  bubbleAvatar: { width: 56, height: 56 },
+  bubble: { alignItems: 'center', width: 76, gap: spacing.xs },
+  bubbleAvatar: { width: 60, height: 60 },
   bubbleEmoji: {
     position: 'absolute',
     right: -4,
@@ -340,8 +423,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  bubbleName: { width: 72 },
-  // Schnellzugriff
+  bubbleName: { width: 76 },
+  // Entdecken-Kacheln
   quickGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
   quickTile: {
     backgroundColor: colors.surface,
@@ -352,12 +435,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.sm,
     alignItems: 'center',
     gap: spacing.xs,
+    ...shadow.soft,
   },
   quickLabel: { width: '100%' },
   quickIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
+    width: 50,
+    height: 50,
+    borderRadius: 25,
     alignItems: 'center',
     justifyContent: 'center',
   },
