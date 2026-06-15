@@ -40,8 +40,6 @@ interface FamilyTreeViewProps {
 const MIN_SCALE = 0.4;
 const MAX_SCALE = 1.8;
 
-// „Nahe" Beziehungen, die direkt am Knoten aufgeklappt werden.
-// Entferntere (Oma/Opa, Tante, Cousin …) erscheinen transitiv beim Erkunden.
 const CLOSE_TYPES = new Set<RelationshipType>([
   'vater',
   'mutter',
@@ -63,13 +61,15 @@ function pairKey(a: string, b: string): string {
 }
 
 /**
- * Interaktives Familiennetzwerk – eher Google-Maps/Wissensgraph als Stammbaum.
+ * Lebendige, interaktive Familienwelt (im Geist von Apple/Google Maps,
+ * Figma, Miro) – kein statischer Stammbaum.
  *
- * Beim Öffnen sind nur die nächsten Angehörigen sichtbar (Eltern, Geschwister,
- * Partner, Kinder). Tippt man auf eine Person, klappen ihre weiteren Zweige
- * animiert auf; erneutes Tippen klappt sie wieder ein. Es werden nur die
- * tatsächlich aufgeklappten Verbindungen gezeichnet – das hält die Ansicht
- * ruhig und lädt zum Entdecken ein.
+ * Beim Öffnen sind nur die nächsten Angehörigen sichtbar. Tippt man eine
+ * Person an, gleitet die Kamera sanft zu ihr, neue Familienmitglieder
+ * „wachsen" animiert aus ihr heraus (Spring + Fade + Scale), bestehende
+ * Karten verschieben sich flüssig. Beim Einklappen fahren die Zweige weich
+ * zusammen. Alles über die eingebaute Animated-API (Spring), damit es im
+ * Web-Export zuverlässig läuft.
  */
 export function FamilyTreeView({
   persons,
@@ -79,7 +79,6 @@ export function FamilyTreeView({
   relationshipLabelByPerson,
   onSelectPerson,
 }: FamilyTreeViewProps) {
-  // Beziehungsgraph: Nachbarn + Typ je Personenpaar.
   const { neighborMap, pairTypeMap } = useMemo(() => {
     const neighborMap = new Map<string, string[]>();
     const pairTypeMap = new Map<string, RelationshipType>();
@@ -105,11 +104,9 @@ export function FamilyTreeView({
     return map;
   }, [branches]);
 
-  // Aufgeklappte Personen (anker zeigt seine nahen Angehörigen immer).
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  const [activeId, setActiveId] = useState<string | null>(null);
 
-  // Sichtbarkeit per BFS: anker zeigt nahe Angehörige, aufgeklappte Knoten
-  // zeigen alle ihre Nachbarn. revealedBy[id] = wer den Knoten sichtbar machte.
   const visible = useMemo(() => {
     const revealedBy = new Map<string, string | null>();
     if (!anchorId) return revealedBy;
@@ -153,20 +150,7 @@ export function FamilyTreeView({
     [layout, anchorId],
   );
 
-  function toggleExpand(id: string) {
-    setExpanded((prev) => {
-      const s = new Set(prev);
-      s.has(id) ? s.delete(id) : s.add(id);
-      return s;
-    });
-  }
-
-  function onNodePress(id: string) {
-    if (hiddenCountOf(id) > 0 || expanded.has(id)) toggleExpand(id);
-    else onSelectPerson(id);
-  }
-
-  // ---- Transform (Pan + Pinch + Fit) ----
+  // ---- Kamera-Transform (Pan + Pinch + Fit) ----
   const translate = useRef(new Animated.ValueXY({ x: 0, y: 0 })).current;
   const scale = useRef(new Animated.Value(1)).current;
   const tx = useRef(0);
@@ -175,7 +159,8 @@ export function FamilyTreeView({
   const viewport = useRef({ w: 0, h: 0 });
   const didInit = useRef(false);
   const lastTap = useRef(0);
-  const pendingFocus = useRef<string[] | null>(null);
+  const pendingFocusId = useRef<string | null>(null);
+  const pendingBranchIds = useRef<string[] | null>(null);
 
   useEffect(() => {
     const a = translate.x.addListener(({ value }) => (tx.current = value));
@@ -190,36 +175,36 @@ export function FamilyTreeView({
 
   const clamp = (v: number) => Math.min(MAX_SCALE, Math.max(MIN_SCALE, v));
 
-  function animateTo(s: number, x: number, y: number) {
+  function animateCam(s: number, x: number, y: number) {
     Animated.parallel([
-      Animated.spring(scale, { toValue: s, useNativeDriver: false, friction: 8, tension: 55 }),
-      Animated.spring(translate, { toValue: { x, y }, useNativeDriver: false, friction: 8, tension: 55 }),
+      Animated.spring(scale, { toValue: s, useNativeDriver: false, friction: 9, tension: 50 }),
+      Animated.spring(translate, { toValue: { x, y }, useNativeDriver: false, friction: 9, tension: 50 }),
     ]).start();
   }
 
   function fitToBox(x: number, y: number, w: number, h: number, cap = MAX_SCALE) {
     const { w: vw, h: vh } = viewport.current;
     if (!vw || !vh || w <= 0 || h <= 0) return;
-    const pad = 56;
+    const pad = 64;
     const s = clamp(Math.min((vw - pad) / w, (vh - pad) / h, cap));
-    animateTo(s, vw / 2 - (x + w / 2) * s, vh / 2 - (y + h / 2) * s);
+    animateCam(s, vw / 2 - (x + w / 2) * s, vh / 2 - (y + h / 2) * s);
   }
 
   function fitWorld() {
     fitToBox(0, 0, layout.width, layout.height, 1);
   }
 
-  function fitToNodes(ns: TreeNode[], cap = 1.15) {
+  function frameNodes(ns: TreeNode[], cap: number) {
     if (!ns.length) return;
     const minX = Math.min(...ns.map((n) => n.x));
     const minY = Math.min(...ns.map((n) => n.y));
     const maxX = Math.max(...ns.map((n) => n.x + NODE_W));
     const maxY = Math.max(...ns.map((n) => n.y + NODE_H));
-    fitToBox(minX - 40, minY - 40, maxX - minX + 80, maxY - minY + 80, cap);
+    fitToBox(minX - 48, minY - 48, maxX - minX + 96, maxY - minY + 96, cap);
   }
 
   function focusOnAnchor() {
-    if (anchorNode) fitToNodes([anchorNode], 1.25);
+    if (anchorNode) frameNodes([anchorNode], 1.25);
   }
 
   function onLayout(e: LayoutChangeEvent) {
@@ -231,24 +216,14 @@ export function FamilyTreeView({
     }
   }
 
-  // Bei Änderung der sichtbaren Menge: sanft neu einpassen (Übersicht halten).
-  useEffect(() => {
-    if (!didInit.current) return;
-    const ids = pendingFocus.current;
-    if (ids && ids.length) {
-      pendingFocus.current = null;
-      const ns = layout.nodes.filter((n) => ids.includes(n.person.id));
-      if (ns.length) {
-        fitToNodes(ns, 1);
-        return;
-      }
-    }
-    fitWorld();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [layout]);
-
-  // Goldener Glow-Puls für die eingeloggte Person.
+  // ---- Knoten-Positionen animieren (Enter / Move / Exit) ----
+  const positions = useRef(new Map<string, Animated.ValueXY>()).current;
+  const appears = useRef(new Map<string, Animated.Value>()).current;
+  const targets = useRef(new Map<string, { x: number; y: number }>()).current;
+  const prevNodes = useRef<TreeNode[]>([]);
+  const [exiting, setExiting] = useState<TreeNode[]>([]);
   const pulse = useRef(new Animated.Value(0)).current;
+
   useEffect(() => {
     const loop = Animated.loop(
       Animated.sequence([
@@ -260,6 +235,74 @@ export function FamilyTreeView({
     return () => loop.stop();
   }, [pulse]);
 
+  useEffect(() => {
+    const current = layout.nodes;
+    const currentIds = new Set(current.map((n) => n.person.id));
+
+    // Enter + Move: neue Karten starten (in der Render-Phase) an der Position
+    // ihres „Eltern"-Knotens und gleiten/faden hier an ihren Zielplatz.
+    for (const n of current) {
+      const id = n.person.id;
+      const pos = positions.get(id);
+      const ap = appears.get(id);
+      if (pos) Animated.spring(pos, { toValue: { x: n.x, y: n.y }, useNativeDriver: true, friction: 8, tension: 46 }).start();
+      if (ap) Animated.timing(ap, { toValue: 1, duration: 300, useNativeDriver: true }).start();
+      targets.set(id, { x: n.x, y: n.y });
+    }
+
+    // Exit (Karten fahren weich zusammen, dann ausblenden).
+    const gone = prevNodes.current.filter((n) => !currentIds.has(n.person.id));
+    if (gone.length) {
+      gone.forEach((n) => {
+        const ap = appears.get(n.person.id);
+        if (ap) Animated.timing(ap, { toValue: 0, duration: 240, useNativeDriver: true }).start();
+        const by = visible.get(n.person.id) ?? anchorId;
+        const back = (by && targets.get(by)) || null;
+        const pos = positions.get(n.person.id);
+        if (pos && back) {
+          Animated.timing(pos, { toValue: back, duration: 260, useNativeDriver: true }).start();
+        }
+      });
+      setExiting(gone);
+      const timer = setTimeout(() => {
+        gone.forEach((n) => {
+          positions.delete(n.person.id);
+          appears.delete(n.person.id);
+          targets.delete(n.person.id);
+        });
+        setExiting((prev) => prev.filter((p) => currentIds.has(p.person.id)));
+      }, 300);
+      prevNodes.current = current;
+      // Kamera bewegen
+      runCamera(currentIds);
+      return () => clearTimeout(timer);
+    }
+
+    prevNodes.current = current;
+    runCamera(currentIds);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [layout]);
+
+  function runCamera(currentIds: Set<string>) {
+    if (!didInit.current) return;
+    if (pendingBranchIds.current) {
+      const ids = pendingBranchIds.current;
+      pendingBranchIds.current = null;
+      const ns = layout.nodes.filter((n) => ids.includes(n.person.id));
+      if (ns.length) return frameNodes(ns, 1);
+    }
+    const fid = pendingFocusId.current;
+    if (fid && currentIds.has(fid)) {
+      pendingFocusId.current = null;
+      const ids = [fid, ...(neighborMap.get(fid) ?? [])].filter((id) => currentIds.has(id));
+      const ns = layout.nodes.filter((n) => ids.includes(n.person.id));
+      return frameNodes(ns, 1.15);
+    }
+    pendingFocusId.current = null;
+    fitWorld();
+  }
+
+  // ---- Gesten ----
   const panStart = useRef({ x: 0, y: 0 });
   const pinch = useRef<{ dist: number; scale: number; cx: number; cy: number } | null>(null);
 
@@ -317,17 +360,69 @@ export function FamilyTreeView({
     const ns = clamp(sc.current * factor);
     const cx = (w / 2 - tx.current) / sc.current;
     const cy = (h / 2 - ty.current) / sc.current;
-    animateTo(ns, w / 2 - cx * ns, h / 2 - cy * ns);
+    animateCam(ns, w / 2 - cx * ns, h / 2 - cy * ns);
+  }
+
+  function onNodePress(id: string) {
+    setActiveId(id);
+    if (hiddenCountOf(id) > 0 || expanded.has(id)) {
+      pendingFocusId.current = id; // Kamera wandert zur angetippten Person
+      setExpanded((prev) => {
+        const s = new Set(prev);
+        s.has(id) ? s.delete(id) : s.add(id);
+        return s;
+      });
+    } else {
+      onSelectPerson(id);
+    }
   }
 
   function revealBranch(branch: FamilyBranch) {
-    pendingFocus.current = branch.member_ids ?? [];
+    pendingBranchIds.current = branch.member_ids ?? [];
     setExpanded(new Set(persons.map((p) => p.id)));
   }
 
   function resetView() {
-    pendingFocus.current = null;
+    pendingFocusId.current = null;
+    pendingBranchIds.current = null;
+    setActiveId(null);
     setExpanded(new Set());
+  }
+
+  const currentIds = useMemo(
+    () => new Set(layout.nodes.map((n) => n.person.id)),
+    [layout],
+  );
+  const exitingVisible = exiting.filter((e) => !currentIds.has(e.person.id));
+
+  // Animated-Werte für neue Knoten bereits in der Render-Phase mit korrektem
+  // Startwert anlegen (Start = Position des aufklappenden Knotens), damit neue
+  // Karten aus ihm „herauswachsen". Die Animation selbst startet im Effect.
+  for (const n of layout.nodes) {
+    const id = n.person.id;
+    if (!positions.has(id)) {
+      const by = visible.get(id);
+      const start = (by && targets.get(by)) || { x: n.x, y: n.y };
+      positions.set(id, new Animated.ValueXY(start));
+      appears.set(id, new Animated.Value(0));
+    }
+  }
+
+  function getPos(id: string): Animated.ValueXY {
+    let p = positions.get(id);
+    if (!p) {
+      p = new Animated.ValueXY({ x: 0, y: 0 });
+      positions.set(id, p);
+    }
+    return p;
+  }
+  function getAppear(id: string): Animated.Value {
+    let a = appears.get(id);
+    if (!a) {
+      a = new Animated.Value(1);
+      appears.set(id, a);
+    }
+    return a;
   }
 
   return (
@@ -397,22 +492,27 @@ export function FamilyTreeView({
               style={[
                 styles.glow,
                 {
-                  left: anchorNode.x - 16,
-                  top: anchorNode.y - 16,
                   width: NODE_W + 32,
                   height: NODE_H + 32,
-                  opacity: pulse.interpolate({ inputRange: [0, 1], outputRange: [0.2, 0.5] }),
-                  transform: [{ scale: pulse.interpolate({ inputRange: [0, 1], outputRange: [1, 1.06] }) }],
+                  opacity: pulse.interpolate({ inputRange: [0, 1], outputRange: [0.18, 0.46] }),
+                  transform: [
+                    { translateX: Animated.subtract(getPos(anchorNode.person.id).x, 16) },
+                    { translateY: Animated.subtract(getPos(anchorNode.person.id).y, 16) },
+                    { scale: pulse.interpolate({ inputRange: [0, 1], outputRange: [1, 1.06] }) },
+                  ],
                 },
               ]}
             />
           ) : null}
 
-          {layout.nodes.map((node) => (
+          {[...exitingVisible, ...layout.nodes].map((node) => (
             <NodeCard
               key={node.person.id}
               node={node}
+              pos={getPos(node.person.id)}
+              appear={getAppear(node.person.id)}
               isAnchor={node.person.id === anchorId}
+              isActive={node.person.id === activeId}
               branchColor={zones.find((z) => z.memberIds.includes(node.person.id))?.color}
               relLabel={relationshipLabelByPerson[node.person.id]}
               hiddenCount={hiddenCountOf(node.person.id)}
@@ -424,7 +524,6 @@ export function FamilyTreeView({
         </Animated.View>
       </View>
 
-      {/* Familienbereiche – schnell einen Zweig erkunden */}
       <View style={styles.branchBar} pointerEvents="box-none">
         <Pressable style={[styles.branchChip, styles.resetChip]} onPress={resetView}>
           <Ionicons name="contract-outline" size={14} color={colors.primaryDark} />
@@ -459,7 +558,10 @@ export function FamilyTreeView({
 
 function NodeCard({
   node,
+  pos,
+  appear,
   isAnchor,
+  isActive,
   branchColor,
   relLabel,
   hiddenCount,
@@ -468,7 +570,10 @@ function NodeCard({
   onOpenProfile,
 }: {
   node: TreeNode;
+  pos: Animated.ValueXY;
+  appear: Animated.Value;
   isAnchor: boolean;
+  isActive: boolean;
   branchColor?: string;
   relLabel?: string;
   hiddenCount: number;
@@ -477,29 +582,41 @@ function NodeCard({
   onOpenProfile: () => void;
 }) {
   const person = node.person;
-  const opacity = useRef(new Animated.Value(0)).current;
-  const scale = useRef(new Animated.Value(0.85)).current;
-  useEffect(() => {
-    Animated.parallel([
-      Animated.timing(opacity, { toValue: 1, duration: 260, useNativeDriver: true }),
-      Animated.spring(scale, { toValue: 1, friction: 7, tension: 70, useNativeDriver: true }),
-    ]).start();
-  }, [opacity, scale]);
+  const press = useRef(new Animated.Value(0)).current;
+  const animatePress = (to: number) =>
+    Animated.spring(press, { toValue: to, useNativeDriver: true, friction: 6, tension: 120 }).start();
 
   const ringColor = isAnchor ? colors.gold : branchColor ?? colors.border;
   const avatarSize = isAnchor ? 58 : 50;
   const canExpand = hiddenCount > 0 && !expanded;
 
+  // Knoten als „Hub": leichte Vergrößerung bei Aktiv/Press.
+  const baseScale = appear.interpolate({ inputRange: [0, 1], outputRange: [0.8, 1] });
+  const pressScale = press.interpolate({ inputRange: [0, 1], outputRange: [1, 1.06] });
+
   return (
     <Animated.View
       style={[
         styles.nodeWrap,
-        { left: node.x, top: node.y, width: NODE_W, height: NODE_H, opacity, transform: [{ scale }] },
+        {
+          width: NODE_W,
+          height: NODE_H,
+          opacity: appear,
+          transform: [
+            { translateX: pos.x },
+            { translateY: pos.y },
+            { scale: Animated.multiply(baseScale, pressScale) },
+          ],
+        },
       ]}
     >
       <Pressable
         onPress={onPress}
-        style={({ pressed }) => [styles.node, isAnchor && styles.nodeAnchor, pressed && styles.nodePressed]}
+        onPressIn={() => animatePress(1)}
+        onPressOut={() => animatePress(0)}
+        onHoverIn={() => animatePress(1)}
+        onHoverOut={() => animatePress(0)}
+        style={[styles.node, isAnchor && styles.nodeAnchor, isActive && styles.nodeActive]}
       >
         {isAnchor ? (
           <View style={styles.duBadge}>
@@ -605,7 +722,7 @@ function edgePath(edge: TreeEdge): string {
 const styles = StyleSheet.create({
   container: { flex: 1, position: 'relative', overflow: 'hidden' },
   world: { position: 'absolute', left: 0, top: 0, transformOrigin: 'left top' },
-  nodeWrap: { position: 'absolute' },
+  nodeWrap: { position: 'absolute', left: 0, top: 0 },
   node: {
     flex: 1,
     alignItems: 'center',
@@ -620,9 +737,11 @@ const styles = StyleSheet.create({
     ...shadow.card,
   },
   nodeAnchor: { borderColor: colors.gold, borderWidth: 2.5, backgroundColor: colors.warmWhite },
-  nodePressed: { opacity: 0.75 },
+  nodeActive: { borderColor: colors.primary, borderWidth: 2 },
   glow: {
     position: 'absolute',
+    left: 0,
+    top: 0,
     borderRadius: radius.xl + 12,
     backgroundColor: withAlpha(colors.gold, 0.55),
     shadowColor: colors.gold,
