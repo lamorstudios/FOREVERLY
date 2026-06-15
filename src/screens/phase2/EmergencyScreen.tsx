@@ -1,4 +1,4 @@
-import { View, Pressable, StyleSheet, Alert } from 'react-native';
+import { View, Pressable, StyleSheet, Alert, Linking } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -22,6 +22,8 @@ import {
   deleteEmergencyContact,
 } from '@/api/emergency';
 import { listPersons } from '@/api/persons';
+import { listTrustedContacts } from '@/api/trustedContacts';
+import { TRUSTED_ROLES } from '@/constants/trusted';
 import { formatDateTime, fullName } from '@/lib/format';
 import { friendlyError } from '@/lib/errors';
 import { useAuth } from '@/context/AuthContext';
@@ -62,9 +64,38 @@ export function EmergencyScreen({
     queryFn: () => listPersons(familyId),
   });
 
+  const trustedQuery = useQuery({
+    queryKey: qk.trustedContacts(familyId),
+    queryFn: () => listTrustedContacts(familyId),
+  });
+
   const contacts = contactsQuery.data ?? [];
   const events = eventsQuery.data ?? [];
   const persons = personsQuery.data ?? [];
+  const trusted = trustedQuery.data ?? [];
+
+  // Vertrauenspersonen nach zugeordnetem Familienmitglied gruppieren
+  const trustedByPerson = persons
+    .map((p) => ({
+      person: p,
+      list: trusted.filter((t) => t.person_id === p.id),
+    }))
+    .filter((g) => g.list.length > 0);
+
+  async function callTrusted(phone: string | null) {
+    if (!phone) {
+      Alert.alert('Keine Nummer', 'Für diese Person ist keine Telefonnummer hinterlegt.');
+      return;
+    }
+    const url = `tel:${phone.replace(/\s/g, '')}`;
+    try {
+      const ok = await Linking.canOpenURL(url);
+      if (ok) await Linking.openURL(url);
+      else throw new Error('not supported');
+    } catch {
+      Alert.alert('Anrufen', `Anruf an ${phone} (in der Vorschau simuliert).`);
+    }
+  }
 
   const triggerMutation = useMutation({
     mutationFn: () =>
@@ -116,6 +147,7 @@ export function EmergencyScreen({
     contactsQuery.refetch();
     eventsQuery.refetch();
     personsQuery.refetch();
+    trustedQuery.refetch();
   }
 
   function triggererName(event: EmergencyEvent): string {
@@ -272,6 +304,51 @@ export function EmergencyScreen({
                   onPress={() => confirmResolve(event)}
                   style={styles.resolveButton}
                 />
+              </Card>
+            ))}
+          </View>
+        </View>
+      ) : null}
+
+      {/* Vertrauenspersonen vor Ort (Trusted Circle) */}
+      {trustedByPerson.length > 0 ? (
+        <View style={styles.section}>
+          <SectionHeader title="Vertrauenspersonen vor Ort" />
+          <View style={styles.list}>
+            {trustedByPerson.map((group) => (
+              <Card key={group.person.id}>
+                <AppText variant="bodyStrong">
+                  In der Nähe von {fullName(group.person.first_name, group.person.last_name)} erreichbar:
+                </AppText>
+                {group.list.map((t) => (
+                  <View key={t.id} style={styles.trustedRow}>
+                    <Ionicons
+                      name={t.is_emergency ? 'shield-checkmark' : TRUSTED_ROLES[t.role].icon}
+                      size={20}
+                      color={t.is_emergency ? colors.error : colors.relationMarried}
+                    />
+                    <View style={styles.trustedBody}>
+                      <AppText variant="body">
+                        {t.name}
+                        <AppText variant="caption" color={colors.textMuted}>
+                          {`  ${TRUSTED_ROLES[t.role].label}`}
+                        </AppText>
+                      </AppText>
+                      {t.phone ? (
+                        <AppText variant="caption" color={colors.textSecondary}>
+                          {t.phone}
+                        </AppText>
+                      ) : null}
+                    </View>
+                    <Pressable
+                      hitSlop={8}
+                      onPress={() => callTrusted(t.phone)}
+                      accessibilityLabel={`${t.name} anrufen`}
+                    >
+                      <Ionicons name="call" size={22} color={colors.success} />
+                    </Pressable>
+                  </View>
+                ))}
               </Card>
             ))}
           </View>
@@ -437,6 +514,13 @@ const styles = StyleSheet.create({
   contactBody: { flex: 1, gap: spacing.xs },
   contactNote: { marginTop: spacing.xs },
   trash: { padding: spacing.xs },
+  trustedRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    marginTop: spacing.sm,
+  },
+  trustedBody: { flex: 1 },
   historyCard: { backgroundColor: colors.surfaceAlt },
   historyRow: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.sm },
   historyBody: { flex: 1, gap: 2 },

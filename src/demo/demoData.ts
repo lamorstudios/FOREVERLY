@@ -20,6 +20,8 @@ import type {
   FamilyDocument,
   StatusLevel,
   BookProject,
+  TrustedContact,
+  TrustedRole,
 } from '@/types/models';
 import { coverImage, photoImage, portraitImage } from './images';
 
@@ -57,6 +59,7 @@ export interface DemoDataset {
   calendarEvents: CalendarEvent[];
   documents: FamilyDocument[];
   bookProjects: BookProject[];
+  trustedContacts: TrustedContact[];
 }
 
 /** Erzeugt einen frischen Demo-Datensatz (Familie Mielke). */
@@ -249,6 +252,20 @@ export function createSeedData(): DemoDataset {
     doc('doc4', 'versicherung', 'Versicherungsunterlagen', true, 'Versicherungsordner im Wohnzimmer', 'Max Mustermann', null),
   ];
 
+  // --- Trusted Circle: Vertrauenspersonen (Opa Hans wohnt 700 km entfernt) ---
+  const trustedContacts: TrustedContact[] = [
+    trusted('tc-mueller', 'p-opa', 'Herr Müller', 'nachbar', '+49 381 5550101',
+      'Wohnt im selben Haus und kann im Notfall nachsehen.', true),
+    trusted('tc-peter', 'p-opa', 'Peter Schneider', 'freund', '+49 381 5550202',
+      'Kennt Opa Hans seit 30 Jahren.', false),
+    trusted('tc-berger', 'p-opa', 'Frau Berger', 'pflegekontakt', '+49 381 5550303',
+      'Kommt zweimal pro Woche vorbei.', true),
+    trusted('tc-schneiderin', 'p-oma', 'Frau Schneider', 'nachbar', '+49 451 5550404',
+      'Nachbarin von Oma Erika, immer erreichbar.', false),
+    trusted('tc-pflege-oma', 'p-oma', 'Pflegedienst Lübeck', 'pflegekontakt', '+49 451 5550505',
+      'Betreut Oma Erika werktags.', true),
+  ];
+
   // --- Phase 4: Beispiel-Familienbuch ---
   const bookProjects: BookProject[] = [
     {
@@ -288,6 +305,7 @@ export function createSeedData(): DemoDataset {
     calendarEvents,
     documents,
     bookProjects,
+    trustedContacts,
   };
 
   // --- Fabrik-Helfer ---
@@ -577,6 +595,33 @@ export function createSeedData(): DemoDataset {
       created_at: daysFromNow(-10),
       updated_at: daysFromNow(-10),
       participant_ids: participantIds,
+    };
+  }
+
+  function trusted(
+    id: string,
+    personId: string,
+    name: string,
+    role: TrustedRole,
+    phone: string,
+    note: string,
+    isEmergency: boolean,
+  ): TrustedContact {
+    return {
+      id,
+      family_id: DEMO_FAMILY_ID,
+      person_id: personId,
+      name,
+      role,
+      phone,
+      email: null,
+      location: null,
+      note,
+      availability: null,
+      is_emergency: isEmergency,
+      created_by: DEMO_USER_ID,
+      created_at: daysFromNow(-20),
+      updated_at: daysFromNow(-20),
     };
   }
 

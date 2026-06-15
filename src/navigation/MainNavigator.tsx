@@ -58,6 +58,9 @@ import { BookHomeScreen } from '@/screens/book/BookHomeScreen';
 import { BookCreateScreen } from '@/screens/book/BookCreateScreen';
 import { BookPreviewScreen } from '@/screens/book/BookPreviewScreen';
 import { BookChapterScreen } from '@/screens/book/BookChapterScreen';
+// Trusted Circle / Vertrauenskreis
+import { TrustedCircleScreen } from '@/screens/trusted/TrustedCircleScreen';
+import { TrustedContactFormScreen } from '@/screens/trusted/TrustedContactFormScreen';
 
 const HomeStack = createNativeStackNavigator<HomeStackParamList>();
 function HomeStackNavigator() {
@@ -81,6 +84,8 @@ function HomeStackNavigator() {
       <HomeStack.Screen name="BookCreate" component={BookCreateScreen} options={{ title: 'Neues Buch' }} />
       <HomeStack.Screen name="BookPreview" component={BookPreviewScreen} options={{ title: 'Buchvorschau' }} />
       <HomeStack.Screen name="BookChapter" component={BookChapterScreen} options={{ title: 'Kapitel' }} />
+      <HomeStack.Screen name="TrustedCircle" component={TrustedCircleScreen} options={{ title: 'Vertrauenskreis' }} />
+      <HomeStack.Screen name="TrustedContactForm" component={TrustedContactFormScreen} options={{ title: 'Vertrauensperson' }} />
     </HomeStack.Navigator>
   );
 }

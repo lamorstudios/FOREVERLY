@@ -329,3 +329,32 @@ export interface BookExport {
   print_ready: boolean;
   created_at: string;
 }
+
+// ===================== Trusted Circle / Vertrauenskreis =====================
+
+export type TrustedRole =
+  | 'nachbar'
+  | 'freund'
+  | 'hausmeister'
+  | 'pflegekontakt'
+  | 'vereinsfreund'
+  | 'hausarzt'
+  | 'sonstige';
+
+export interface TrustedContact {
+  id: string;
+  family_id: string;
+  person_id: string | null;
+  name: string;
+  role: TrustedRole;
+  phone: string | null;
+  email: string | null;
+  location: string | null;
+  note: string | null;
+  availability: string | null;
+  is_emergency: boolean;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+  person?: Person;
+}

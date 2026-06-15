@@ -41,6 +41,7 @@ type QuickRoute =
   | 'Emergency'
   | 'Documents'
   | 'BookHome'
+  | 'TrustedCircle'
   | 'SeniorMode';
 
 interface QuickAction {
@@ -56,6 +57,7 @@ const QUICK_ACTIONS: QuickAction[] = [
   { label: 'Notfall', icon: 'alert-circle-outline', color: colors.error, route: 'Emergency' },
   { label: 'Dokumente', icon: 'folder-outline', color: colors.primary, route: 'Documents' },
   { label: 'Familienbuch', icon: 'book-outline', color: colors.primaryDark, route: 'BookHome' },
+  { label: 'Vertrauenskreis', icon: 'shield-checkmark-outline', color: colors.relationMarried, route: 'TrustedCircle' },
   { label: 'Seniorenmodus', icon: 'accessibility-outline', color: colors.gold, route: 'SeniorMode' },
 ];
 

@@ -27,6 +27,8 @@ import type {
   BookProject,
   BookType,
   BookOptions,
+  TrustedContact,
+  TrustedRole,
 } from '@/types/models';
 import { createSeedData, DEMO_FAMILY_ID, DEMO_USER_ID } from './demoData';
 
@@ -695,5 +697,61 @@ export const demoStore = {
   },
   deleteBookProject(id: string): void {
     data.bookProjects = data.bookProjects.filter((b) => b.id !== id);
+  },
+
+  // --- Trusted Circle / Vertrauenskreis ---
+  listTrustedContacts(personId?: string): TrustedContact[] {
+    let list = [...data.trustedContacts];
+    if (personId) list = list.filter((c) => c.person_id === personId);
+    return list
+      .map((c) => ({
+        ...c,
+        person: data.persons.find((p) => p.id === c.person_id),
+      }))
+      .sort((a, b) => Number(b.is_emergency) - Number(a.is_emergency));
+  },
+  createTrustedContact(input: {
+    familyId: string;
+    personId: string | null;
+    name: string;
+    role: TrustedRole;
+    phone?: string | null;
+    email?: string | null;
+    location?: string | null;
+    note?: string | null;
+    availability?: string | null;
+    isEmergency?: boolean;
+    createdBy: string;
+  }): TrustedContact {
+    const c: TrustedContact = {
+      id: newId('tc'),
+      family_id: input.familyId,
+      person_id: input.personId,
+      name: input.name,
+      role: input.role,
+      phone: input.phone ?? null,
+      email: input.email ?? null,
+      location: input.location ?? null,
+      note: input.note ?? null,
+      availability: input.availability ?? null,
+      is_emergency: input.isEmergency ?? false,
+      created_by: input.createdBy,
+      created_at: nowIso(),
+      updated_at: nowIso(),
+    };
+    data.trustedContacts.push(c);
+    return c;
+  },
+  updateTrustedContact(id: string, patch: Partial<TrustedContact>): TrustedContact {
+    const idx = data.trustedContacts.findIndex((c) => c.id === id);
+    data.trustedContacts[idx] = {
+      ...data.trustedContacts[idx]!,
+      ...patch,
+      updated_at: nowIso(),
+    };
+    return data.trustedContacts[idx]!;
+  },
+  deleteTrustedContact(id: string): void {
+    data.trustedContacts = data.trustedContacts.filter((c) => c.id !== id);
   },
 };

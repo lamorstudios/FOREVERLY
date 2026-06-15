@@ -45,4 +45,7 @@ export const qk = {
   bookProjects: (familyId: string) => ['book', 'projects', familyId] as const,
   book: (familyId: string, projectId: string) =>
     ['book', 'generated', familyId, projectId] as const,
+  // Trusted Circle / Vertrauenskreis
+  trustedContacts: (familyId: string, personId?: string) =>
+    ['trustedContacts', familyId, personId ?? 'all'] as const,
 };

@@ -30,6 +30,9 @@ export type HomeStackParamList = {
   BookCreate: undefined;
   BookPreview: { projectId: string };
   BookChapter: { projectId: string; chapterKey: string };
+  // Trusted Circle / Vertrauenskreis
+  TrustedCircle: { personId?: string } | undefined;
+  TrustedContactForm: { personId?: string } | undefined;
 };
 
 export type FamilyStackParamList = {
