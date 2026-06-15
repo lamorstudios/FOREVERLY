@@ -1,4 +1,4 @@
-import { useLayoutEffect } from 'react';
+import { useLayoutEffect, useMemo } from 'react';
 import { View, ScrollView, Pressable, StyleSheet } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useQuery } from '@tanstack/react-query';
@@ -20,10 +20,12 @@ import { listActivities } from '@/api/activities';
 import { listUpcomingForMe } from '@/api/timeCapsules';
 import { listStatuses } from '@/api/status';
 import { listMoments } from '@/api/moments';
+import { listCalendarEvents } from '@/api/calendar';
+import { listEvents } from '@/api/familyEvents';
 import { listNotifications, unreadCount } from '@/api/familyNotifications';
 import { qk } from '@/api/queryKeys';
 import { STATUS_LEVELS } from '@/constants/phase2';
-import { formatRelative, openingCountdown, fullName } from '@/lib/format';
+import { formatRelative, openingCountdown, fullName, daysUntil } from '@/lib/format';
 import { colors, radius, spacing, shadow, withAlpha, useResponsive } from '@/theme';
 import type { HomeStackParamList } from '@/navigation/types';
 import type { Activity, MemberStatus, Moment } from '@/types/models';
@@ -71,6 +73,26 @@ const QUICK_ACTIONS: QuickAction[] = [
   { label: 'Seniorenmodus', icon: 'accessibility-outline', color: colors.gold, route: 'SeniorMode' },
 ];
 
+interface TodayItem {
+  id: string;
+  icon: keyof typeof Ionicons.glyphMap;
+  color: string;
+  title: string;
+  subtitle: string;
+  route?: QuickRoute;
+}
+
+/** Tage bis zum nächsten jährlichen Wiederkehrtermin (z. B. Geburtstag). */
+function daysUntilAnnual(dateStr: string): number {
+  const d = new Date(dateStr);
+  if (Number.isNaN(d.getTime())) return -1;
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const next = new Date(now.getFullYear(), d.getMonth(), d.getDate());
+  if (next < today) next.setFullYear(now.getFullYear() + 1);
+  return Math.round((next.getTime() - today.getTime()) / 86400000);
+}
+
 export function HomeScreen({ navigation }: Props) {
   const { activeFamily } = useFamily();
   const familyId = activeFamily!.id;
@@ -97,8 +119,94 @@ export function HomeScreen({ navigation }: Props) {
     queryKey: qk.notifications(familyId),
     queryFn: () => listNotifications(familyId),
   });
+  const calendar = useQuery({
+    queryKey: qk.calendar(familyId),
+    queryFn: () => listCalendarEvents(familyId),
+  });
+  const events = useQuery({
+    queryKey: qk.events(familyId),
+    queryFn: () => listEvents(familyId),
+  });
 
   const unread = unreadCount(notifications.data ?? []);
+
+  // „Heute in deiner Familie" – kuratierte, emotionale Zusammenfassung.
+  const todayItems = useMemo<TodayItem[]>(() => {
+    const items: TodayItem[] = [];
+
+    // Nächster Geburtstag (jährlich wiederkehrend).
+    const birthdays = (calendar.data ?? [])
+      .filter((c) => c.type === 'geburtstag')
+      .map((c) => ({ c, days: daysUntilAnnual(c.event_date) }))
+      .filter((b) => b.days >= 0 && b.days <= 45)
+      .sort((a, b) => a.days - b.days);
+    if (birthdays[0]) {
+      const { c, days } = birthdays[0];
+      items.push({
+        id: `bd-${c.id}`,
+        icon: 'gift-outline',
+        color: colors.gold,
+        title: c.title,
+        subtitle: days === 0 ? 'Geburtstag heute! 🎉' : `Geburtstag in ${days} ${days === 1 ? 'Tag' : 'Tagen'}`,
+      });
+    }
+
+    // Familienevent steht an.
+    const nextEvent = (events.data ?? [])
+      .map((e) => ({ e, days: daysUntil(e.event_date) }))
+      .filter((x) => x.days !== null && (x.days as number) >= 0)
+      .sort((a, b) => (a.days as number) - (b.days as number))[0];
+    if (nextEvent) {
+      const d = nextEvent.days as number;
+      items.push({
+        id: `ev-${nextEvent.e.id}`,
+        icon: 'balloon-outline',
+        color: colors.relationMarried,
+        title: nextEvent.e.title,
+        subtitle: d === 0 ? 'Heute' : `Familienevent in ${d} ${d === 1 ? 'Tag' : 'Tagen'}`,
+      });
+    }
+
+    // Zeitkapsel öffnet bald.
+    const nextCapsule = (upcoming.data ?? [])
+      .map((c) => ({ c, days: daysUntil(c.open_at) }))
+      .filter((x) => x.days !== null && (x.days as number) >= 0)
+      .sort((a, b) => (a.days as number) - (b.days as number))[0];
+    if (nextCapsule) {
+      items.push({
+        id: `tc-${nextCapsule.c.id}`,
+        icon: 'time-outline',
+        color: colors.bronze,
+        title: nextCapsule.c.title,
+        subtitle: openingCountdown(nextCapsule.c.open_at),
+      });
+    }
+
+    // Neue Sprachnachricht / neue Erinnerung.
+    const audio = (moments.data ?? []).find((m) => m.kind === 'audio');
+    if (audio) {
+      items.push({
+        id: `au-${audio.id}`,
+        icon: 'mic-outline',
+        color: colors.relationAdoption,
+        title: 'Neue Sprachnachricht',
+        subtitle: audio.text || formatRelative(audio.created_at),
+        route: 'MomentsHome',
+      });
+    }
+    const recentMemory = (activities.data ?? []).find((a) => a.action === 'memory.created');
+    if (recentMemory && items.length < 5) {
+      items.push({
+        id: `me-${recentMemory.id}`,
+        icon: 'sparkles-outline',
+        color: colors.success,
+        title: recentMemory.summary || 'Neue Erinnerung',
+        subtitle: `Neue Erinnerung · ${formatRelative(recentMemory.created_at)}`,
+      });
+    }
+
+    return items.slice(0, 5);
+  }, [calendar.data, events.data, upcoming.data, moments.data, activities.data]);
   const photoMoments = (moments.data ?? [])
     .filter((m) => m.kind === 'photo' && m.storage_path)
     .slice(0, 8);
@@ -130,7 +238,9 @@ export function HomeScreen({ navigation }: Props) {
     moments.isRefetching ||
     upcoming.isRefetching ||
     statuses.isRefetching ||
-    notifications.isRefetching;
+    notifications.isRefetching ||
+    calendar.isRefetching ||
+    events.isRefetching;
 
   function onRefresh() {
     activities.refetch();
@@ -138,6 +248,8 @@ export function HomeScreen({ navigation }: Props) {
     upcoming.refetch();
     statuses.refetch();
     notifications.refetch();
+    calendar.refetch();
+    events.refetch();
   }
 
   if (activities.isLoading) return <Loading message="Einen Moment …" />;
@@ -170,6 +282,25 @@ export function HomeScreen({ navigation }: Props) {
           </View>
         </View>
       </Appear>
+
+      {/* Heute in deiner Familie – emotionale Zusammenfassung */}
+      {todayItems.length > 0 ? (
+        <Appear delay={40}>
+          <View style={styles.section}>
+            <SectionHeader title="Heute in deiner Familie" />
+            <Card padded={false} style={styles.todayCard}>
+              {todayItems.map((it, i) => (
+                <TodayRow
+                  key={it.id}
+                  item={it}
+                  showDivider={i > 0}
+                  onPress={it.route ? () => navigation.navigate(it.route as QuickRoute) : undefined}
+                />
+              ))}
+            </Card>
+          </View>
+        </Appear>
+      ) : null}
 
       {/* Familienmomente – Fotos im Vordergrund */}
       {photoMoments.length > 0 ? (
@@ -306,6 +437,47 @@ export function HomeScreen({ navigation }: Props) {
   );
 }
 
+function TodayRow({
+  item,
+  showDivider,
+  onPress,
+}: {
+  item: TodayItem;
+  showDivider: boolean;
+  onPress?: () => void;
+}) {
+  const Inner = (
+    <View style={styles.todayRow}>
+      <View style={[styles.todayIcon, { backgroundColor: withAlpha(item.color, 0.16) }]}>
+        <Ionicons name={item.icon} size={22} color={item.color} />
+      </View>
+      <View style={styles.rowText}>
+        <AppText variant="bodyStrong" numberOfLines={1}>
+          {item.title}
+        </AppText>
+        <AppText variant="caption" color={colors.textSecondary} numberOfLines={1}>
+          {item.subtitle}
+        </AppText>
+      </View>
+      {onPress ? (
+        <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
+      ) : null}
+    </View>
+  );
+  return (
+    <View>
+      {showDivider ? <View style={styles.divider} /> : null}
+      {onPress ? (
+        <Pressable onPress={onPress} style={({ pressed }) => pressed && styles.pressed}>
+          {Inner}
+        </Pressable>
+      ) : (
+        Inner
+      )}
+    </View>
+  );
+}
+
 function MomentCard({ moment, onPress }: { moment: Moment; onPress: () => void }) {
   return (
     <Pressable onPress={onPress} style={({ pressed }) => [styles.momentCard, pressed && styles.pressed]}>
@@ -386,6 +558,23 @@ const styles = StyleSheet.create({
   section: { gap: spacing.sm },
   row: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   rowText: { flex: 1, gap: 2 },
+  // Heute-in-deiner-Familie Digest
+  todayCard: { padding: spacing.xs },
+  todayRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.md,
+    paddingVertical: spacing.sm,
+    paddingHorizontal: spacing.sm,
+  },
+  todayIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  divider: { height: 1, backgroundColor: colors.divider, marginHorizontal: spacing.sm },
   iconCircle: {
     width: 46,
     height: 46,

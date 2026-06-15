@@ -47,7 +47,8 @@ export function NetworkScreen({ navigation }: Props) {
   const cardBasis = columns === 1 ? '100%' : columns === 3 ? '31%' : '47%';
 
   const [mode, setMode] = useState<ViewMode>('tree');
-  const [worldMode, setWorldMode] = useState(false);
+  // Standard: ganze Familie zeigen (Familienwelt), nicht auf mich zoomen.
+  const [worldMode, setWorldMode] = useState(true);
 
   const personsQuery = useQuery({
     queryKey: qk.persons(familyId),

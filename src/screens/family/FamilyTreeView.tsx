@@ -6,11 +6,12 @@ import {
   Animated,
   PanResponder,
   LayoutChangeEvent,
+  Easing,
 } from 'react-native';
 import Svg, { Path, Rect } from 'react-native-svg';
 import { AppText, Avatar } from '@/components';
 import { SignedImage } from '@/components/SignedImage';
-import { colors, spacing, radius, shadow } from '@/theme';
+import { colors, spacing, radius, shadow, withAlpha } from '@/theme';
 import { fullName } from '@/lib/format';
 import type {
   Person,
@@ -69,9 +70,46 @@ export function FamilyTreeView({
   onSelectPerson,
   worldMode,
 }: FamilyTreeViewProps) {
+  // Personen ihrem (ersten) Familienzweig zuordnen – für Gruppierung & Farben.
+  const branchIndexById = useMemo(() => {
+    const map = new Map<string, number>();
+    branches.forEach((b, i) => {
+      for (const id of b.member_ids ?? []) if (!map.has(id)) map.set(id, i);
+    });
+    return map;
+  }, [branches]);
+
   const layout = useMemo(
-    () => computeTreeLayout(persons, relationships, anchorId),
-    [persons, relationships, anchorId],
+    () => computeTreeLayout(persons, relationships, anchorId, branchIndexById),
+    [persons, relationships, anchorId, branchIndexById],
+  );
+
+  // Sanfte Puls-Animation für den goldenen Glow der eingeloggten Person.
+  const pulse = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulse, {
+          toValue: 1,
+          duration: 1500,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true,
+        }),
+        Animated.timing(pulse, {
+          toValue: 0,
+          duration: 1500,
+          easing: Easing.inOut(Easing.ease),
+          useNativeDriver: true,
+        }),
+      ]),
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [pulse]);
+
+  const anchorNode = useMemo(
+    () => layout.nodes.find((n) => n.person.id === anchorId) ?? null,
+    [layout, anchorId],
   );
 
   const translate = useRef(new Animated.ValueXY({ x: 0, y: 0 })).current;
@@ -262,13 +300,13 @@ export function FamilyTreeView({
                 y={z.y}
                 width={z.w}
                 height={z.h}
-                rx={28}
+                rx={32}
                 fill={z.color}
-                fillOpacity={0.07}
+                fillOpacity={0.1}
                 stroke={z.color}
-                strokeOpacity={0.25}
-                strokeWidth={1.5}
-                strokeDasharray="6 8"
+                strokeOpacity={0.45}
+                strokeWidth={2}
+                strokeDasharray="2 10"
               />
             ))}
             {layout.edges.map((edge) => (
@@ -294,13 +332,33 @@ export function FamilyTreeView({
           {zones.map((z) => (
             <View
               key={`label-${z.id}`}
-              style={[styles.zoneLabel, { left: z.x + 16, top: z.y + 10 }]}
+              style={[styles.zoneLabel, { left: z.x + 18, top: z.y + 12, backgroundColor: z.color }]}
             >
-              <AppText variant="caption" color={z.color} style={styles.zoneText}>
+              <AppText variant="caption" color={colors.textOnAccent} style={styles.zoneText}>
                 {z.name}
               </AppText>
             </View>
           ))}
+
+          {/* Goldener Glow hinter der eingeloggten Person. */}
+          {anchorNode ? (
+            <Animated.View
+              pointerEvents="none"
+              style={[
+                styles.glow,
+                {
+                  left: anchorNode.x - 16,
+                  top: anchorNode.y - 16,
+                  width: NODE_W + 32,
+                  height: NODE_H + 32,
+                  opacity: pulse.interpolate({ inputRange: [0, 1], outputRange: [0.2, 0.5] }),
+                  transform: [
+                    { scale: pulse.interpolate({ inputRange: [0, 1], outputRange: [1, 1.06] }) },
+                  ],
+                },
+              ]}
+            />
+          ) : null}
 
           {layout.nodes.map((node) => {
             const person = node.person;
@@ -329,7 +387,7 @@ export function FamilyTreeView({
                 {isAnchor ? (
                   <View style={styles.duBadge}>
                     <AppText variant="caption" color={colors.textOnAccent} style={styles.duText}>
-                      Das bist du
+                      Du
                     </AppText>
                   </View>
                 ) : null}
@@ -487,19 +545,33 @@ const styles = StyleSheet.create({
   nodeAnchor: {
     borderColor: colors.gold,
     borderWidth: 2.5,
-    backgroundColor: '#FFFDF6',
+    backgroundColor: colors.warmWhite,
   },
   nodePressed: { opacity: 0.7 },
+  glow: {
+    position: 'absolute',
+    borderRadius: radius.xl + 12,
+    backgroundColor: withAlpha(colors.gold, 0.55),
+    shadowColor: colors.gold,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.9,
+    shadowRadius: 22,
+    elevation: 0,
+  },
   duBadge: {
     position: 'absolute',
     top: -11,
-    backgroundColor: colors.primary,
-    paddingHorizontal: spacing.sm,
+    backgroundColor: colors.gold,
+    paddingHorizontal: spacing.md,
     paddingVertical: 2,
     borderRadius: radius.pill,
     zIndex: 2,
+    shadowColor: colors.gold,
+    shadowOffset: { width: 0, height: 0 },
+    shadowOpacity: 0.6,
+    shadowRadius: 6,
   },
-  duText: { fontSize: 10, fontWeight: '700' },
+  duText: { fontSize: 11, fontWeight: '800' },
   avatarRing: {
     borderWidth: 3,
     alignItems: 'center',
@@ -521,12 +593,12 @@ const styles = StyleSheet.create({
   relLabel: { fontWeight: '600' },
   zoneLabel: {
     position: 'absolute',
-    backgroundColor: 'rgba(255,255,255,0.7)',
-    borderRadius: radius.sm,
-    paddingHorizontal: 6,
-    paddingVertical: 1,
+    borderRadius: radius.pill,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 3,
+    ...shadow.soft,
   },
-  zoneText: { fontWeight: '700' },
+  zoneText: { fontWeight: '800', letterSpacing: 0.3 },
   controls: {
     position: 'absolute',
     right: spacing.md,

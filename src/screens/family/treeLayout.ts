@@ -137,6 +137,7 @@ function orderRows(
   rows: Map<number, string[]>,
   graph: Graph,
   personById: Map<string, Person>,
+  branchIndexById?: Map<string, number>,
 ): void {
   const sortedRowKeys = [...rows.keys()].sort((a, b) => a - b);
 
@@ -154,6 +155,9 @@ function orderRows(
     return 0.5;
   };
 
+  const branchOf = (id: string) =>
+    branchIndexById?.get(id) ?? Number.MAX_SAFE_INTEGER;
+
   for (let iter = 0; iter < 6; iter++) {
     for (const key of sortedRowKeys) {
       const row = rows.get(key)!;
@@ -170,7 +174,10 @@ function orderRows(
       });
       row.sort((a, b) => {
         const diff = keyOf.get(a)! - keyOf.get(b)!;
-        if (Math.abs(diff) > 1e-6) return diff;
+        if (Math.abs(diff) > 0.04) return diff;
+        // Bei ähnlicher Position: gleicher Familienzweig zusammenhalten.
+        const bd = branchOf(a) - branchOf(b);
+        if (bd !== 0) return bd;
         return byBirth(personById.get(a), personById.get(b));
       });
     }
@@ -214,6 +221,7 @@ export function computeTreeLayout(
   persons: Person[],
   relationships: Relationship[],
   anchorId: string | null,
+  branchIndexById?: Map<string, number>,
 ): TreeLayout {
   if (persons.length === 0) {
     return { nodes: [], edges: [], width: 0, height: 0 };
@@ -241,7 +249,7 @@ export function computeTreeLayout(
     rows.get(row)!.push(person.id);
   }
 
-  orderRows(rows, graph, personById);
+  orderRows(rows, graph, personById, branchIndexById);
   placePartnersAdjacent(rows, relationships);
 
   const sortedRowKeys = [...rows.keys()].sort((a, b) => a - b);

@@ -90,9 +90,13 @@ Weich und großzügig (kein harter „Material"-Look):
 
 ## 7. Stammbaum / „Familienwelt"
 
-Große Portraits, weiche Bézier-Verbindungen (Deckkraft 0.7), dezente
-farbige Zweig-Bereiche, eingeloggte Person im Zentrum. Ziel:
-Familienuniversum statt Organigramm.
+Beim Öffnen wird die **ganze Familie** eingepasst (Familienwelt), nicht auf
+eine Person gezoomt. Die eingeloggte Person wird durch einen pulsierenden
+goldenen Glow und ein kleines „Du"-Badge hervorgehoben (Doppeltipp/◎-Button
+fokussiert auf sie). Große Portraits, weiche Bézier-Verbindungen
+(Deckkraft 0.7) und dezente farbige Zweig-Bereiche mit Beschriftung
+(Vaterseite, Mutterseite, Patchwork, Angeheiratet). Ziel: Familienuniversum
+statt Organigramm.
 
 ## 8. Leitfrage
 

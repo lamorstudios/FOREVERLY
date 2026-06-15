@@ -351,6 +351,7 @@ export function createSeedData(): DemoDataset {
     calRel('cal3', 'arzttermin', 'Arzttermin Opa Hans', 3, ['p-opa'], '10:30'),
     calRel('cal4', 'familienereignis', 'Großes Familienfest im Garten', 21, [], null, true),
     calRel('cal5', 'erinnerung', 'Mia für Schwimmkurs anmelden', 9, ['p-pflege'], null),
+    calRel('cal6', 'geburtstag', 'Geburtstag Mia', 5, ['p-pflege'], null),
   ];
 
   // --- Phase 2: Dokumentenübersicht (nur Metadaten) ---
@@ -411,6 +412,22 @@ export function createSeedData(): DemoDataset {
       created_by: DEMO_USER_ID,
       created_at: daysFromNow(-20),
       updated_at: daysFromNow(-20),
+    },
+    {
+      id: 'ev-fest',
+      family_id: DEMO_FAMILY_ID,
+      type: 'feier',
+      title: 'Sommerfest der Familie Mielke',
+      description: 'Ein lauer Sommerabend mit der ganzen Familie – kommt vorbei!',
+      event_date: daysFromNow(14).slice(0, 10),
+      event_time: '15:00',
+      location: 'Garten bei Oma Erika, Lübeck',
+      host_user_id: DEMO_USER_ID,
+      host_person_id: 'p-nick',
+      visibility: 'family',
+      created_by: DEMO_USER_ID,
+      created_at: daysFromNow(-2),
+      updated_at: daysFromNow(-2),
     },
   ];
 
