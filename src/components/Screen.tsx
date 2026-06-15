@@ -9,7 +9,7 @@ import {
   ViewStyle,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { colors, spacing } from '@/theme';
+import { colors, spacing, useResponsive } from '@/theme';
 
 interface ScreenProps {
   children: ReactNode;
@@ -22,7 +22,10 @@ interface ScreenProps {
   edges?: ('top' | 'bottom' | 'left' | 'right')[];
 }
 
-/** Bildschirm-Grundgerüst mit Safe Area, warmem Hintergrund und Scroll-Option. */
+/**
+ * Bildschirm-Grundgerüst mit Safe Area, warmem Hintergrund und Scroll-Option.
+ * Padding & maximale Inhaltsbreite sind responsiv (Mobile First, Tablet-tauglich).
+ */
 export function Screen({
   children,
   scroll = true,
@@ -32,9 +35,20 @@ export function Screen({
   contentStyle,
   edges = ['top'],
 }: ScreenProps) {
-  const inner = (
-    <View style={[padded && styles.padded, contentStyle]}>{children}</View>
-  );
+  const { mobilePadding, responsiveSpacing, contentMaxWidth } = useResponsive();
+
+  const paddedStyle: ViewStyle = padded
+    ? {
+        paddingHorizontal: mobilePadding,
+        paddingVertical: responsiveSpacing,
+        gap: responsiveSpacing,
+        width: '100%',
+        maxWidth: contentMaxWidth,
+        alignSelf: 'center',
+      }
+    : { width: '100%', maxWidth: contentMaxWidth, alignSelf: 'center' };
+
+  const inner = <View style={[paddedStyle, contentStyle]}>{children}</View>;
 
   return (
     <SafeAreaView style={styles.safe} edges={edges}>
@@ -72,5 +86,4 @@ const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.background },
   flex: { flex: 1 },
   scrollContent: { flexGrow: 1, paddingBottom: spacing.xxl },
-  padded: { padding: spacing.lg, gap: spacing.md },
 });

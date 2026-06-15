@@ -4,6 +4,8 @@ import { spacing, radius, touch } from './spacing';
 import type { RelationshipCategory } from '@/types/models';
 
 export { colors, typography, spacing, radius, touch };
+export { useResponsive, responsive, breakpoints } from './responsive';
+export type { ResponsiveInfo } from './responsive';
 
 export const theme = { colors, typography, spacing, radius, touch } as const;
 

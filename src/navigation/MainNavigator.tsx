@@ -1,8 +1,10 @@
+import { Text, View } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { stackScreenOptions } from './options';
-import { colors, typography } from '@/theme';
+import { colors } from '@/theme';
 import type {
   MainTabParamList,
   HomeStackParamList,
@@ -205,34 +207,51 @@ const TAB_ICONS: Record<
 };
 
 export function MainNavigator() {
+  const insets = useSafeAreaInsets();
+  const bottomInset = Math.max(insets.bottom, 8);
+
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
         tabBarActiveTintColor: colors.primaryDark,
         tabBarInactiveTintColor: colors.textMuted,
+        // Label nur beim aktiven Tab -> keine überlappenden Texte auf Mobile
+        tabBarShowLabel: true,
         tabBarStyle: {
           backgroundColor: colors.surface,
           borderTopColor: colors.border,
-          height: 88,
-          paddingTop: 8,
-          paddingBottom: 28,
+          height: 56 + bottomInset,
+          paddingTop: 6,
+          paddingBottom: bottomInset,
         },
-        tabBarLabelStyle: {
-          fontSize: typography.caption.fontSize,
-          fontWeight: '600',
-        },
-        tabBarIcon: ({ focused, color, size }) => {
+        tabBarItemStyle: { paddingVertical: 2 },
+        tabBarIcon: ({ focused, color }) => {
           const cfg = TAB_ICONS[route.name as keyof MainTabParamList];
           return (
-            <Ionicons
-              name={focused ? cfg.focused : cfg.unfocused}
-              size={size}
-              color={color}
-            />
+            <View style={{ alignItems: 'center', justifyContent: 'center' }}>
+              <Ionicons name={focused ? cfg.focused : cfg.unfocused} size={24} color={color} />
+            </View>
           );
         },
-        tabBarLabel: TAB_ICONS[route.name as keyof MainTabParamList].label,
+        tabBarLabel: ({ focused, color }) => {
+          if (!focused) return null;
+          const cfg = TAB_ICONS[route.name as keyof MainTabParamList];
+          return (
+            <Text
+              numberOfLines={1}
+              style={{
+                fontSize: 11,
+                fontWeight: '700',
+                color,
+                maxWidth: 84,
+                textAlign: 'center',
+              }}
+            >
+              {cfg.label}
+            </Text>
+          );
+        },
       })}
     >
       <Tab.Screen name="HomeTab" component={HomeStackNavigator} />

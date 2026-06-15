@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { View, StyleSheet, Pressable } from 'react-native';
+import { View, StyleSheet, Pressable, ScrollView } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import {
   Screen,
@@ -17,7 +17,7 @@ import { qk } from '@/api/queryKeys';
 import { useFamily } from '@/context/FamilyContext';
 import { fullName, formatDate } from '@/lib/format';
 import { CATEGORY_LABELS } from '@/constants/relationships';
-import { colors, spacing, radius } from '@/theme';
+import { colors, spacing, radius, useResponsive } from '@/theme';
 import type { FamilyStackParamList } from '@/navigation/types';
 import type { Person, RelationshipCategory } from '@/types/models';
 
@@ -42,6 +42,9 @@ function years(person: Person): string {
 export function NetworkScreen({ navigation }: Props) {
   const { activeFamily, isAdmin } = useFamily();
   const familyId = activeFamily!.id;
+  const { columns } = useResponsive();
+  // Kartenbreite responsiv (1–3 Spalten); flexBasis statt fester Breite
+  const cardBasis = columns === 1 ? '100%' : columns === 3 ? '31%' : '47%';
 
   const personsQuery = useQuery({
     queryKey: qk.persons(familyId),
@@ -84,7 +87,11 @@ export function NetworkScreen({ navigation }: Props) {
         </AppText>
       </View>
 
-      <View style={styles.headerButtons}>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.headerButtons}
+      >
         <Button
           label="Mitglieder"
           icon="people-outline"
@@ -119,7 +126,7 @@ export function NetworkScreen({ navigation }: Props) {
             onPress={() => navigation.navigate('Invite')}
           />
         ) : null}
-      </View>
+      </ScrollView>
 
       <Card style={styles.legend}>
         <AppText variant="bodyStrong">Legende</AppText>
@@ -156,7 +163,7 @@ export function NetworkScreen({ navigation }: Props) {
                       personId: person.id,
                     })
                   }
-                  style={styles.personCard}
+                  style={{ ...styles.personCard, flexBasis: cardBasis }}
                 >
                   {person.avatar_url ? (
                     <SignedImage
@@ -216,9 +223,11 @@ const styles = StyleSheet.create({
   headerButtons: {
     flexDirection: 'row',
     gap: spacing.sm,
-    marginBottom: spacing.lg,
+    paddingVertical: spacing.xs,
+    paddingRight: spacing.md,
+    marginBottom: spacing.md,
   },
-  headerButton: { flex: 1 },
+  headerButton: { minWidth: 120 },
   legend: { gap: spacing.sm, marginBottom: spacing.lg },
   legendRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   dot: { width: 16, height: 16, borderRadius: 8 },
@@ -230,9 +239,10 @@ const styles = StyleSheet.create({
     marginBottom: spacing.lg,
   },
   personCard: {
-    width: '47%',
+    flexGrow: 0,
     alignItems: 'center',
     gap: spacing.xs,
+    paddingVertical: spacing.md,
   },
   avatar: { width: 72, height: 72, borderRadius: 36 },
   personDots: { flexDirection: 'row', gap: spacing.xs, marginTop: spacing.xs },
