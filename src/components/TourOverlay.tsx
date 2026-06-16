@@ -127,9 +127,11 @@ export function TourOverlay({ onDone }: { onDone: () => void }) {
   const step = STEPS[index]!;
   const last = index === STEPS.length - 1;
 
-  // Spotlight-Loch (mit etwas Rand) berechnen.
+  // Loch nur verwenden, wenn das Element wirklich sichtbar ist – sonst hängt
+  // die Tour, falls die Messung (noch) keine brauchbare Position liefert.
   const pad = 8;
-  const hole = rect
+  const onScreen = !!rect && rect.y + rect.height > insets.top + 40 && rect.y < height - 40;
+  const hole = rect && onScreen
     ? {
         x: Math.max(0, rect.x - pad),
         y: Math.max(0, rect.y - pad),
@@ -139,12 +141,21 @@ export function TourOverlay({ onDone }: { onDone: () => void }) {
     : null;
   const holeRadius = step.kind === 'tab' || step.kind === 'bell' ? (hole ? hole.h / 2 : 0) : radius.lg;
 
-  // Sprechblase ober- oder unterhalb des Lochs platzieren.
+  // Sprechblase platzieren – immer in den sichtbaren Bereich geklemmt.
+  const BUBBLE_H = 188;
   const bubbleW = Math.min(300, width - 2 * spacing.lg);
   const holeCenterX = hole ? hole.x + hole.w / 2 : width / 2;
   const bubbleLeft = Math.min(Math.max(holeCenterX - bubbleW / 2, spacing.lg), width - spacing.lg - bubbleW);
-  const placeBelow = !hole || (hole.y + hole.h) < height * 0.52;
   const arrowLeft = Math.min(Math.max(holeCenterX - 8, bubbleLeft + 14), bubbleLeft + bubbleW - 30);
+
+  const minTop = insets.top + 64;
+  const maxTop = Math.max(minTop, height - tabBarH - BUBBLE_H - 16);
+  const placeBelow = hole ? hole.y + hole.h < height * 0.5 : true;
+  let bubbleTop: number;
+  if (hole) bubbleTop = placeBelow ? hole.y + hole.h + 16 : hole.y - BUBBLE_H - 16;
+  else bubbleTop = height * 0.4;
+  bubbleTop = Math.min(Math.max(bubbleTop, minTop), maxTop);
+  const showArrow = !!hole && bubbleTop > minTop && bubbleTop < maxTop;
 
   const ringScale = pulse.interpolate({ inputRange: [0, 1], outputRange: [1, 1.06] });
   const ringGlow = pulse.interpolate({ inputRange: [0, 1], outputRange: [0.5, 1] });
@@ -183,46 +194,38 @@ export function TourOverlay({ onDone }: { onDone: () => void }) {
           </Pressable>
         </View>
 
-        {/* Kleine Infoblase mit Pfeil zur Funktion */}
-        {rect ? (
-          <Animated.View
-            style={[
-              styles.bubble,
-              {
-                width: bubbleW,
-                left: bubbleLeft,
-                opacity: pop,
-                transform: [{ scale: bubbleScale }],
-                ...(placeBelow ? { top: hole!.y + hole!.h + 14 } : { top: Math.max(insets.top + 56, hole!.y - 14 - 150) }),
-              },
-            ]}
-          >
-            {placeBelow ? <View style={[styles.arrowUp, { left: arrowLeft - bubbleLeft }]} /> : null}
-            <View style={styles.bubbleHeader}>
-              <AppText style={styles.bubbleEmoji}>{step.emoji}</AppText>
-              <AppText variant="bodyStrong" style={styles.flex}>{step.title}</AppText>
+        {/* Kleine Infoblase – wird IMMER gerendert, damit kein Schritt hängt */}
+        <Animated.View
+          style={[
+            styles.bubble,
+            { width: bubbleW, left: bubbleLeft, top: bubbleTop, opacity: pop, transform: [{ scale: bubbleScale }] },
+          ]}
+        >
+          {showArrow && placeBelow ? <View style={[styles.arrowUp, { left: arrowLeft - bubbleLeft }]} /> : null}
+          <View style={styles.bubbleHeader}>
+            <AppText style={styles.bubbleEmoji}>{step.emoji}</AppText>
+            <AppText variant="bodyStrong" style={styles.flex}>{step.title}</AppText>
+          </View>
+          <AppText variant="caption" color={colors.textSecondary}>{step.text}</AppText>
+          <View style={styles.bubbleActions}>
+            <View style={styles.dots}>
+              {STEPS.map((s, i) => (
+                <View key={s.title + i} style={[styles.dot, i === index ? styles.dotActive : null]} />
+              ))}
             </View>
-            <AppText variant="caption" color={colors.textSecondary}>{step.text}</AppText>
-            <View style={styles.bubbleActions}>
-              <View style={styles.dots}>
-                {STEPS.map((s, i) => (
-                  <View key={s.title + i} style={[styles.dot, i === index ? styles.dotActive : null]} />
-                ))}
-              </View>
-              <View style={styles.btnRow}>
-                {index > 0 ? (
-                  <Pressable onPress={back} hitSlop={6} style={styles.ghostBtn}>
-                    <AppText variant="label" color={colors.textSecondary}>Zurück</AppText>
-                  </Pressable>
-                ) : null}
-                <Pressable onPress={next} style={styles.nextBtn}>
-                  <AppText variant="button" color={colors.textOnAccent}>{last ? 'Fertig' : 'Weiter'}</AppText>
+            <View style={styles.btnRow}>
+              {index > 0 ? (
+                <Pressable onPress={back} hitSlop={6} style={styles.ghostBtn}>
+                  <AppText variant="label" color={colors.textSecondary}>Zurück</AppText>
                 </Pressable>
-              </View>
+              ) : null}
+              <Pressable onPress={next} style={styles.nextBtn}>
+                <AppText variant="button" color={colors.textOnAccent}>{last ? 'Fertig' : 'Weiter'}</AppText>
+              </Pressable>
             </View>
-            {!placeBelow ? <View style={[styles.arrowDown, { left: arrowLeft - bubbleLeft }]} /> : null}
-          </Animated.View>
-        ) : null}
+          </View>
+          {showArrow && !placeBelow ? <View style={[styles.arrowDown, { left: arrowLeft - bubbleLeft }]} /> : null}
+        </Animated.View>
       </View>
     </Modal>
   );

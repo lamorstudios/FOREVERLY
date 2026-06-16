@@ -63,17 +63,23 @@ export function TourProvider({ children }: { children: ReactNode }) {
   const focus = useCallback(async (id: string, desiredY: number) => {
     const ref = targets.current.get(id);
     if (!ref) return null;
-    const first = await measureNode(ref);
-    if (!first) return null;
+    let rect = await measureNode(ref);
+    if (!rect) return null;
     const sc = scroller.current;
-    if (sc) {
-      const delta = first.y - desiredY;
-      if (Math.abs(delta) > 4) {
-        sc.scrollTo(Math.max(0, sc.getOffset() + delta));
-        await wait(480); // sanftes Scrollen abwarten
+    if (sc && Math.abs(rect.y - desiredY) > 8) {
+      sc.scrollTo(Math.max(0, sc.getOffset() + (rect.y - desiredY)));
+      // Auf das Einrasten des Scrollens warten und mehrfach nachmessen,
+      // damit die Endposition (nicht eine Zwischenposition) verwendet wird.
+      for (let i = 0; i < 8; i++) {
+        await wait(90);
+        const r = await measureNode(ref);
+        if (r) {
+          rect = r;
+          if (Math.abs(r.y - desiredY) < 24) break;
+        }
       }
     }
-    return (await measureNode(ref)) ?? first;
+    return rect;
   }, []);
 
   return (
