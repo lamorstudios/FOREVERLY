@@ -88,4 +88,9 @@ export const qk = {
   vaultEntries: (ownerUserId: string) => ['vaultEntries', ownerUserId] as const,
   legacyItems: (ownerUserId: string) => ['legacyItems', ownerUserId] as const,
   farewellMessages: (ownerUserId: string) => ['farewellMessages', ownerUserId] as const,
+  // Familienfilm
+  filmProjects: (familyId: string) => ['filmProjects', familyId] as const,
+  filmProject: (id: string) => ['filmProject', id] as const,
+  generatedFilm: (id: string) => ['generatedFilm', id] as const,
+  autoFilms: (familyId: string) => ['autoFilms', familyId] as const,
 };

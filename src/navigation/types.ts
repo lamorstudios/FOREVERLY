@@ -1,5 +1,5 @@
 import type { NavigatorScreenParams } from '@react-navigation/native';
-import type { SafetyTripKind } from '@/types/models';
+import type { SafetyTripKind, FilmKind } from '@/types/models';
 
 export type AuthStackParamList = {
   Welcome: undefined;
@@ -61,6 +61,10 @@ export type HomeStackParamList = {
   FamilyKnowledge: undefined;
   HistorianTopics: undefined;
   OnThisDay: undefined;
+  // Phase 10 · Familienfilm
+  FilmGallery: undefined;
+  FilmCreate: { kind?: FilmKind } | undefined;
+  FilmPlayer: { projectId: string };
   // Phase 6 · Family Safety & Live Location
   LiveMap: undefined;
   LocationSettings: undefined;

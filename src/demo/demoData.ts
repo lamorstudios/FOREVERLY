@@ -41,6 +41,7 @@ import type {
   VaultEntry,
   LegacyItem,
   FarewellMessage,
+  FilmProject,
 } from '@/types/models';
 import { coverImage, photoImage, portraitImage } from './images';
 
@@ -99,6 +100,8 @@ export interface DemoDataset {
   vaultEntries: VaultEntry[];
   legacyItems: LegacyItem[];
   farewellMessages: FarewellMessage[];
+  // Familienfilm
+  filmProjects: FilmProject[];
 }
 
 /** Erzeugt einen frischen Demo-Datensatz (Familie Mielke). */
@@ -558,6 +561,15 @@ export function createSeedData(): DemoDataset {
     farewell('fw-mia', 'audio', 'Für Mia', 'children', 'Eine kurze Sprachnachricht für dich, kleine Mia. 💛'),
   ];
 
+  // --- Familienfilme (Storyboards aus echten Inhalten) ---
+  const filmYear = now.getFullYear();
+  const filmProjects: FilmProject[] = [
+    film('film-grill', 'event', 'Sommergrillen', 'Ein Tag voller Lachen, Grillduft und Familie', 'froehlich', 'none', { eventId: 'ev-grill' }, true),
+    film('film-oma', 'documentary', 'Die Geschichte von Oma Erika', 'Ein Leben in Rostock, Lübeck und der ganzen Familie', 'nostalgisch', 'none', { personId: 'p-oma' }, true),
+    film('film-year', 'year', `Familienjahr ${filmYear}`, 'Die schönsten Momente des Jahres', 'feierlich', 'none', { year: filmYear }, true),
+    film('film-legacy', 'legacy', 'Mein Vermächtnis', 'Für meine Familie – zu öffnen, wenn es soweit ist', 'emotional', 'death', { personId: 'p-nick' }, false),
+  ];
+
   // Eine Zeitkapsel „erst nach meinem Tod öffnen".
   for (const c of capsules) if (c.id === 'tc4') c.open_on_death = true;
 
@@ -640,9 +652,26 @@ export function createSeedData(): DemoDataset {
     vaultEntries,
     legacyItems,
     farewellMessages,
+    filmProjects,
   };
 
   // --- Fabrik-Helfer ---
+  function film(
+    id: string,
+    kind: FilmProject['kind'],
+    title: string,
+    subtitle: string,
+    music: FilmProject['music'],
+    lock: FilmProject['lock'],
+    options: FilmProject['options'],
+    auto: boolean,
+  ): FilmProject {
+    return {
+      id, family_id: DEMO_FAMILY_ID, owner_user_id: DEMO_USER_ID, kind, title, subtitle,
+      music, lock, open_at: null, visibility: 'family', options, hidden_chapters: [],
+      cover_path: null, auto, created_at: daysFromNow(-6), updated_at: daysFromNow(-6),
+    };
+  }
   function vault(
     id: string,
     category: VaultEntry['category'],

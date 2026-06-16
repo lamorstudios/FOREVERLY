@@ -56,6 +56,11 @@ import type {
   VaultEntry,
   LegacyItem,
   FarewellMessage,
+  FilmProject,
+  FilmKind,
+  FilmMusicMood,
+  FilmLock,
+  FilmOptions,
 } from '@/types/models';
 import { createSeedData, DEMO_FAMILY_ID, DEMO_USER_ID } from './demoData';
 
@@ -1570,6 +1575,64 @@ export const demoStore = {
   },
   deleteFarewellMessage(id: string): void {
     data.farewellMessages = data.farewellMessages.filter((m) => m.id !== id);
+  },
+
+  // ===================== Familienfilm =====================
+  listFilmProjects(familyId: string): FilmProject[] {
+    return data.filmProjects
+      .filter((f) => f.family_id === familyId)
+      .sort((a, b) => (a.created_at < b.created_at ? 1 : -1));
+  },
+  getFilmProject(id: string): FilmProject | null {
+    return data.filmProjects.find((f) => f.id === id) ?? null;
+  },
+  createFilmProject(input: {
+    familyId: string;
+    ownerUserId: string;
+    kind: FilmKind;
+    title: string;
+    subtitle?: string | null;
+    music?: FilmMusicMood;
+    lock?: FilmLock;
+    visibility?: VisibilityLevel;
+    options: FilmOptions;
+    auto?: boolean;
+  }): FilmProject {
+    const lock = input.lock ?? 'none';
+    const open = new Date();
+    let openAt: string | null = null;
+    if (lock === 'years5') { open.setFullYear(open.getFullYear() + 5); openAt = open.toISOString(); }
+    else if (lock === 'years10') { open.setFullYear(open.getFullYear() + 10); openAt = open.toISOString(); }
+    else if (lock === 'years20') { open.setFullYear(open.getFullYear() + 20); openAt = open.toISOString(); }
+    const f: FilmProject = {
+      id: newId('film'),
+      family_id: input.familyId,
+      owner_user_id: input.ownerUserId,
+      kind: input.kind,
+      title: input.title,
+      subtitle: input.subtitle ?? null,
+      music: input.music ?? 'emotional',
+      lock,
+      open_at: openAt,
+      visibility: input.visibility ?? 'family',
+      options: input.options,
+      hidden_chapters: [],
+      cover_path: null,
+      auto: input.auto ?? false,
+      created_at: nowIso(),
+      updated_at: nowIso(),
+    };
+    data.filmProjects.unshift(f);
+    return f;
+  },
+  updateFilmProject(id: string, patch: Partial<FilmProject>): FilmProject {
+    const f = data.filmProjects.find((x) => x.id === id);
+    if (!f) throw new Error('Film nicht gefunden');
+    Object.assign(f, patch, { updated_at: nowIso() });
+    return f;
+  },
+  deleteFilmProject(id: string): void {
+    data.filmProjects = data.filmProjects.filter((f) => f.id !== id);
   },
 };
 

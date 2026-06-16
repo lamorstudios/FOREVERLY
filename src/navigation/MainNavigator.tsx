@@ -82,6 +82,10 @@ import { KnowledgeGapsScreen } from '@/screens/historian/KnowledgeGapsScreen';
 import { FamilyKnowledgeScreen } from '@/screens/historian/FamilyKnowledgeScreen';
 import { TopicsScreen } from '@/screens/historian/TopicsScreen';
 import { OnThisDayScreen } from '@/screens/historian/OnThisDayScreen';
+// Phase 10 · Familienfilm
+import { FilmGalleryScreen } from '@/screens/film/FilmGalleryScreen';
+import { FilmCreateScreen } from '@/screens/film/FilmCreateScreen';
+import { FilmPlayerScreen } from '@/screens/film/FilmPlayerScreen';
 // Phase 4 · Familienbuch
 import { BookHomeScreen } from '@/screens/book/BookHomeScreen';
 import { BookCreateScreen } from '@/screens/book/BookCreateScreen';
@@ -152,6 +156,9 @@ function HomeStackNavigator() {
       <HomeStack.Screen name="FamilyKnowledge" component={FamilyKnowledgeScreen} options={{ title: 'Familienwissen' }} />
       <HomeStack.Screen name="HistorianTopics" component={TopicsScreen} options={{ title: 'Themen' }} />
       <HomeStack.Screen name="OnThisDay" component={OnThisDayScreen} options={{ title: 'Heute in der Geschichte' }} />
+      <HomeStack.Screen name="FilmGallery" component={FilmGalleryScreen} options={{ title: 'Familienfilm' }} />
+      <HomeStack.Screen name="FilmCreate" component={FilmCreateScreen} options={{ title: 'Film erstellen' }} />
+      <HomeStack.Screen name="FilmPlayer" component={FilmPlayerScreen} options={{ title: 'Familienfilm' }} />
       <HomeStack.Screen name="LiveMap" component={LiveMapScreen} options={{ title: 'Familienkarte' }} />
       <HomeStack.Screen name="LocationSettings" component={LocationSettingsScreen} options={{ title: 'Standort teilen' }} />
       <HomeStack.Screen name="TripStart" component={TripStartScreen} options={{ title: 'Unterwegs' }} />

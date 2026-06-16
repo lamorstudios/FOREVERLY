@@ -742,5 +742,64 @@ export interface FarewellMessage {
   updated_at: string;
 }
 
+// ===================== Familienfilm & Vermächtnis-Filme =====================
+
+export type FilmKind = 'event' | 'year' | 'person' | 'legacy' | 'documentary';
+export type FilmMusicMood = 'emotional' | 'nostalgisch' | 'froehlich' | 'feierlich' | 'dokumentarisch';
+export type FilmLock = 'none' | 'years5' | 'years10' | 'years20' | 'death';
+
+export interface FilmOptions {
+  personId?: string;
+  year?: number;
+  eventId?: string;
+}
+
+/** Gespeichertes Filmprojekt (die KI „rendert" daraus ein Storyboard). */
+export interface FilmProject {
+  id: string;
+  family_id: string;
+  owner_user_id: string;
+  kind: FilmKind;
+  title: string;
+  subtitle: string | null;
+  music: FilmMusicMood;
+  lock: FilmLock;
+  open_at: string | null; // bei Zeitkapsel-Filmen
+  visibility: VisibilityLevel;
+  options: FilmOptions;
+  hidden_chapters: string[];
+  cover_path: string | null;
+  auto: boolean; // automatisch vorgeschlagen/erzeugt
+  created_at: string;
+  updated_at: string;
+}
+
+// --- Laufzeit (Storyboard, aus echten Inhalten erzeugt) ---
+export type FilmSceneType = 'title' | 'photo' | 'video' | 'audio' | 'text';
+
+export interface FilmScene {
+  id: string;
+  type: FilmSceneType;
+  title?: string | null;
+  caption?: string | null;
+  mediaPath?: string | null;
+  transcript?: string | null; // Originalstimme/Untertitel
+  personName?: string | null;
+  date?: string | null;
+}
+
+export interface FilmChapter {
+  key: string;
+  title: string;
+  scenes: FilmScene[];
+}
+
+export interface GeneratedFilm {
+  chapters: FilmChapter[];
+  sceneCount: number;
+  durationSec: number;
+  hasOriginalVoices: boolean;
+}
+
 
 

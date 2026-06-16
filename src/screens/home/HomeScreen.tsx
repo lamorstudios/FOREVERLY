@@ -55,6 +55,7 @@ type QuickRoute =
   | 'Branches'
   | 'MomentsHome'
   | 'HistorianHome'
+  | 'FilmGallery'
   | 'LiveMap'
   | 'Sos'
   | 'SeniorMode';
@@ -70,6 +71,7 @@ const QUICK_ACTIONS: QuickAction[] = [
   { label: 'Familienkarte', icon: 'location-outline', color: colors.relationMarried, route: 'LiveMap' },
   { label: 'SOS-Notruf', icon: 'warning-outline', color: colors.error, route: 'Sos' },
   { label: 'Familienmomente', icon: 'images-outline', color: colors.gold, route: 'MomentsHome' },
+  { label: 'Familienfilm', icon: 'film-outline', color: colors.bronze, route: 'FilmGallery' },
   { label: 'Historiker', icon: 'sparkles-outline', color: colors.relationAdoption, route: 'HistorianHome' },
   { label: 'Status senden', icon: 'happy-outline', color: colors.success, route: 'Status' },
   { label: 'Kalender', icon: 'calendar-outline', color: colors.relationMarried, route: 'Calendar' },
