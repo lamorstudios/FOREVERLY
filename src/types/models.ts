@@ -1,5 +1,5 @@
 /**
- * Domänentypen für Foreverly – spiegeln das Datenbankschema wider.
+ * Domänentypen für FAMII – spiegeln das Datenbankschema wider.
  */
 
 export type MemberRole = 'admin' | 'member';
@@ -526,7 +526,7 @@ export interface Trustee {
   id: string;
   family_id: string;
   owner_user_id: string; // wem diese Vertrauensperson zugeordnet ist
-  person_id: string | null; // verknüpftes Foreverly-Profil (optional)
+  person_id: string | null; // verknüpftes FAMII-Profil (optional)
   name: string;
   relation: string; // z.B. „Bruder", „Mutter", „Notar-Kontakt"
   phone: string | null;

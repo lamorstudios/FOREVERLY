@@ -44,7 +44,7 @@ export function PrivacyDataScreen(_: Props) {
       if (Platform.OS === 'web') {
         Alert.alert('Datenexport erstellt', `Dein Familienarchiv wurde erzeugt (${Math.round(json.length / 1024)} KB). Im Realbetrieb erhältst du eine Download-Datei.`);
       } else {
-        await Share.share({ title: 'Foreverly Datenexport', message: json.slice(0, 4000) });
+        await Share.share({ title: 'FAMII Datenexport', message: json.slice(0, 4000) });
       }
     } finally {
       setExporting(false);

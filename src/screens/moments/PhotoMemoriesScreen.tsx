@@ -29,7 +29,7 @@ export function PhotoMemoriesScreen({ navigation }: Props) {
       <View style={styles.intro}>
         <AppText variant="heading">Foto-Erinnerungen</AppText>
         <AppText variant="body" color={colors.textSecondary}>
-          Foreverly erkennt, wo noch wenig festgehalten ist, und schlägt neue
+          FAMII erkennt, wo noch wenig festgehalten ist, und schlägt neue
           Erinnerungen vor.
         </AppText>
       </View>

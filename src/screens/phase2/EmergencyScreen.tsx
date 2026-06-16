@@ -105,7 +105,7 @@ export function EmergencyScreen({
         latitude: DEMO_LOCATION.latitude,
         longitude: DEMO_LOCATION.longitude,
         locationLabel: DEMO_LOCATION.label,
-        message: 'SOS über Foreverly ausgelöst',
+        message: 'SOS über FAMII ausgelöst',
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: qk.emergencyEvents(familyId) });
@@ -225,7 +225,7 @@ export function EmergencyScreen({
     >
       <AppText variant="display">Notfall</AppText>
       <AppText variant="body" color={colors.textSecondary} style={styles.intro}>
-        Im Notfall benachrichtigt Foreverly deine hinterlegten Kontakte und
+        Im Notfall benachrichtigt FAMII deine hinterlegten Kontakte und
         teilt deinen Standort.
       </AppText>
 

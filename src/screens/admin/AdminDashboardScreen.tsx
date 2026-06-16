@@ -65,7 +65,7 @@ export function AdminDashboardScreen({ navigation }: Props) {
         <Chip label="Nur Betreiber" selected color={colors.bronze} />
       </View>
       <AppText variant="body" color={colors.textSecondary}>
-        Wachstum, Nutzung und Monetarisierung von Foreverly auf einen Blick.
+        Wachstum, Nutzung und Monetarisierung von FAMII auf einen Blick.
       </AppText>
 
       {/* Geschäft & Umsatz – wichtigste Kennzahlen auf einen Blick */}
@@ -131,7 +131,7 @@ export function AdminDashboardScreen({ navigation }: Props) {
           <RankRow key={f.name} label={f.name} value={`${f.invites} Einladungen`} />
         ))}
         <AppText variant="caption" color={colors.textMuted}>
-          So stark wächst Foreverly organisch über bestehende Familien.
+          So stark wächst FAMII organisch über bestehende Familien.
         </AppText>
       </Card>
 

@@ -37,7 +37,7 @@ export function SettingsScreen({ navigation }: Props) {
               <AppText variant="bodyStrong">{r.title}</AppText>
               <AppText variant="caption" color={colors.textSecondary}>{r.subtitle}</AppText>
             </View>
-            {r.target === 'Premium' && isPaid ? <Chip label={planById(plan).name.replace('Foreverly ', '')} selected color={colors.gold} /> : null}
+            {r.target === 'Premium' && isPaid ? <Chip label={planById(plan).name.replace('FAMII ', '')} selected color={colors.gold} /> : null}
             <Ionicons name="chevron-forward" size={22} color={colors.textMuted} />
           </View>
         </Card>

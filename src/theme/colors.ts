@@ -1,5 +1,5 @@
 /**
- * Foreverly Farbwelt 2.0
+ * FAMII Farbwelt 2.0
  *
  * Ruhig, hochwertig und emotional. Helle, warme Cremetöne als Basis,
  * dezentes Gold/Bronze als Akzent. Weniger Braun, mehr Weißraum-Gefühl –

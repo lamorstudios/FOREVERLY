@@ -66,7 +66,7 @@ export function RootNavigator() {
         {!session ? (
           <AuthNavigator />
         ) : initializing || loading || !introReady ? (
-          <Loading message="Foreverly wird geladen …" />
+          <Loading message="FAMII wird geladen …" />
         ) : families.length === 0 ? (
           <OnboardingNavigator />
         ) : (

@@ -44,7 +44,7 @@ export function FeedbackScreen({ navigation }: Props) {
         <Card style={styles.thanks}>
           <AppText variant="title" center>Danke! 💛</AppText>
           <AppText variant="body" center color={colors.textSecondary}>
-            Dein Feedback hilft uns, Foreverly besser zu machen.
+            Dein Feedback hilft uns, FAMII besser zu machen.
           </AppText>
           <Button label="Zurück" icon="arrow-back-outline" onPress={() => navigation.goBack()} />
         </Card>

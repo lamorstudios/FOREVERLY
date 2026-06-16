@@ -2,6 +2,7 @@ import { View, Pressable, StyleSheet, Linking } from 'react-native';
 import Constants from 'expo-constants';
 import { AppText } from './AppText';
 import { OPERATOR, type LegalDoc } from '@/lib/legalContent';
+import { BRAND } from '@/lib/brand';
 import { colors, spacing } from '@/theme';
 
 /**
@@ -20,7 +21,7 @@ export function AppFooter({ onOpenLegal }: { onOpenLegal: (doc: LegalDoc) => voi
     <View style={styles.footer}>
       <View style={styles.betaRow}>
         <View style={styles.betaBadge}>
-          <AppText variant="caption" color={colors.bronze}>Foreverly Beta</AppText>
+          <AppText variant="caption" color={colors.bronze}>FAMII Beta</AppText>
         </View>
       </View>
       <AppText variant="caption" center color={colors.textMuted}>
@@ -44,8 +45,11 @@ export function AppFooter({ onOpenLegal }: { onOpenLegal: (doc: LegalDoc) => voi
         </View>
       </View>
 
+      <AppText variant="caption" center color={colors.textMuted} style={styles.motto}>
+        {BRAND.motto}
+      </AppText>
       <AppText variant="caption" center color={colors.textMuted}>
-        Foreverly · Version {version}
+        FAMII · Version {version}
       </AppText>
       <AppText variant="caption" center color={colors.textMuted}>
         {OPERATOR.productLine}
@@ -56,6 +60,7 @@ export function AppFooter({ onOpenLegal }: { onOpenLegal: (doc: LegalDoc) => voi
 
 const styles = StyleSheet.create({
   footer: { marginTop: spacing.xl, gap: spacing.xs, alignItems: 'center' },
+  motto: { marginTop: spacing.sm, fontStyle: 'italic' },
   betaRow: { alignItems: 'center' },
   betaBadge: {
     backgroundColor: colors.goldSoft,

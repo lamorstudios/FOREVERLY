@@ -2,6 +2,7 @@ export { AppText } from './AppText';
 export { AppFooter } from './AppFooter';
 export { Appear } from './Appear';
 export { Avatar } from './Avatar';
+export { BrandLogo } from './BrandLogo';
 export { Button } from './Button';
 export { Card } from './Card';
 export { Chip } from './Chip';

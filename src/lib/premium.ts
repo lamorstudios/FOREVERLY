@@ -2,7 +2,7 @@
  * Freemium-Modell (Free · Plus · Premium) – speicher- & familiengrößenbasiert.
  *
  * Strategie: Nahezu alle Kernfunktionen sind bereits kostenlos nutzbar, damit
- * Foreverly schnell wächst. Monetarisiert wird über Speicherplatz und
+ * FAMII schnell wächst. Monetarisiert wird über Speicherplatz und
  * Familiengröße – nicht über gesperrte Funktionen. Plus ist die empfohlene
  * Mitte. Preise/Limits sind deckungsgleich mit `lib/billing.ts`.
  */
@@ -33,7 +33,7 @@ export interface Plan {
 export const PLANS: Plan[] = [
   {
     id: 'free',
-    name: 'Foreverly Free',
+    name: 'FAMII Free',
     tagline: 'Für kleine Familien und zum Kennenlernen.',
     priceMonthly: '0 €',
     storageLabel: '5 GB Speicher',
@@ -52,13 +52,13 @@ export const PLANS: Plan[] = [
       'Familienassistent',
       'Erinnerungen',
     ],
-    note: 'Du kannst Foreverly kostenlos nutzen, bis deine Familie oder dein Speicher wächst.',
+    note: 'Du kannst FAMII kostenlos nutzen, bis deine Familie oder dein Speicher wächst.',
     storageGb: 5,
     maxMembers: 15,
   },
   {
     id: 'plus',
-    name: 'Foreverly Plus',
+    name: 'FAMII Plus',
     tagline: 'Beste Preis-Leistung für die meisten Familien.',
     priceMonthly: '1,99 € / Monat',
     priceAnnual: '19,99 € / Jahr',
@@ -79,7 +79,7 @@ export const PLANS: Plan[] = [
   },
   {
     id: 'premium',
-    name: 'Foreverly Premium',
+    name: 'FAMII Premium',
     tagline: 'Für große Familien und maximale Möglichkeiten.',
     priceMonthly: '9,99 € / Monat',
     priceAnnual: '99 € / Jahr',

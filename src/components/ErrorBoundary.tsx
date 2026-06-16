@@ -18,7 +18,7 @@ export class ErrorBoundary extends React.Component<{ children: ReactNode }, Stat
 
   componentDidCatch(error: Error, info: unknown) {
     // eslint-disable-next-line no-console
-    console.error('Foreverly ErrorBoundary:', error, info);
+    console.error('FAMII ErrorBoundary:', error, info);
   }
 
   render() {

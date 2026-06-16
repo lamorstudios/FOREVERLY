@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { View, StyleSheet, Pressable, Animated, Easing } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { AppText, Button } from '@/components';
+import { BRAND } from '@/lib/brand';
 import { colors, spacing, radius } from '@/theme';
 
 interface Slide {
@@ -13,7 +14,7 @@ interface Slide {
 }
 
 const SLIDES: Slide[] = [
-  { emoji: '❤️', title: 'Willkommen bei Foreverly', text: 'Bewahre Erinnerungen, Geschichten und Familienmomente für kommende Generationen.', accent: colors.error },
+  { emoji: '❤️', title: 'Willkommen bei FAMII', text: 'Bewahre Erinnerungen, Geschichten und Familienmomente für kommende Generationen.', accent: colors.error },
   { emoji: '🌳', title: 'Familienbaum', text: 'Baue deinen Familienbaum auf und entdecke deine Familiengeschichte.', accent: colors.success },
   { emoji: '📸', title: 'Erinnerungen', text: 'Fotos, Videos, Sprachnachrichten und Geschichten an einem Ort.', accent: colors.relationMarried },
   { emoji: '⏳', title: 'Zeitkapseln', text: 'Erstelle Nachrichten für die Zukunft und öffne sie zu besonderen Momenten.', accent: colors.bronze },
@@ -72,7 +73,13 @@ export function WelcomeFlowScreen({ onDone }: { onDone: () => void }) {
 
         <Animated.View style={[styles.textBlock, { opacity: contentOpacity, transform: [{ translateY: contentY }] }]}>
           <AppText variant="title" center>{slide.title}</AppText>
+          {index === 0 ? (
+            <AppText variant="bodyStrong" center color={colors.primaryDark}>{BRAND.slogan}</AppText>
+          ) : null}
           <AppText variant="body" center color={colors.textSecondary} style={styles.text}>{slide.text}</AppText>
+          {last ? (
+            <AppText variant="caption" center color={colors.textMuted} style={styles.motto}>{BRAND.motto}</AppText>
+          ) : null}
           {slide.note ? (
             <View style={styles.noteRow}>
               <AppText variant="caption" center color={colors.textMuted}>🔒 {slide.note}</AppText>
@@ -95,6 +102,7 @@ export function WelcomeFlowScreen({ onDone }: { onDone: () => void }) {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.background },
+  motto: { marginTop: spacing.xs, fontStyle: 'italic' },
   top: { height: 44, justifyContent: 'center', alignItems: 'flex-end', paddingHorizontal: spacing.lg },
   skip: { padding: spacing.xs },
   body: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingHorizontal: spacing.xl, gap: spacing.xl },

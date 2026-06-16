@@ -82,7 +82,7 @@ export function InviteScreen() {
     const link = buildInviteLink(code);
     try {
       await Share.share({
-        message: `Tritt unserer Familie auf Foreverly bei! Einladungscode: ${code}\n${link}`,
+        message: `Tritt unserer Familie auf FAMII bei! Einladungscode: ${code}\n${link}`,
       });
     } catch (e) {
       Alert.alert('Fehler', friendlyError(e));

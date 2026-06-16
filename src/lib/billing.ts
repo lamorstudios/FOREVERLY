@@ -89,11 +89,11 @@ export function limitStatus(used: number, limit: number): LimitStatus {
 /**
  * Sanfter Speicher-Hinweis statt harter Paywall. Beispiel:
  * „Eure Familie nutzt aktuell 4,8 von 5 GB Speicher. Um weitere Erinnerungen,
- *  Videos und Dokumente zu speichern, kann ein Familienmitglied Foreverly Plus
+ *  Videos und Dokumente zu speichern, kann ein Familienmitglied FAMII Plus
  *  freischalten."
  */
 export function storageUpgradeMessage(usedGb: number, limitGb: number): string {
   const used = usedGb.toLocaleString('de-DE', { maximumFractionDigits: 1 });
   const limit = limitGb.toLocaleString('de-DE', { maximumFractionDigits: 0 });
-  return `Eure Familie nutzt aktuell ${used} von ${limit} GB Speicher. Um weitere Erinnerungen, Videos und Dokumente zu speichern, kann ein Familienmitglied Foreverly Plus freischalten.`;
+  return `Eure Familie nutzt aktuell ${used} von ${limit} GB Speicher. Um weitere Erinnerungen, Videos und Dokumente zu speichern, kann ein Familienmitglied FAMII Plus freischalten.`;
 }

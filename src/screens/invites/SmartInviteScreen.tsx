@@ -55,7 +55,7 @@ export function SmartInviteScreen({ navigation, route }: Props) {
   const [closeness, setCloseness] = useState<ClosenessLevel>('familie');
   const [role, setRole] = useState<MemberRole>('member');
   const [message, setMessage] = useState(
-    'Ich lade dich ein, Teil unserer Familiengeschichte auf Foreverly zu werden. 💛',
+    'Ich lade dich ein, Teil unserer Familiengeschichte auf FAMII zu werden. 💛',
   );
   const [result, setResult] = useState<Invitation | null>(null);
   const [error, setError] = useState<string | null>(null);

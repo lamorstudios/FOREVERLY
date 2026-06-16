@@ -22,7 +22,7 @@ export const OPERATOR = {
   company: 'Lamor Studios',
   owner: 'Nick Mielke',
   email: 'lamorstudios@gmail.com',
-  productLine: 'Foreverly ist ein Produkt von Lamor Studios.',
+  productLine: 'FAMII ist ein Produkt von Lamor Studios.',
 } as const;
 
 const TODO = '[Bitte vor dem öffentlichen Launch durch finale Angaben ersetzen.]';
@@ -65,15 +65,15 @@ export const LEGAL_CONTENT: Record<LegalDoc, LegalContent> = {
   agb: {
     title: 'Allgemeine Geschäftsbedingungen (AGB)',
     updated: 'Stand: Beta',
-    intro: 'Diese Bedingungen regeln die Nutzung von Foreverly. Beta-Fassung; vor dem Launch final.',
+    intro: 'Diese Bedingungen regeln die Nutzung von FAMII. Beta-Fassung; vor dem Launch final.',
     sections: [
-      { heading: '1 · Geltungsbereich & Anbieter', body: `Anbieter ist ${OPERATOR.company}, Inhaber ${OPERATOR.owner}. Mit der Nutzung von Foreverly stimmst du diesen AGB zu.` },
-      { heading: '2 · Leistung', body: 'Foreverly ist eine Plattform zum Bewahren von Familienerinnerungen (Familienbaum, Erinnerungen, Zeitkapseln, Dokumente u. a.). Die App ist in der Beta; Funktionen können sich ändern oder zeitweise nicht verfügbar sein.' },
+      { heading: '1 · Geltungsbereich & Anbieter', body: `Anbieter ist ${OPERATOR.company}, Inhaber ${OPERATOR.owner}. Mit der Nutzung von FAMII stimmst du diesen AGB zu.` },
+      { heading: '2 · Leistung', body: 'FAMII ist eine Plattform zum Bewahren von Familienerinnerungen (Familienbaum, Erinnerungen, Zeitkapseln, Dokumente u. a.). Die App ist in der Beta; Funktionen können sich ändern oder zeitweise nicht verfügbar sein.' },
       { heading: '3 · Nutzerinhalte', body: 'Du bleibst Eigentümer deiner Inhalte und bist für sie verantwortlich. Lade nur Inhalte hoch, an denen du die nötigen Rechte hast und für die ggf. Einwilligungen abgebildeter Personen vorliegen.' },
       { heading: '4 · Premium-Abonnements', body: 'Kostenpflichtige Tarife (Plus, Premium) werden – sobald aktiv – über die jeweiligen App-Store-/Zahlungsanbieter abgewickelt. Laufzeit, Verlängerung und Kündigung richten sich nach den dortigen Bedingungen. In der Beta findet keine echte Abrechnung statt.' },
       { heading: '5 · Zeitkapseln & Dokumente', body: 'Zeitkapseln werden bis zum gewählten Zeitpunkt gesperrt. Dokumente dienen ausschließlich der Information/Archivierung. Es werden keine Passwörter, TANs oder Bank-/Wallet-Zugangsdaten gespeichert.' },
-      { heading: '6 · Kein Notruf / keine Rechtsberatung', body: 'Die SOS-Funktion ersetzt keine Rettungsdienste oder Notrufeinrichtungen. Foreverly ersetzt keine notarielle Verwahrung, Rechtsberatung oder offizielle Nachlassverwaltung.' },
-      { heading: '7 · Haftungsbegrenzung', body: `Foreverly wird mit angemessener Sorgfalt bereitgestellt, in der Beta jedoch „wie besehen" ohne Gewähr für ununterbrochene Verfügbarkeit oder Fehlerfreiheit. Haftung nur nach den gesetzlichen Vorgaben. ${TODO}` },
+      { heading: '6 · Kein Notruf / keine Rechtsberatung', body: 'Die SOS-Funktion ersetzt keine Rettungsdienste oder Notrufeinrichtungen. FAMII ersetzt keine notarielle Verwahrung, Rechtsberatung oder offizielle Nachlassverwaltung.' },
+      { heading: '7 · Haftungsbegrenzung', body: `FAMII wird mit angemessener Sorgfalt bereitgestellt, in der Beta jedoch „wie besehen" ohne Gewähr für ununterbrochene Verfügbarkeit oder Fehlerfreiheit. Haftung nur nach den gesetzlichen Vorgaben. ${TODO}` },
       { heading: '8 · Kündigung & Kontolöschung', body: 'Du kannst dein Konto jederzeit über „Datenschutz & Daten → Konto/Daten löschen" beenden. Mit der Löschung werden deine personenbezogenen Daten entfernt (gesetzliche Aufbewahrungspflichten bleiben unberührt).' },
       { heading: '9 · Änderungen', body: 'Wir können diese AGB anpassen; über wesentliche Änderungen informieren wir in der App.' },
       { body: OPERATOR.productLine },

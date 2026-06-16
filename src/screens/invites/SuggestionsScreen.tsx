@@ -100,7 +100,7 @@ export function SuggestionsScreen(_props: Props) {
       <View style={styles.intro}>
         <AppText variant="heading">Beziehungsvorschläge</AppText>
         <AppText variant="body" color={colors.textSecondary}>
-          Foreverly erkennt logische Familienbeziehungen und schlägt sie vor.
+          FAMII erkennt logische Familienbeziehungen und schlägt sie vor.
           Bestätige, passe an oder verwirf jeden Vorschlag.
         </AppText>
       </View>

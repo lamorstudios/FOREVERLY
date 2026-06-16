@@ -243,7 +243,7 @@ export function createSeedData(): DemoDataset {
       inviter_person_id: 'p-nick',
       relationship_type: 'bruder',
       suggested_closeness: 'inner',
-      message: 'Nick lädt dich ein, Teil der Familiengeschichte auf Foreverly zu werden.',
+      message: 'Nick lädt dich ein, Teil der Familiengeschichte auf FAMII zu werden.',
     },
   ];
 

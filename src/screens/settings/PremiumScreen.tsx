@@ -12,8 +12,8 @@ import type { ProfileStackParamList } from '@/navigation/types';
 type Props = NativeStackScreenProps<ProfileStackParamList, 'Premium'>;
 
 const FOOTER_NOTES = [
-  'Foreverly wächst mit eurer Familie mit.',
-  'Kleinere Familien können Foreverly dauerhaft kostenlos nutzen.',
+  'FAMII wächst mit eurer Familie mit.',
+  'Kleinere Familien können FAMII dauerhaft kostenlos nutzen.',
   'Ein Upgrade wird erst benötigt, wenn eure Familie oder euer Speicherbedarf wächst.',
 ];
 

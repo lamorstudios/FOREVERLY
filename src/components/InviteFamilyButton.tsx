@@ -150,7 +150,7 @@ function InviteSheet({ visible, onClose }: SheetProps) {
     const rel = selected;
     setCreating(true);
     try {
-      const message = `${inviterName} lädt dich ein, Teil der Familiengeschichte auf Foreverly zu werden. Erstelle dein Profil und bewahrt eure Erinnerungen gemeinsam.`;
+      const message = `${inviterName} lädt dich ein, Teil der Familiengeschichte auf FAMII zu werden. Erstelle dein Profil und bewahrt eure Erinnerungen gemeinsam.`;
       const inv: Invitation = await createSmartInvite({
         familyId,
         invitedBy: userId!,
@@ -171,7 +171,7 @@ function InviteSheet({ visible, onClose }: SheetProps) {
   async function share() {
     if (!invite) return;
     try {
-      await Share.share({ message: invite.message, title: 'Einladung zu Foreverly' });
+      await Share.share({ message: invite.message, title: 'Einladung zu FAMII' });
     } catch {
       /* abgebrochen */
     }
@@ -253,7 +253,7 @@ function InviteSheet({ visible, onClose }: SheetProps) {
               <>
                 <AppText variant="heading">Einladung bereit 💛</AppText>
                 <Card style={styles.preview}>
-                  <AppText variant="bodyStrong" center>Willkommen bei Foreverly</AppText>
+                  <AppText variant="bodyStrong" center>Willkommen bei FAMII</AppText>
                   <AppText variant="body" center color={colors.textSecondary}>
                     {inviterName} lädt dich ein, als {invite.relLabel} Teil der Familiengeschichte zu werden.
                   </AppText>

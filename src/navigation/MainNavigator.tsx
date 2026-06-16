@@ -142,7 +142,7 @@ function HomeStackNavigator() {
       <HomeStack.Screen
         name="Home"
         component={HomeScreen}
-        options={{ title: 'Foreverly' }}
+        options={{ title: 'FAMII' }}
       />
       <HomeStack.Screen name="SeniorMode" component={SeniorModeScreen} options={{ title: 'Seniorenmodus' }} />
       <HomeStack.Screen name="Status" component={StatusScreen} options={{ title: 'Familienstatus' }} />
