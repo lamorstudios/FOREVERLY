@@ -1,6 +1,7 @@
 export { AppText } from './AppText';
 export { Appear } from './Appear';
 export { Avatar } from './Avatar';
+export { BetaBanner } from './BetaBanner';
 export { Button } from './Button';
 export { Card } from './Card';
 export { Chip } from './Chip';

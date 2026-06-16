@@ -8,6 +8,7 @@ import {
   Screen,
   AppText,
   Appear,
+  BetaBanner,
   Button,
   Card,
   Avatar,
@@ -428,6 +429,7 @@ export function HomeScreen({ navigation }: Props) {
 
   return (
     <Screen onRefresh={onRefresh} refreshing={refreshing} scrollRef={scrollRef} onScroll={onScroll}>
+      <BetaBanner />
       <DemoBanner />
 
       {/* Emotionaler Held: Familienbild & warme Begrüßung */}
