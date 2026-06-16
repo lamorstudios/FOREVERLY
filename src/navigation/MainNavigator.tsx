@@ -79,6 +79,9 @@ import { TimelineScreen } from '@/screens/historian/TimelineScreen';
 import { ImportantPeopleScreen } from '@/screens/historian/ImportantPeopleScreen';
 import { PersonInsightScreen } from '@/screens/historian/PersonInsightScreen';
 import { KnowledgeGapsScreen } from '@/screens/historian/KnowledgeGapsScreen';
+import { FamilyKnowledgeScreen } from '@/screens/historian/FamilyKnowledgeScreen';
+import { TopicsScreen } from '@/screens/historian/TopicsScreen';
+import { OnThisDayScreen } from '@/screens/historian/OnThisDayScreen';
 // Phase 4 · Familienbuch
 import { BookHomeScreen } from '@/screens/book/BookHomeScreen';
 import { BookCreateScreen } from '@/screens/book/BookCreateScreen';
@@ -146,6 +149,9 @@ function HomeStackNavigator() {
       <HomeStack.Screen name="ImportantPeople" component={ImportantPeopleScreen} options={{ title: 'Wichtige Personen' }} />
       <HomeStack.Screen name="PersonInsight" component={PersonInsightScreen} options={{ title: 'Person' }} />
       <HomeStack.Screen name="KnowledgeGaps" component={KnowledgeGapsScreen} options={{ title: 'Familienwissen retten' }} />
+      <HomeStack.Screen name="FamilyKnowledge" component={FamilyKnowledgeScreen} options={{ title: 'Familienwissen' }} />
+      <HomeStack.Screen name="HistorianTopics" component={TopicsScreen} options={{ title: 'Themen' }} />
+      <HomeStack.Screen name="OnThisDay" component={OnThisDayScreen} options={{ title: 'Heute in der Geschichte' }} />
       <HomeStack.Screen name="LiveMap" component={LiveMapScreen} options={{ title: 'Familienkarte' }} />
       <HomeStack.Screen name="LocationSettings" component={LocationSettingsScreen} options={{ title: 'Standort teilen' }} />
       <HomeStack.Screen name="TripStart" component={TripStartScreen} options={{ title: 'Unterwegs' }} />

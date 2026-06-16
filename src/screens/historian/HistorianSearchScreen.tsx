@@ -18,6 +18,7 @@ import { formatDate } from '@/lib/format';
 import { searchHistorian } from '@/api/historian';
 import { qk } from '@/api/queryKeys';
 import { useFamily } from '@/context/FamilyContext';
+import { useAuth } from '@/context/AuthContext';
 import type { HomeStackParamList } from '@/navigation/types';
 import type { KnowledgeDoc, KnowledgeKind } from '@/historian/engine';
 
@@ -63,6 +64,7 @@ function ResultCard({ doc }: { doc: KnowledgeDoc }) {
 /** Globale Suche über alle gespeicherten Familiendaten. */
 export function HistorianSearchScreen(_props: Props) {
   const { activeFamily } = useFamily();
+  const { userId } = useAuth();
   const [input, setInput] = useState('');
   const [term, setTerm] = useState('');
 
@@ -70,7 +72,7 @@ export function HistorianSearchScreen(_props: Props) {
 
   const { data: results, isLoading, isFetching } = useQuery({
     queryKey: qk.historianSearch(activeFamily!.id, term),
-    queryFn: () => searchHistorian(activeFamily!.id, term),
+    queryFn: () => searchHistorian(activeFamily!.id, term, userId ?? undefined),
     enabled,
   });
 

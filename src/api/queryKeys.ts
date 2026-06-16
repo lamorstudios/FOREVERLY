@@ -41,6 +41,14 @@ export const qk = {
     ['historian', 'insight', familyId, personId] as const,
   knowledgeGaps: (familyId: string) =>
     ['historian', 'gaps', familyId] as const,
+  // Phase 8 · KI-Familienhistoriker
+  familyKnowledge: (familyId: string) => ['historian', 'knowledge', familyId] as const,
+  historianTopics: (familyId: string) => ['historian', 'topics', familyId] as const,
+  personConnections: (familyId: string, personId: string) =>
+    ['historian', 'connections', familyId, personId] as const,
+  personTimeline: (familyId: string, personId: string) =>
+    ['historian', 'personTimeline', familyId, personId] as const,
+  onThisDay: (familyId: string) => ['historian', 'onThisDay', familyId] as const,
   // Phase 4 · Familienbuch
   bookProjects: (familyId: string) => ['book', 'projects', familyId] as const,
   book: (familyId: string, projectId: string) =>

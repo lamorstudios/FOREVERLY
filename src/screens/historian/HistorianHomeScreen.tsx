@@ -16,16 +16,20 @@ import type { HomeStackParamList } from '@/navigation/types';
 type Props = NativeStackScreenProps<HomeStackParamList, 'HistorianHome'>;
 
 const EXAMPLE_QUESTIONS = [
-  'Wo wurde Opa geboren?',
-  'Wie war Oma Erika?',
-  'Welche Lebensweisheiten gibt es?',
+  'Wer ist Oma Erika?',
+  'Welche Geschichten gibt es über Oma Erika?',
+  'Welche Rezepte hat Oma hinterlassen?',
+  'Welche Familienurlaube gab es?',
   'Wer war Uropa Karl?',
-  'Welche Erinnerungen gibt es über Urlaub?',
+  'Welche Lebensweisheiten gibt es?',
 ];
 
 /** Nur Ziele ohne Pflicht-Parameter (per navigate ohne Argumente erreichbar). */
 type NavCardRoute =
   | 'HistorianSearch'
+  | 'OnThisDay'
+  | 'FamilyKnowledge'
+  | 'HistorianTopics'
   | 'Wisdoms'
   | 'Timeline'
   | 'ImportantPeople'
@@ -39,6 +43,24 @@ interface NavCard {
 }
 
 const NAV_CARDS: NavCard[] = [
+  {
+    route: 'OnThisDay',
+    icon: 'hourglass-outline',
+    title: 'Heute in der Familiengeschichte',
+    subtitle: 'Was an einem Tag wie heute früher geschah.',
+  },
+  {
+    route: 'FamilyKnowledge',
+    icon: 'library-outline',
+    title: 'Familienwissen',
+    subtitle: 'Herkunft, Berufe und Traditionen – aus euren Daten.',
+  },
+  {
+    route: 'HistorianTopics',
+    icon: 'pricetags-outline',
+    title: 'Geschichten & Themen',
+    subtitle: 'Kindheit, Hochzeit, Reisen, Beruf – automatisch erkannt.',
+  },
   {
     route: 'HistorianSearch',
     icon: 'search-outline',

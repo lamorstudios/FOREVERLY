@@ -26,6 +26,7 @@ import { listEvents } from '@/api/familyEvents';
 import { listSafetyTrips, listSafetyAlerts, listLiveShares } from '@/api/safety';
 import { listVaultEntries } from '@/api/vault';
 import { listTrustees, getEstateInfo } from '@/api/estate';
+import { getOnThisDay } from '@/api/historian';
 import { listNotifications, unreadCount } from '@/api/familyNotifications';
 import { qk } from '@/api/queryKeys';
 import { STATUS_LEVELS } from '@/constants/phase2';
@@ -164,6 +165,11 @@ export function HomeScreen({ navigation }: Props) {
     queryFn: () => getEstateInfo(userId!),
     enabled: !!userId,
   });
+  const onThisDayQuery = useQuery({
+    queryKey: qk.onThisDay(familyId),
+    queryFn: () => getOnThisDay(familyId, userId ?? undefined),
+  });
+  const onThisDayItems = onThisDayQuery.data ?? [];
 
   const unread = unreadCount(notifications.data ?? []);
   const activeTrips = (safetyTripsQuery.data ?? []).filter((t) => t.status === 'active');
@@ -412,6 +418,31 @@ export function HomeScreen({ navigation }: Props) {
           ) : null}
         </View>
       </Appear>
+
+      {/* Heute in der Familiengeschichte */}
+      {onThisDayItems.length > 0 ? (
+        <Appear delay={70}>
+          <View style={styles.section}>
+            <SectionHeader title="Heute in der Familiengeschichte" actionLabel="Alle" onAction={() => navigation.navigate('OnThisDay')} />
+            <Card onPress={() => navigation.navigate('OnThisDay')}>
+              <View style={styles.row}>
+                <View style={[styles.iconCircle, { backgroundColor: withAlpha(colors.gold, 0.16) }]}>
+                  <Ionicons name="hourglass-outline" size={22} color={colors.bronze} />
+                </View>
+                <View style={styles.rowText}>
+                  <AppText variant="bodyStrong" numberOfLines={1}>
+                    Heute vor {onThisDayItems[0]!.yearsAgo} {onThisDayItems[0]!.yearsAgo === 1 ? 'Jahr' : 'Jahren'}
+                  </AppText>
+                  <AppText variant="caption" color={colors.textSecondary} numberOfLines={1}>
+                    {onThisDayItems[0]!.label}
+                  </AppText>
+                </View>
+                <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
+              </View>
+            </Card>
+          </View>
+        </Appear>
+      ) : null}
 
       {/* Vorsorge */}
       <Appear delay={80}>

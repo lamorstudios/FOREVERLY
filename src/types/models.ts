@@ -168,6 +168,8 @@ export interface Moment {
   created_at: string;
   author?: Profile;
   comment_count?: number;
+  /** Phase 8: Transkription/Analyse von Audio-/Videomomenten. */
+  transcript?: string | null;
 }
 
 export interface MomentComment {
@@ -261,6 +263,8 @@ export interface Audio {
   duration_seconds: number | null;
   recorded_by: string;
   created_at: string;
+  /** Phase 8: automatische Transkription (durchsuchbar). */
+  transcript?: string | null;
 }
 
 export interface TimeCapsule {

@@ -275,6 +275,9 @@ export function createSeedData(): DemoDataset {
     memory('m3', 'Opas Geschichten', 'Opa Hans erzählt von seiner Kindheit in Rostock. Diese Aufnahme ist ein kleiner Schatz.', 'audio', 'p-opa', '2015-11-01', -200),
     memory('m4', 'Mias erster Schultag', 'Mit Schultüte und einem riesigen Lächeln – Mia konnte es kaum erwarten.', 'photo', 'p-pflege', '2018-09-01', -7),
     memory('m5', 'Sonntagskaffee bei Uroma Anna', 'Jeden Sonntag gab es selbstgebackenen Streuselkuchen. Den Duft vergisst man nie.', 'text', 'p-uroma', '1997-05-11', -300),
+    memory('m6', 'Oma Erikas 80. Geburtstag', 'Die ganze Familie feierte Erika zum 80. Geburtstag – mit Streuselkuchen, alten Fotos und vielen Geschichten aus Rostock.', 'photo', 'p-oma', '2022-11-30', -60),
+    // „Heute in der Familiengeschichte": gleicher Tag/Monat, frühere Jahre
+    memory('m7', 'Familienurlaub in Italien', 'Im Sommer waren wir gemeinsam am Gardasee – Eis, Sonne und lange Abende mit der ganzen Familie.', 'photo', 'p-nick', new Date(now.getFullYear() - 12, now.getMonth(), now.getDate()).toISOString().slice(0, 10), -90),
   ];
 
   // Phase 4.5: Sichtbarkeit einzelner Erinnerungen (Demo)
@@ -303,7 +306,15 @@ export function createSeedData(): DemoDataset {
     audio('a1', 'Opas Kriegserinnerungen', 'p-opa', 'm3', 184, -200),
     audio('a2', 'Annas Lieblingsrezept', 'p-uroma', null, 95, -260),
     audio('a3', 'Nicks Geburtstagsständchen', 'p-nick', null, 42, -3),
+    audio('a4', 'Oma Erika erzählt von früher', 'p-oma', null, 132, -150),
   ];
+  // Phase 8: automatische Transkriptionen (durchsuchbar für den Historiker)
+  const audioTranscripts: Record<string, string> = {
+    a1: 'Ich war Tischler und liebte die Seefahrt. Ehrliche Arbeit bringt Zufriedenheit.',
+    a2: 'Mein Streuselkuchen gelingt mit doppelt so vielen Streuseln und viel Butter – mit Liebe gebacken.',
+    a4: 'Ich wuchs in Rostock auf und arbeitete viele Jahre als Lehrerin. Familie ist wichtiger als Geld. Am liebsten erinnere ich mich an unsere Sommer an der Ostsee.',
+  };
+  for (const a of audios) a.transcript = audioTranscripts[a.id] ?? null;
 
   // --- Zeitkapseln ---
   const capsules: TimeCapsule[] = [

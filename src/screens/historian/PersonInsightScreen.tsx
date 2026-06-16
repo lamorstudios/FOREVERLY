@@ -14,9 +14,10 @@ import {
 } from '@/components';
 import { colors, spacing, radius } from '@/theme';
 import { qk } from '@/api/queryKeys';
-import { getPersonInsight } from '@/api/historian';
+import { getPersonInsight, getPersonTimeline, getPersonConnections } from '@/api/historian';
 import { fullName } from '@/lib/format';
 import { useFamily } from '@/context/FamilyContext';
+import { useAuth } from '@/context/AuthContext';
 import type { HomeStackParamList } from '@/navigation/types';
 import { SourceLine } from './_shared';
 
@@ -33,11 +34,20 @@ export function PersonInsightScreen({
 }: NativeStackScreenProps<HomeStackParamList, 'PersonInsight'>) {
   const { personId } = route.params;
   const { activeFamily } = useFamily();
+  const { userId } = useAuth();
   const familyId = activeFamily!.id;
 
   const insightQuery = useQuery({
     queryKey: qk.personInsight(familyId, personId),
-    queryFn: () => getPersonInsight(familyId, personId),
+    queryFn: () => getPersonInsight(familyId, personId, userId ?? undefined),
+  });
+  const timelineQuery = useQuery({
+    queryKey: qk.personTimeline(familyId, personId),
+    queryFn: () => getPersonTimeline(familyId, personId, userId ?? undefined),
+  });
+  const connectionsQuery = useQuery({
+    queryKey: qk.personConnections(familyId, personId),
+    queryFn: () => getPersonConnections(familyId, personId, userId ?? undefined),
   });
 
   if (insightQuery.isLoading) {
@@ -108,11 +118,50 @@ export function PersonInsightScreen({
       </View>
 
       <Card>
-        <AppText variant="subheading">Kurzbiografie</AppText>
+        <AppText variant="subheading">KI-Kurzzusammenfassung</AppText>
         <AppText variant="body" color={colors.textSecondary}>
           {insight.biography}
         </AppText>
       </Card>
+
+      {timelineQuery.data && timelineQuery.data.length > 0 ? (
+        <Card>
+          <AppText variant="subheading">Lebenszeitleiste</AppText>
+          <View style={styles.timeline}>
+            {timelineQuery.data.map((e) => (
+              <View key={e.id} style={styles.timelineRow}>
+                <AppText variant="bodyStrong" color={colors.primary} style={styles.year}>
+                  {e.year}
+                </AppText>
+                <AppText variant="body" style={styles.flex}>
+                  {e.label}
+                </AppText>
+              </View>
+            ))}
+          </View>
+        </Card>
+      ) : null}
+
+      {connectionsQuery.data && connectionsQuery.data.length > 0 ? (
+        <Card>
+          <AppText variant="subheading">Häufig gemeinsam erwähnt</AppText>
+          <View style={styles.timeline}>
+            {connectionsQuery.data.map((c) => (
+              <View key={c.person.id} style={styles.connectionRow}>
+                <Avatar name={fullName(c.person.first_name, c.person.last_name)} size={36} />
+                <View style={styles.flex}>
+                  <AppText variant="bodyStrong" numberOfLines={1}>
+                    {fullName(c.person.first_name, c.person.last_name)}
+                  </AppText>
+                  <AppText variant="caption" color={colors.textSecondary} numberOfLines={1}>
+                    {c.reason}
+                  </AppText>
+                </View>
+              </View>
+            ))}
+          </View>
+        </Card>
+      ) : null}
 
       {insight.sources.length > 0 ? (
         <Card>
@@ -149,4 +198,9 @@ const styles = StyleSheet.create({
   },
   countItem: { alignItems: 'center', gap: spacing.xs, flex: 1 },
   sources: { gap: spacing.sm, marginTop: spacing.xs },
+  timeline: { gap: spacing.sm, marginTop: spacing.xs },
+  timelineRow: { flexDirection: 'row', gap: spacing.md, alignItems: 'flex-start' },
+  year: { width: 52 },
+  flex: { flex: 1 },
+  connectionRow: { flexDirection: 'row', gap: spacing.sm, alignItems: 'center' },
 });

@@ -57,6 +57,10 @@ export type HomeStackParamList = {
   ImportantPeople: undefined;
   PersonInsight: { personId: string };
   KnowledgeGaps: undefined;
+  // Phase 8 · KI-Familienhistoriker
+  FamilyKnowledge: undefined;
+  HistorianTopics: undefined;
+  OnThisDay: undefined;
   // Phase 6 · Family Safety & Live Location
   LiveMap: undefined;
   LocationSettings: undefined;
