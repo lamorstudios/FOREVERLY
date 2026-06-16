@@ -1,11 +1,10 @@
 /**
- * Freemium-Modell (Free · Plus · Premium).
+ * Freemium-Modell (Free · Plus · Premium) – speicher- & familiengrößenbasiert.
  *
- * Drei klar erkennbare Tarife. Plus ist die empfohlene Mitte mit dem besten
- * Preis-Leistungs-Verhältnis. Gating erfolgt clientseitig über den
- * PremiumContext (planbasiert); serverseitige Durchsetzung folgt im Realbetrieb.
- * Die Preise/Limits sind deckungsgleich mit der Business-Foundation in
- * `lib/billing.ts` (dortige Struktur für Admin-Kennzahlen & spätere Abrechnung).
+ * Strategie: Nahezu alle Kernfunktionen sind bereits kostenlos nutzbar, damit
+ * Foreverly schnell wächst. Monetarisiert wird über Speicherplatz und
+ * Familiengröße – nicht über gesperrte Funktionen. Plus ist die empfohlene
+ * Mitte. Preise/Limits sind deckungsgleich mit `lib/billing.ts`.
  */
 
 export type PlanId = 'free' | 'plus' | 'premium';
@@ -13,20 +12,21 @@ export type PlanId = 'free' | 'plus' | 'premium';
 export interface Plan {
   id: PlanId;
   name: string;
-  price: string;
-  /** Kurzbeschreibung unter dem Namen. */
   tagline: string;
-  /** Empfohlener Tarif (optisch hervorgehoben). */
+  /** Anzeigepreis pro Monat. */
+  priceMonthly: string;
+  /** Anzeigepreis pro Jahr (optional – Free hat keins). */
+  priceAnnual?: string;
   recommended?: boolean;
-  /** Badge-Text, z. B. „Beliebteste Wahl". */
   badge?: string;
+  /** Speicher- und Mitglieder-Eckdaten (prominent dargestellt). */
+  storageLabel: string;
+  membersLabel: string;
   /** Enthaltene Funktionen. */
   features: string[];
-  /** Optionale Grenzen (nur Free). */
-  limits?: string[];
-  /** Optionaler Zusatztext unter den Funktionen. */
+  /** Optionaler Zusatztext (z. B. „Ein Abo für die ganze Familie"). */
   note?: string;
-  /** Maximale Mitglieder (Infinity = unbegrenzt) – für Limits/Abrechnung. */
+  storageGb: number;
   maxMembers: number;
 }
 
@@ -34,66 +34,68 @@ export const PLANS: Plan[] = [
   {
     id: 'free',
     name: 'Foreverly Free',
-    price: '0 €',
     tagline: 'Für kleine Familien und zum Kennenlernen.',
+    priceMonthly: '0 €',
+    storageLabel: '5 GB Speicher',
+    membersLabel: 'Bis zu 15 Familienmitglieder',
     features: [
       'Familienbaum',
-      'Erinnerungen',
       'Familienmomente',
       'Familienstatus',
-      'Familienchat',
+      'Zeitkapseln',
+      'Fotos',
+      'Videos',
+      'Audioaufnahmen',
+      'Dokumententresor',
       'Familienkarte',
-      'Basis-Zeitkapseln',
-      'Dokumente',
-      'Einladungen',
+      'SOS-Funktion',
+      'Familienassistent',
+      'Erinnerungen',
     ],
-    limits: [
-      'bis 15 Familienmitglieder',
-      'bis 500 Fotos',
-      'bis 100 Videos',
-      'Standardspeicher',
-    ],
-    note: 'Foreverly bleibt kostenlos, bis diese Grenzen erreicht werden. Vor Erreichen der Grenze erhältst du frühzeitig Hinweise zum Upgrade.',
+    note: 'Du kannst Foreverly kostenlos nutzen, bis deine Familie oder dein Speicher wächst.',
+    storageGb: 5,
     maxMembers: 15,
   },
   {
     id: 'plus',
     name: 'Foreverly Plus',
-    price: '1,99 € / Monat',
     tagline: 'Beste Preis-Leistung für die meisten Familien.',
+    priceMonthly: '1,99 € / Monat',
+    priceAnnual: '19,99 € / Jahr',
     recommended: true,
     badge: 'Beliebteste Wahl',
+    storageLabel: '50 GB Speicher',
+    membersLabel: 'Bis zu 50 Familienmitglieder',
     features: [
-      'Alles aus Free',
-      'bis 25 Familienmitglieder',
-      'deutlich mehr Speicher',
-      'unbegrenzte Erinnerungen',
-      'unbegrenzte Zeitkapseln',
-      'Video-Zeitkapseln',
-      'Familienfilme',
-      'Spracharchive',
-      'Priorisierte Backups',
+      'Alle Funktionen aus Free',
+      'Bis zu 50 Familienmitglieder',
+      '50 GB Speicher',
+      'Mehr Speicher für Fotos, Videos & Dokumente',
+      'Ein Abo gilt für die gesamte Familie',
     ],
     note: 'Ein Abo für die ganze Familie. Eine Person zahlt, alle profitieren.',
-    maxMembers: 25,
+    storageGb: 50,
+    maxMembers: 50,
   },
   {
     id: 'premium',
     name: 'Foreverly Premium',
-    price: '9,99 € / Monat',
     tagline: 'Für große Familien und maximale Möglichkeiten.',
+    priceMonthly: '9,99 € / Monat',
+    priceAnnual: '99 € / Jahr',
+    storageLabel: '500 GB Speicher',
+    membersLabel: 'Unbegrenzte Familienmitglieder',
     features: [
       'Alles aus Plus',
-      'unbegrenzte Familienmitglieder',
-      'maximaler Speicher',
-      'KI-Familienassistent',
-      'KI-Familienchronik',
-      'automatische Familienfilme',
-      'Familienbuch als PDF',
-      'Premium Familienmuseum',
-      'Nachlass- und Vermächtnisfunktionen',
+      'Unbegrenzte Familienmitglieder',
+      '500 GB Speicher',
+      'Erweiterte KI-Funktionen',
+      'Premium-Familienarchiv',
+      'Nachlass-Tresor',
+      'Erweiterte Familienfilm-Funktionen',
       'Prioritäts-Support',
     ],
+    storageGb: 500,
     maxMembers: Infinity,
   },
 ];
@@ -105,30 +107,31 @@ export function planById(id: PlanId): Plan {
 /** Rangfolge für planbasiertes Feature-Gating. */
 export const PLAN_RANK: Record<PlanId, number> = { free: 0, plus: 1, premium: 2 };
 
-/** Funktionen, die einen bezahlten Tarif voraussetzen. */
+/**
+ * Funktionen, die einen bezahlten Tarif voraussetzen.
+ * Bewusst klein gehalten: nur erweiterte/Premium-Extras sind gesperrt –
+ * alle Kernfunktionen bleiben kostenlos.
+ */
 export type PremiumFeature =
-  | 'films'
-  | 'historian'
-  | 'pdfBook'
-  | 'premiumCapsules'
-  | 'extraStorage'
-  | 'legacyAi';
+  | 'advancedAi'
+  | 'premiumArchive'
+  | 'estateVault'
+  | 'advancedFilms'
+  | 'prioritySupport';
 
 export const PREMIUM_FEATURE_LABELS: Record<PremiumFeature, string> = {
-  films: 'Familienfilme',
-  historian: 'KI-Familienhistoriker',
-  pdfBook: 'PDF-Familienbuch',
-  premiumCapsules: 'Unbegrenzte Zeitkapseln',
-  extraStorage: 'Mehr Speicher',
-  legacyAi: 'Spracharchive (Legacy AI)',
+  advancedAi: 'Erweiterte KI-Funktionen',
+  premiumArchive: 'Premium-Familienarchiv',
+  estateVault: 'Nachlass-Tresor',
+  advancedFilms: 'Erweiterte Familienfilm-Funktionen',
+  prioritySupport: 'Prioritäts-Support',
 };
 
-/** Mindest-Tarif je Premium-Funktion (Plus schaltet die meisten frei). */
+/** Mindest-Tarif je Premium-Funktion (Extras sind Premium-exklusiv). */
 export const FEATURE_MIN_PLAN: Record<PremiumFeature, PlanId> = {
-  films: 'plus',
-  premiumCapsules: 'plus',
-  extraStorage: 'plus',
-  legacyAi: 'plus',
-  historian: 'premium',
-  pdfBook: 'premium',
+  advancedAi: 'premium',
+  premiumArchive: 'premium',
+  estateVault: 'premium',
+  advancedFilms: 'premium',
+  prioritySupport: 'premium',
 };

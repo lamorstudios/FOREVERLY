@@ -28,6 +28,7 @@ export interface AdminUserMetrics {
 /** Familienübersicht – Anzahl, Größe & Top-Familien. */
 export interface AdminFamilyMetrics {
   families: number;
+  activeFamilies: number;
   members: number;
   avgSize: number;
   largest: { name: string; members: number }[];
@@ -77,6 +78,10 @@ export interface AdminSubscriptionMetrics {
   potentialUpgrades: number;
   /** Geschätzter monatlich wiederkehrender Umsatz in Cent (für spätere Abrechnung). */
   estimatedMrrCents: number;
+  /** Geschätzter jährlicher Umsatz in Cent. */
+  estimatedArrCents: number;
+  /** Conversion Free → Plus/Premium (Anteil zahlender Familien, 0–1). */
+  freeToPaidConversion: number;
 }
 
 /** Free-Limit-Auslastung über alle Free-Familien. */

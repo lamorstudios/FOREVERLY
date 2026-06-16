@@ -52,6 +52,7 @@ export function AdminDashboardScreen({ navigation }: Props) {
   const d = query.data;
   const { users, families, growth, content, storage, subscriptions, limits, analytics } = d;
   const maxStorage = Math.max(...storage.perFamily.map((f) => f.gb), 1);
+  const tierUsers = (id: string) => subscriptions.tiers.find((t) => t.tier === id)?.users ?? 0;
 
   return (
     <Screen
@@ -65,6 +66,23 @@ export function AdminDashboardScreen({ navigation }: Props) {
       <AppText variant="body" color={colors.textSecondary}>
         Wachstum, Nutzung und Monetarisierung von Foreverly auf einen Blick.
       </AppText>
+
+      {/* Geschäft & Umsatz – wichtigste Kennzahlen auf einen Blick */}
+      <SectionHeader title="Überblick" />
+      <StatGrid
+        items={[
+          { label: 'Registrierte Familien', value: fmt(families.families), accent: true },
+          { label: 'Aktive Nutzer (Monat)', value: fmt(users.activeMonth) },
+          { label: 'Aktive Familien', value: fmt(families.activeFamilies) },
+          { label: 'Free-Nutzer', value: fmt(tierUsers('free')) },
+          { label: 'Plus-Nutzer', value: fmt(tierUsers('plus')) },
+          { label: 'Premium-Nutzer', value: fmt(tierUsers('premium')) },
+          { label: 'Genutzter Speicher', value: gb(storage.totalGb) },
+          { label: 'Umsatz / Monat', value: formatEuroCents(subscriptions.estimatedMrrCents), accent: true },
+          { label: 'Umsatz / Jahr', value: formatEuroCents(subscriptions.estimatedArrCents) },
+          { label: 'Conversion Free→Paid', value: pct(subscriptions.freeToPaidConversion), accent: true },
+        ]}
+      />
 
       {/* 2 · Nutzerübersicht */}
       <SectionHeader title="Nutzerübersicht" />
@@ -85,6 +103,7 @@ export function AdminDashboardScreen({ navigation }: Props) {
       <StatGrid
         items={[
           { label: 'Familien', value: fmt(families.families), accent: true },
+          { label: 'Aktive Familien', value: fmt(families.activeFamilies) },
           { label: 'Mitglieder gesamt', value: fmt(families.members) },
           { label: 'Ø Familiengröße', value: families.avgSize.toFixed(1).replace('.', ',') },
         ]}
@@ -173,8 +192,16 @@ export function AdminDashboardScreen({ navigation }: Props) {
           <AppText variant="bodyStrong" color={colors.primaryDark}>{fmt(subscriptions.potentialUpgrades)}</AppText>
         </View>
         <View style={styles.kvRow}>
-          <AppText variant="body">Geschätzter MRR</AppText>
-          <AppText variant="bodyStrong" color={colors.success}>{formatEuroCents(subscriptions.estimatedMrrCents)} / Monat</AppText>
+          <AppText variant="body">Umsatz / Monat (MRR)</AppText>
+          <AppText variant="bodyStrong" color={colors.success}>{formatEuroCents(subscriptions.estimatedMrrCents)}</AppText>
+        </View>
+        <View style={styles.kvRow}>
+          <AppText variant="body">Umsatz / Jahr (ARR)</AppText>
+          <AppText variant="bodyStrong" color={colors.success}>{formatEuroCents(subscriptions.estimatedArrCents)}</AppText>
+        </View>
+        <View style={styles.kvRow}>
+          <AppText variant="body">Conversion Free → Plus/Premium</AppText>
+          <AppText variant="bodyStrong" color={colors.primaryDark}>{pct(subscriptions.freeToPaidConversion)}</AppText>
         </View>
         <AppText variant="caption" color={colors.textMuted}>
           Struktur vorbereitet – noch keine echte Abrechnung aktiv.

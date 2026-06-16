@@ -8,7 +8,7 @@
  */
 
 import { DEMO_MODE } from '@/lib/config';
-import { BILLING_TIERS, tierById } from '@/lib/billing';
+import { BILLING_TIERS, tierById, formatEuroCents } from '@/lib/billing';
 import type { AdminDashboard } from '@/types/admin';
 
 export async function getAdminDashboard(): Promise<AdminDashboard> {
@@ -29,7 +29,7 @@ function buildDemoDashboard(): AdminDashboard {
   const tiers = BILLING_TIERS.map((t) => ({
     tier: t.id,
     name: t.name,
-    priceLabel: t.priceLabel,
+    priceLabel: t.priceMonthlyCents === 0 ? '0 €' : `${formatEuroCents(t.priceMonthlyCents)} / Monat`,
     users: tierUsers[t.id] ?? 0,
     families: tierFamilies[t.id] ?? 0,
   }));
@@ -39,12 +39,18 @@ function buildDemoDashboard(): AdminDashboard {
     (sum, t) => sum + t.families * tierById(t.tier).priceMonthlyCents,
     0,
   );
+  // Jährlicher Umsatz als Run-Rate (12× MRR).
+  const estimatedArrCents = estimatedMrrCents * 12;
+
+  const totalFamilies = 1180;
+  const paidFamilies = (tierFamilies.plus ?? 0) + (tierFamilies.premium ?? 0);
+  const freeToPaidConversion = paidFamilies / totalFamilies;
 
   const invitesSent = 3120;
   const invitesAccepted = 1890;
 
   // Free-Familien nahe an einem Limit = realistische Upgrade-Kandidaten.
-  const potentialUpgrades = 64 + 138 + 41;
+  const potentialUpgrades = 64 + 96;
 
   return {
     generatedAt: new Date().toISOString(),
@@ -60,9 +66,10 @@ function buildDemoDashboard(): AdminDashboard {
     },
 
     families: {
-      families: 1180,
+      families: totalFamilies,
+      activeFamilies: 870,
       members: 4820,
-      avgSize: 4820 / 1180,
+      avgSize: 4820 / totalFamilies,
       largest: [
         { name: 'Familie Mielke', members: 21 },
         { name: 'Familie Weber', members: 18 },
@@ -112,12 +119,13 @@ function buildDemoDashboard(): AdminDashboard {
       tiers,
       potentialUpgrades,
       estimatedMrrCents,
+      estimatedArrCents,
+      freeToPaidConversion,
     },
 
     limits: [
       { key: 'members', label: 'Familienmitglieder', limit: 15, familiesNearLimit: 64, familiesReached: 12 },
-      { key: 'photos', label: 'Fotos', limit: 500, familiesNearLimit: 138, familiesReached: 27 },
-      { key: 'videos', label: 'Videos', limit: 100, familiesNearLimit: 41, familiesReached: 9 },
+      { key: 'storage', label: 'Speicher (5 GB)', limit: 5, familiesNearLimit: 96, familiesReached: 18 },
     ],
 
     analytics: {
