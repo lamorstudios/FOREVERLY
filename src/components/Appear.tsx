@@ -1,5 +1,5 @@
 import { ReactNode, useEffect, useRef } from 'react';
-import { Animated, ViewStyle } from 'react-native';
+import { Animated, Easing, ViewStyle } from 'react-native';
 
 interface AppearProps {
   children: ReactNode;
@@ -14,21 +14,23 @@ interface AppearProps {
  */
 export function Appear({ children, delay = 0, style }: AppearProps) {
   const opacity = useRef(new Animated.Value(0)).current;
-  const translateY = useRef(new Animated.Value(14)).current;
+  const translateY = useRef(new Animated.Value(10)).current;
 
   useEffect(() => {
+    // Ruhige, weiche Einblendung (~280 ms), nicht hektisch.
     Animated.parallel([
       Animated.timing(opacity, {
         toValue: 1,
-        duration: 420,
+        duration: 280,
         delay,
+        easing: Easing.out(Easing.quad),
         useNativeDriver: true,
       }),
-      Animated.spring(translateY, {
+      Animated.timing(translateY, {
         toValue: 0,
+        duration: 280,
         delay,
-        friction: 8,
-        tension: 60,
+        easing: Easing.out(Easing.cubic),
         useNativeDriver: true,
       }),
     ]).start();

@@ -312,7 +312,7 @@ export function InviteFamilyButton({ variant }: { variant?: 'primary' | 'seconda
   const scale = press.interpolate({ inputRange: [0, 1], outputRange: [1, 0.98] });
   const shineW = 90;
   const translateX = shine.interpolate({ inputRange: [0, 1], outputRange: [-shineW, (width || 320) + shineW] });
-  const shineOpacity = shine.interpolate({ inputRange: [0, 0.1, 0.9, 1], outputRange: [0, 0.85, 0.85, 0] });
+  const shineOpacity = shine.interpolate({ inputRange: [0, 0.1, 0.9, 1], outputRange: [0, 0.5, 0.5, 0] });
 
   function onLayout(e: LayoutChangeEvent) {
     setWidth(e.nativeEvent.layout.width);
@@ -353,10 +353,10 @@ const styles = StyleSheet.create({
     borderRadius: radius.pill,
     backgroundColor: colors.primary,
     shadowColor: colors.gold,
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.55,
-    shadowRadius: 20,
-    elevation: 8,
+    shadowOffset: { width: 0, height: 5 },
+    shadowOpacity: 0.28, // dezenter Premium-Schimmer, kein aggressiver Glow
+    shadowRadius: 14,
+    elevation: 5,
   },
   premiumBtn: {
     minHeight: touch.minHeight,
@@ -385,7 +385,7 @@ const styles = StyleSheet.create({
     top: -24,
     bottom: -24,
     left: 0,
-    backgroundColor: 'rgba(255, 249, 234, 0.55)',
+    backgroundColor: 'rgba(255, 249, 234, 0.40)',
   },
   backdrop: { flex: 1, backgroundColor: colors.overlay, justifyContent: 'flex-end' },
   sheet: {

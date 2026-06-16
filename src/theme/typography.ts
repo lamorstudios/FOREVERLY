@@ -10,10 +10,10 @@ export const typography = {
   title: { fontSize: 32, lineHeight: 38, fontWeight: '700' as const, letterSpacing: -0.5 },
   heading: { fontSize: 26, lineHeight: 32, fontWeight: '700' as const, letterSpacing: -0.4 },
   subheading: { fontSize: 21, lineHeight: 28, fontWeight: '600' as const, letterSpacing: -0.2 },
-  body: { fontSize: 17, lineHeight: 26, fontWeight: '400' as const, letterSpacing: 0 },
-  bodyStrong: { fontSize: 17, lineHeight: 26, fontWeight: '600' as const, letterSpacing: 0 },
-  label: { fontSize: 15, lineHeight: 20, fontWeight: '600' as const, letterSpacing: 0.1 },
-  caption: { fontSize: 13.5, lineHeight: 18, fontWeight: '500' as const, letterSpacing: 0.1 },
+  body: { fontSize: 17, lineHeight: 27, fontWeight: '400' as const, letterSpacing: 0 },
+  bodyStrong: { fontSize: 17, lineHeight: 27, fontWeight: '600' as const, letterSpacing: 0 },
+  label: { fontSize: 15, lineHeight: 21, fontWeight: '600' as const, letterSpacing: 0.1 },
+  caption: { fontSize: 13.5, lineHeight: 19, fontWeight: '500' as const, letterSpacing: 0.1 },
   button: { fontSize: 17, lineHeight: 22, fontWeight: '700' as const, letterSpacing: 0.2 },
 } as const;
 

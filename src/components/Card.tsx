@@ -43,8 +43,8 @@ export function Card({ children, onPress, style, padded = true }: CardProps) {
 const styles = StyleSheet.create({
   card: {
     backgroundColor: colors.surface,
-    borderRadius: radius.xl,
-    borderWidth: 1,
+    borderRadius: radius.lg, // modernere, ruhigere Rundung
+    borderWidth: StyleSheet.hairlineWidth, // subtilerer Rahmen
     borderColor: colors.border,
     ...shadow.card,
   },
