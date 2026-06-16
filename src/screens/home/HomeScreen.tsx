@@ -798,11 +798,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   bubbleName: { width: 76 },
-  // Entdecken-Kacheln
+  // Entdecken-Kacheln: 2 gleich breite Spalten, zentriert, gleiche Ränder
   quickGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
+    columnGap: spacing.md,
     rowGap: spacing.sm,
   },
   quickTile: {
