@@ -202,6 +202,13 @@ export function HomeScreen({ navigation }: Props) {
       | undefined;
     parent?.navigate('ProfileTab', { screen: 'VaultHub' });
   };
+  // TEMPORÄR: Direkter Sprung ins Admin Dashboard (liegt im Profil-Stack).
+  const openAdmin = () => {
+    const parent = navigation.getParent() as
+      | { navigate: (name: string, params?: object) => void }
+      | undefined;
+    parent?.navigate('ProfileTab', { screen: 'AdminDashboard' });
+  };
 
   // „Heute in deiner Familie" – kuratierte, emotionale Zusammenfassung.
   const todayItems = useMemo<TodayItem[]>(() => {
@@ -359,6 +366,25 @@ export function HomeScreen({ navigation }: Props) {
       {/* Prominenter Einladungs-Button (Wachstum) */}
       <Appear delay={20}>
         <InviteFamilyButton />
+      </Appear>
+
+      {/* TEMPORÄR: Direkter Test-Einstieg zum Admin Dashboard.
+          Eigentlicher Einstieg: Profil → Einstellungen → Admin Dashboard. */}
+      <Appear delay={30}>
+        <Card onPress={openAdmin} style={styles.adminCard}>
+          <View style={styles.row}>
+            <View style={[styles.iconCircle, { backgroundColor: withAlpha(colors.bronze, 0.16) }]}>
+              <Ionicons name="stats-chart-outline" size={22} color={colors.bronze} />
+            </View>
+            <View style={styles.rowText}>
+              <AppText variant="bodyStrong">Admin Dashboard</AppText>
+              <AppText variant="caption" color={colors.textSecondary}>
+                Temporärer Test-Einstieg · nur für Betreiber
+              </AppText>
+            </View>
+            <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
+          </View>
+        </Card>
       </Appear>
 
       {/* Heute in deiner Familie – emotionale Zusammenfassung */}
@@ -751,6 +777,7 @@ const styles = StyleSheet.create({
   },
   heroOverlay: { padding: spacing.lg, gap: 2 },
   section: { gap: spacing.sm },
+  adminCard: { borderColor: colors.bronze, borderWidth: 1.5, backgroundColor: colors.surfaceAlt },
   alertCard: { borderColor: colors.error, borderWidth: 1.5 },
   row: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   rowText: { flex: 1, gap: 2 },
