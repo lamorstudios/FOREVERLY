@@ -10,8 +10,6 @@ name: Deploy Web Preview (GitHub Pages)
 on:
   push:
     branches:
-      - 'claude/**'
-      - 'design/**'
       - main
       - master
   workflow_dispatch:
