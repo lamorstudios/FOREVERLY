@@ -129,5 +129,5 @@ const styles = StyleSheet.create({
     height: AVATAR_SIZE,
     borderRadius: radius.pill,
   },
-  body: { flex: 1, gap: spacing.xs },
+  body: { flex: 1, minWidth: 0, gap: spacing.xs },
 });

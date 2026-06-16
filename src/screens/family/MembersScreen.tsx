@@ -123,7 +123,7 @@ export function MembersScreen() {
                     <Avatar name={name} size={56} />
                   )}
                   <View style={styles.info}>
-                    <AppText variant="bodyStrong" numberOfLines={1}>
+                    <AppText variant="bodyStrong" numberOfLines={2}>
                       {name}
                       {isSelf ? ' (Du)' : ''}
                     </AppText>
@@ -202,7 +202,7 @@ const styles = StyleSheet.create({
   card: { gap: spacing.md },
   row: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   avatar: { width: 56, height: 56, borderRadius: 28 },
-  info: { flex: 1, gap: spacing.xs },
+  info: { flex: 1, minWidth: 0, gap: spacing.xs },
   badge: {
     alignSelf: 'flex-start',
     paddingHorizontal: spacing.sm,

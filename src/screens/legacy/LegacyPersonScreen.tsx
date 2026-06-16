@@ -66,8 +66,10 @@ export function LegacyPersonScreen({ navigation, route }: Props) {
             <Card key={a.id}>
               <View style={styles.row}>
                 <Ionicons name="mic" size={22} color={colors.success} />
-                <AppText variant="bodyStrong" style={styles.flex} numberOfLines={1}>{a.title ?? 'Audioaufnahme'}</AppText>
-                <Chip label="Originalstimme" color={colors.success} />
+                <AppText variant="bodyStrong" style={styles.flex} numberOfLines={2}>{a.title ?? 'Audioaufnahme'}</AppText>
+                <View style={styles.voiceBadge}>
+                  <AppText variant="caption" color={colors.success}>Originalstimme</AppText>
+                </View>
               </View>
               {a.transcript ? <AppText variant="body" color={colors.textSecondary} style={styles.transcript}>„{a.transcript}"</AppText> : null}
             </Card>
@@ -129,7 +131,15 @@ const styles = StyleSheet.create({
   actions: { gap: spacing.sm, marginVertical: spacing.sm },
   section: { gap: spacing.sm, marginTop: spacing.md },
   row: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  flex: { flex: 1 },
+  flex: { flex: 1, minWidth: 0 },
+  voiceBadge: {
+    flexShrink: 0,
+    borderWidth: 1,
+    borderColor: colors.success,
+    borderRadius: radius.pill,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 2,
+  },
   transcript: { fontStyle: 'italic', marginTop: spacing.xs },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs },
   timelineRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md, paddingVertical: spacing.xs },

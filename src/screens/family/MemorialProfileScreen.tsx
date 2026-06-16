@@ -181,9 +181,9 @@ export function MemorialProfileScreen({ navigation, route }: Props) {
               <View key={ph.id} style={styles.galleryItem}>
                 <SignedImage bucket="photos" path={ph.storage_path} style={styles.galleryImage} />
                 {ph.caption ? (
-                  <AppText variant="caption" numberOfLines={1} style={styles.galleryCaption}>{ph.caption}</AppText>
+                  <AppText variant="caption" numberOfLines={2} style={styles.galleryCaption}>{ph.caption}</AppText>
                 ) : null}
-                <AppText variant="caption" color={colors.textMuted} numberOfLines={1}>
+                <AppText variant="caption" color={colors.textMuted} numberOfLines={2}>
                   Hochgeladen von {uploaderName(ph.uploaded_by)}
                 </AppText>
               </View>
@@ -339,7 +339,7 @@ function Section({
 }
 
 const styles = StyleSheet.create({
-  flex: { flex: 1 },
+  flex: { flex: 1, minWidth: 0 },
   head: { alignItems: 'center', gap: spacing.sm, marginBottom: spacing.lg },
   bigAvatar: { width: 120, height: 120, borderRadius: 60 },
   badge: {

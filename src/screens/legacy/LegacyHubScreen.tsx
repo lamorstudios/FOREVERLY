@@ -34,11 +34,16 @@ export function LegacyHubScreen({ navigation }: Props) {
       <View style={styles.row}>
         {avatar ? <SignedImage bucket="photos" path={avatar} style={styles.avatar} /> : <Avatar name={name} size={48} />}
         <View style={styles.rowText}>
-          <AppText variant="bodyStrong" numberOfLines={1}>{name}</AppText>
-          <AppText variant="caption" color={colors.textSecondary}>Stimmen, Geschichten & Lebensweg</AppText>
+          <AppText variant="bodyStrong" numberOfLines={2}>{name}</AppText>
+          <AppText variant="caption" color={colors.textSecondary} numberOfLines={2}>Stimmen, Geschichten & Lebensweg</AppText>
         </View>
-        {legend ? <Chip label="★ Legende" color={colors.gold} /> : null}
-        <Ionicons name="chevron-forward" size={20} color={colors.textMuted} />
+        {legend ? (
+          <View style={styles.legendBadge}>
+            <Ionicons name="star" size={11} color={colors.gold} />
+            <AppText variant="caption" color={colors.bronze} style={styles.legendText}>Legende</AppText>
+          </View>
+        ) : null}
+        <Ionicons name="chevron-forward" size={20} color={colors.textMuted} style={styles.chevron} />
       </View>
     </Card>
   );
@@ -93,8 +98,20 @@ const styles = StyleSheet.create({
   intro: { gap: spacing.sm, marginBottom: spacing.md },
   iconCircle: { width: 52, height: 52, borderRadius: 26, backgroundColor: colors.primarySoft, alignItems: 'center', justifyContent: 'center' },
   section: { gap: spacing.sm, marginTop: spacing.md },
-  row: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+  row: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   avatar: { width: 48, height: 48, borderRadius: 24 },
-  rowText: { flex: 1, gap: 2 },
+  rowText: { flex: 1, minWidth: 0, gap: 2 },
+  legendBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    flexShrink: 0,
+    backgroundColor: colors.goldSoft,
+    borderRadius: 999,
+    paddingHorizontal: spacing.sm,
+    paddingVertical: 2,
+  },
+  legendText: { fontSize: 11 },
+  chevron: { flexShrink: 0, marginLeft: 2 },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs },
 });
