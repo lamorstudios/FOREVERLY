@@ -13,6 +13,8 @@ export interface PersonInput {
   death_date?: string | null;
   biography?: string | null;
   avatar_url?: string | null;
+  is_memorial?: boolean;
+  traits?: string | null;
 }
 
 export async function listPersons(familyId: string): Promise<Person[]> {
@@ -54,7 +56,7 @@ export async function createPerson(
 
 export async function updatePerson(
   id: string,
-  input: PersonInput,
+  input: Partial<PersonInput>,
 ): Promise<Person> {
   if (DEMO_MODE) return demoStore.updatePerson(id, input);
   const { data, error } = await supabase

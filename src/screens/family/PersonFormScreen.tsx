@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { View, StyleSheet, Image, Pressable, Alert } from 'react-native';
+import { View, StyleSheet, Image, Pressable, Alert, Switch } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import {
   Screen,
@@ -44,6 +44,8 @@ export function PersonFormScreen({ navigation, route }: Props) {
   const [birthPlace, setBirthPlace] = useState('');
   const [deathDate, setDeathDate] = useState<string | null>(null);
   const [biography, setBiography] = useState('');
+  const [isMemorial, setIsMemorial] = useState(false);
+  const [traits, setTraits] = useState('');
   const [existingAvatar, setExistingAvatar] = useState<string | null>(null);
   const [localImageUri, setLocalImageUri] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -63,6 +65,8 @@ export function PersonFormScreen({ navigation, route }: Props) {
     setBirthPlace(p.birth_place ?? '');
     setDeathDate(p.death_date ?? null);
     setBiography(p.biography ?? '');
+    setIsMemorial(!!p.is_memorial);
+    setTraits(p.traits ?? '');
     setExistingAvatar(p.avatar_url ?? null);
   }, [personQuery.data]);
 
@@ -85,6 +89,8 @@ export function PersonFormScreen({ navigation, route }: Props) {
         death_date: deathDate,
         biography: biography.trim() || null,
         avatar_url: avatarUrl,
+        is_memorial: isMemorial,
+        traits: traits.trim() || null,
       };
       if (isEditing) {
         return updatePerson(personId as string, input);
@@ -219,6 +225,34 @@ export function PersonFormScreen({ navigation, route }: Props) {
           style={styles.bio}
         />
 
+        {/* Phase 16: Ehrenmitglied / Familienerbe */}
+        <View style={styles.memorialRow}>
+          <View style={styles.memorialText}>
+            <AppText variant="bodyStrong">❤️ Familienerbe</AppText>
+            <AppText variant="caption" color={colors.textSecondary}>
+              Als Ehrenmitglied bewahren – mit Galerie, Zitaten und Erinnerungen.
+            </AppText>
+          </View>
+          <Switch
+            value={isMemorial}
+            onValueChange={setIsMemorial}
+            trackColor={{ true: colors.gold, false: colors.border }}
+            thumbColor={colors.surface}
+          />
+        </View>
+
+        {isMemorial ? (
+          <TextField
+            label="Besonderheiten"
+            value={traits}
+            onChangeText={setTraits}
+            placeholder="Was diese Person ausgemacht hat …"
+            multiline
+            numberOfLines={3}
+            style={styles.bio}
+          />
+        ) : null}
+
         {error ? (
           <AppText variant="caption" color={colors.error}>
             {error}
@@ -260,4 +294,9 @@ const styles = StyleSheet.create({
   },
   form: { gap: spacing.md },
   bio: { minHeight: 120, textAlignVertical: 'top' },
+  memorialRow: {
+    flexDirection: 'row', alignItems: 'center', gap: spacing.md,
+    backgroundColor: colors.surfaceAlt, borderRadius: radius.md, padding: spacing.md,
+  },
+  memorialText: { flex: 1, gap: 2 },
 });

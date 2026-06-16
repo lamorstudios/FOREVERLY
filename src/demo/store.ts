@@ -8,6 +8,8 @@ import type {
   MemberRole,
   Memory,
   Person,
+  PersonQuote,
+  PersonTribute,
   Photo,
   Profile,
   Relationship,
@@ -183,12 +185,85 @@ export const demoStore = {
       birth_place: input.birth_place ?? null,
       death_date: input.death_date ?? null,
       biography: input.biography ?? null,
+      is_memorial: input.is_memorial ?? false,
+      traits: input.traits ?? null,
       created_by: createdBy,
       created_at: nowIso(),
       updated_at: nowIso(),
     };
     data.persons.push(p);
     return p;
+  },
+  setMemorial(id: string, value: boolean): Person {
+    const idx = data.persons.findIndex((p) => p.id === id);
+    data.persons[idx] = { ...data.persons[idx]!, is_memorial: value, updated_at: nowIso() };
+    return data.persons[idx]!;
+  },
+
+  // --- Phase 16: Familienerbe – Zitate & Erinnerungen ---
+  /** Anzeigename für eine Nutzer-ID (für „Hochgeladen von …"). */
+  displayNameForUser(userId: string | null): string {
+    if (!userId) return 'Familienmitglied';
+    if (userId === data.profile.id || userId === DEMO_USER_ID) {
+      return data.profile.full_name ?? 'Familienmitglied';
+    }
+    const person = data.persons.find((p) => p.user_id === userId);
+    if (person) return [person.first_name, person.last_name].filter(Boolean).join(' ');
+    return 'Familienmitglied';
+  },
+  listQuotes(personId: string): PersonQuote[] {
+    return data.quotes
+      .filter((q) => q.person_id === personId)
+      .sort((a, b) => a.created_at.localeCompare(b.created_at));
+  },
+  addQuote(input: {
+    familyId: string;
+    personId: string;
+    text: string;
+    context?: string | null;
+    addedByUserId: string | null;
+  }): PersonQuote {
+    const q: PersonQuote = {
+      id: newId('q'),
+      family_id: input.familyId,
+      person_id: input.personId,
+      text: input.text,
+      context: input.context ?? null,
+      added_by_user_id: input.addedByUserId,
+      added_by_name: this.displayNameForUser(input.addedByUserId),
+      created_at: nowIso(),
+    };
+    data.quotes.push(q);
+    return q;
+  },
+  deleteQuote(id: string): void {
+    data.quotes = data.quotes.filter((q) => q.id !== id);
+  },
+  listTributes(personId: string): PersonTribute[] {
+    return data.tributes
+      .filter((t) => t.person_id === personId)
+      .sort((a, b) => b.created_at.localeCompare(a.created_at));
+  },
+  addTribute(input: {
+    familyId: string;
+    personId: string;
+    text: string;
+    authorUserId: string | null;
+  }): PersonTribute {
+    const t: PersonTribute = {
+      id: newId('trib'),
+      family_id: input.familyId,
+      person_id: input.personId,
+      text: input.text,
+      author_user_id: input.authorUserId,
+      author_name: this.displayNameForUser(input.authorUserId),
+      created_at: nowIso(),
+    };
+    data.tributes.unshift(t);
+    return t;
+  },
+  deleteTribute(id: string): void {
+    data.tributes = data.tributes.filter((t) => t.id !== id);
   },
   updatePerson(id: string, input: Partial<Person>): Person {
     const idx = data.persons.findIndex((p) => p.id === id);

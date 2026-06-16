@@ -214,6 +214,41 @@ export interface Person {
   updated_at: string;
   /** Phase 12: als „Familienlegende" markiert (eigene Legacy-Seite). */
   is_legend?: boolean;
+  /**
+   * Phase 16 · Ehrenmitglied / Familienerbe: respektvolles Gedenkprofil für
+   * (meist bereits verstorbene) Familienmitglieder. Kein Trauerbereich,
+   * sondern Bewahrung der Familiengeschichte.
+   */
+  is_memorial?: boolean;
+  /** Phase 16: Besonderheiten dieser Person (frei beschreibbar). */
+  traits?: string | null;
+}
+
+// ===================== Phase 16 · Ehrenmitglieder & Familienerbe =====================
+
+/** Ein oft gesagter Satz / Spruch einer Person („Was sie oft gesagt hat"). */
+export interface PersonQuote {
+  id: string;
+  family_id: string;
+  person_id: string;
+  text: string;
+  /** Optionaler Anlass/Kontext („sagte er beim Kaffee"). */
+  context: string | null;
+  /** Wer den Spruch beigetragen hat (Nachvollziehbarkeit). */
+  added_by_user_id: string | null;
+  added_by_name: string;
+  created_at: string;
+}
+
+/** Eine Erinnerung/Geschichte, die ein Familienmitglied an die Person hinterlässt. */
+export interface PersonTribute {
+  id: string;
+  family_id: string;
+  person_id: string;
+  text: string;
+  author_user_id: string | null;
+  author_name: string;
+  created_at: string;
 }
 
 export interface Relationship {

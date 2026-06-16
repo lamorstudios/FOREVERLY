@@ -18,6 +18,7 @@ import type {
 import { HomeScreen } from '@/screens/home/HomeScreen';
 import { NetworkScreen } from '@/screens/family/NetworkScreen';
 import { PersonProfileScreen } from '@/screens/family/PersonProfileScreen';
+import { MemorialProfileScreen } from '@/screens/family/MemorialProfileScreen';
 import { PersonFormScreen } from '@/screens/family/PersonFormScreen';
 import { AddRelationshipScreen } from '@/screens/family/AddRelationshipScreen';
 import { MembersScreen } from '@/screens/family/MembersScreen';
@@ -215,6 +216,7 @@ function FamilyStackNavigator() {
     <FamilyStack.Navigator screenOptions={stackScreenOptions}>
       <FamilyStack.Screen name="Network" component={NetworkScreen} options={{ title: 'Familiennetzwerk' }} />
       <FamilyStack.Screen name="PersonProfile" component={PersonProfileScreen} options={{ title: 'Profil' }} />
+      <FamilyStack.Screen name="MemorialProfile" component={MemorialProfileScreen} options={{ title: 'Familienerbe' }} />
       <FamilyStack.Screen name="PersonForm" component={PersonFormScreen} options={{ title: 'Person' }} />
       <FamilyStack.Screen name="AddRelationship" component={AddRelationshipScreen} options={{ title: 'Beziehung hinzufügen' }} />
       <FamilyStack.Screen name="Members" component={MembersScreen} options={{ title: 'Mitglieder' }} />

@@ -118,4 +118,7 @@ export const qk = {
   familyWisdoms: (familyId: string) => ['legacyMoments', 'wisdoms', familyId] as const,
   // Onboarding · Erste Schritte
   firstSteps: (familyId: string, userId: string) => ['firstSteps', familyId, userId] as const,
+  // Phase 16 · Ehrenmitglieder & Familienerbe
+  personQuotes: (personId: string) => ['personQuotes', personId] as const,
+  personTributes: (personId: string) => ['personTributes', personId] as const,
 };

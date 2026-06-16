@@ -6,6 +6,7 @@ import {
   AppText,
   Button,
   Card,
+  Chip,
   Avatar,
   SectionHeader,
   Loading,
@@ -111,7 +112,18 @@ export function PersonProfileScreen({ navigation, route }: Props) {
             † {formatDate(person.death_date)}
           </AppText>
         ) : null}
+        {person.is_memorial ? (
+          <Chip label="❤️ Familienerbe" selected color={colors.gold} />
+        ) : null}
       </View>
+
+      {person.is_memorial ? (
+        <Button
+          label="Familienerbe-Profil öffnen"
+          icon="heart-outline"
+          onPress={() => navigation.navigate('MemorialProfile', { personId })}
+        />
+      ) : null}
 
       {person.biography ? (
         <Card style={styles.section}>

@@ -98,6 +98,7 @@ export type HomeStackParamList = {
 export type FamilyStackParamList = {
   Network: undefined;
   PersonProfile: { personId: string };
+  MemorialProfile: { personId: string };
   PersonForm: { personId?: string };
   AddRelationship: { personId: string };
   Members: undefined;

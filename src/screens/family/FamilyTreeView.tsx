@@ -815,6 +815,12 @@ function NodeCircle({
             <AppText variant="caption" color={colors.textOnAccent} style={styles.duText}>Du</AppText>
           </View>
         ) : null}
+        {/* Familienerbe / verstorben: dezenter, respektvoller Stern (kein Trauersymbol). */}
+        {!isAnchor && (person.is_memorial || person.death_date) ? (
+          <View style={styles.memorialBadge}>
+            <Ionicons name="star" size={11} color={colors.textOnAccent} />
+          </View>
+        ) : null}
       </Pressable>
 
       <AppText
@@ -856,6 +862,19 @@ const styles = StyleSheet.create({
     borderColor: colors.surface,
   },
   duText: { fontSize: 10, fontWeight: '800' },
+  memorialBadge: {
+    position: 'absolute',
+    top: -4,
+    right: -4,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: colors.gold,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: colors.surface,
+  },
   name: { marginTop: 8 },
   rel: { fontWeight: '600', marginTop: 1 },
   glow: {

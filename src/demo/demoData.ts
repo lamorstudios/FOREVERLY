@@ -6,6 +6,8 @@ import type {
   Invitation,
   Memory,
   Person,
+  PersonQuote,
+  PersonTribute,
   Photo,
   Profile,
   Relationship,
@@ -71,6 +73,9 @@ export interface DemoDataset {
   relationships: Relationship[];
   memories: Memory[];
   photos: Photo[];
+  // Phase 16 · Ehrenmitglieder & Familienerbe
+  quotes: PersonQuote[];
+  tributes: PersonTribute[];
   audios: Audio[];
   capsules: TimeCapsule[];
   recipients: TimeCapsuleRecipient[];
@@ -190,6 +195,18 @@ export function createSeedData(): DemoDataset {
   // Phase 12: Familienlegenden (eigene Legacy-Seite)
   for (const person of persons) {
     if (['p-oma', 'p-opa', 'p-uroma'].includes(person.id)) person.is_legend = true;
+  }
+  // Phase 16: Ehrenmitglieder / Familienerbe (verstorbene Angehörige werden
+  // respektvoll bewahrt – kein Trauerbereich).
+  const memorialTraits: Record<string, string> = {
+    'p-opa': 'Tischler aus Leidenschaft, liebte die Seefahrt und sonntägliche Spaziergänge am Hafen. Immer mit einer Geschichte auf den Lippen.',
+    'p-uroma': 'Bekannt für ihren Streuselkuchen, ihre Gastfreundschaft und ihr herzliches Lachen. Bei ihr war die ganze Familie willkommen.',
+    'p-uropa': 'Handwerker aus Stettin, fleißig und bescheiden. Er legte den Grundstein für die Familiengeschichte der Krügers.',
+  };
+  for (const person of persons) {
+    // Verstorbene Angehörige sind standardmäßig Familienerbe-Profile.
+    if (person.death_date) person.is_memorial = true;
+    if (memorialTraits[person.id]) person.traits = memorialTraits[person.id]!;
   }
 
   // --- Beziehungen (farblich codiert) ---
@@ -318,6 +335,12 @@ export function createSeedData(): DemoDataset {
     photo('ph4', 'Familienfest im Garten', null, null, '#5B8A5A'),
     photo('ph5', 'Weihnachten bei Oma Erika', 'p-oma', null, '#C8A24A'),
     photo('ph6', 'Nick & Mia am See', 'p-nick', null, '#4A78A8'),
+    // Phase 16: Galerie der Familienerbe-Profile
+    photo('ph7', 'Opa Hans in seiner Werkstatt', 'p-opa', null, '#8A6F4B'),
+    photo('ph8', 'Hans an der Ostsee', 'p-opa', null, '#4A78A8'),
+    photo('ph9', 'Uroma Anna beim Backen', 'p-uroma', null, '#C8A24A'),
+    photo('ph10', 'Anna & Karl in Stettin', 'p-uroma', null, '#B07D4B'),
+    photo('ph11', 'Uropa Karl in seinem Handwerksbetrieb', 'p-uropa', null, '#5B8A5A'),
   ];
 
   // --- Audios (Platzhalter) ---
@@ -665,6 +688,23 @@ export function createSeedData(): DemoDataset {
     },
   ];
 
+  // Phase 16: Zitate („Was sie oft gesagt haben")
+  const quotes: PersonQuote[] = [
+    quote('q1', 'p-opa', 'Wer rastet, der rostet.', 'sagte er jeden Morgen vor der Arbeit', 'Oma Erika'),
+    quote('q2', 'p-opa', 'Ehrliche Arbeit bringt Zufriedenheit.', null, 'Nick Mielke'),
+    quote('q3', 'p-uroma', 'Wahres Glück liegt in der Familie.', 'beim Sonntagskaffee', 'Oma Erika'),
+    quote('q4', 'p-uroma', 'Ein Stück Kuchen geht immer noch.', null, 'Sabine Mielke'),
+    quote('q5', 'p-uropa', 'Was du heute kannst besorgen, das verschiebe nicht auf morgen.', null, 'Oma Erika'),
+  ];
+
+  // Phase 16: Erinnerungen an die Person (von Familienmitgliedern hinterlassen)
+  const tributes: PersonTribute[] = [
+    tribute('t1', 'p-opa', 'Ich erinnere mich noch daran, wie Opa Hans mir in seiner Werkstatt gezeigt hat, wie man ein Vogelhäuschen baut. Wir haben den ganzen Nachmittag gewerkelt.', 'Nick Mielke', -30),
+    tribute('t2', 'p-opa', 'Seine Geschichten von der Seefahrt habe ich geliebt. Jeden Sommer nahm er uns mit zum Hafen.', 'Sabine Mielke', -50),
+    tribute('t3', 'p-uroma', 'Der Duft ihres Streuselkuchens hängt mir bis heute in der Nase. Bei Uroma Anna fühlte man sich immer zuhause.', 'Oma Erika', -80),
+    tribute('t4', 'p-uroma', 'Sie hatte für jeden ein offenes Ohr und ein warmes Lächeln. Niemand ging hungrig aus ihrem Haus.', 'Nick Mielke', -20),
+  ];
+
   return {
     profile,
     family,
@@ -674,6 +714,8 @@ export function createSeedData(): DemoDataset {
     relationships,
     memories,
     photos,
+    quotes,
+    tributes,
     audios,
     capsules,
     recipients,
@@ -905,6 +947,43 @@ export function createSeedData(): DemoDataset {
       height: 600,
       uploaded_by: DEMO_USER_ID,
       created_at: daysFromNow(-20),
+    };
+  }
+
+  function quote(
+    id: string,
+    personId: string,
+    text: string,
+    context: string | null,
+    addedByName: string,
+  ): PersonQuote {
+    return {
+      id,
+      family_id: DEMO_FAMILY_ID,
+      person_id: personId,
+      text,
+      context,
+      added_by_user_id: addedByName === 'Nick Mielke' ? DEMO_USER_ID : null,
+      added_by_name: addedByName,
+      created_at: daysFromNow(-40),
+    };
+  }
+
+  function tribute(
+    id: string,
+    personId: string,
+    text: string,
+    authorName: string,
+    createdOffset: number,
+  ): PersonTribute {
+    return {
+      id,
+      family_id: DEMO_FAMILY_ID,
+      person_id: personId,
+      text,
+      author_user_id: authorName === 'Nick Mielke' ? DEMO_USER_ID : null,
+      author_name: authorName,
+      created_at: daysFromNow(createdOffset),
     };
   }
 
