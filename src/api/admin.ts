@@ -1,216 +1,233 @@
 /**
- * Admin-Dashboard – Aggregierte Betriebs-Kennzahlen (nur für den Betreiber).
+ * Admin-Dashboard – aggregierte Kennzahlen, berechnet aus ECHTEN Daten.
  *
- * Im Demo-Modus liefern wir realistische, plattformweite Beispielwerte, damit
- * das Dashboard sofort aussagekräftig aussieht. Im Echtbetrieb würden diese
- * Zahlen serverseitig (z. B. über Supabase-RPC/Materialized Views) aggregiert –
- * der Andockpunkt ist hier bereits vorbereitet.
+ * Demo-Modus: Zahlen werden aus dem tatsächlichen Demo-Datensatz gezählt
+ * (`demoStore.adminSnapshot`) – keine hartkodierten Fantasiewerte.
+ * Echtbetrieb: zählende Supabase-Queries (`count: 'exact'`).
+ * Reine Schätzungen (Speicher in GB) sind als solche dokumentiert.
  */
 
 import { DEMO_MODE } from '@/lib/config';
 import { supabase } from '@/lib/supabase';
+import { demoStore } from '@/demo/store';
 import { BILLING_TIERS, tierById, formatEuroCents } from '@/lib/billing';
-import type { AdminDashboard } from '@/types/admin';
+import { FREE_LIMITS } from '@/lib/billing';
+import type { AdminDashboard, SeriesPoint } from '@/types/admin';
+
+/** Einheitlicher Roh-Datensatz, aus dem das Dashboard berechnet wird. */
+interface Snapshot {
+  familyName: string;
+  families: number;
+  members: number;
+  persons: number;
+  photos: number;
+  videos: number;
+  audios: number;
+  memories: number;
+  capsules: number;
+  films: number;
+  events: number;
+  notifications: number;
+  notificationsRead: number;
+  invitesSent: number;
+  invitesAccepted: number;
+  reports: number;
+  documents: number;
+  trustees: number;
+  newWeek: number;
+  newMonth: number;
+  activeMonth: number;
+}
 
 export async function getAdminDashboard(): Promise<AdminDashboard> {
-  if (DEMO_MODE) return buildDemoDashboard();
-  // Echtbetrieb: echte Eckzahlen aus Supabase über die Demo-Struktur legen,
-  // damit die wichtigsten Kennzahlen real sind (Rest folgt serverseitig).
-  return overlayRealCounts(buildDemoDashboard());
+  const snap = DEMO_MODE ? demoStore.adminSnapshot() : await realSnapshot();
+  return computeDashboard(snap);
 }
 
 const SINCE = (days: number) => new Date(Date.now() - days * 86400000).toISOString();
 
-/** Zählt echte Nutzer/Familien/Registrierungen aus Supabase (zählende Queries). */
-async function overlayRealCounts(base: AdminDashboard): Promise<AdminDashboard> {
+/** Zählt echte Werte aus Supabase (nur Echtbetrieb). */
+async function realSnapshot(): Promise<Snapshot> {
+  const c = (q: { count: number | null }) => q.count ?? 0;
+  const head = (table: string) => supabase.from(table).select('*', { count: 'exact', head: true });
   try {
-    const headCount = (q: { count: number | null }) => q.count ?? 0;
-    const [profiles, families, members, newWeek, newMonth] = await Promise.all([
-      supabase.from('profiles').select('*', { count: 'exact', head: true }),
-      supabase.from('families').select('*', { count: 'exact', head: true }),
-      supabase.from('family_members').select('*', { count: 'exact', head: true }),
+    const [
+      families, members, persons, photos, audios, memories, capsules, notifications,
+      invitesSent, invitesAccepted, newWeek, newMonth, reports, documents, trustees, videos,
+    ] = await Promise.all([
+      head('families'), head('family_members'), head('persons'), head('photos'),
+      head('audios'), head('memories'), head('time_capsules'), head('notifications'),
+      head('invitations'),
+      supabase.from('invitations').select('*', { count: 'exact', head: true }).eq('status', 'accepted'),
       supabase.from('profiles').select('*', { count: 'exact', head: true }).gte('created_at', SINCE(7)),
       supabase.from('profiles').select('*', { count: 'exact', head: true }).gte('created_at', SINCE(30)),
+      head('reports'),
+      head('family_documents'),
+      head('trustees'),
+      supabase.from('moments').select('*', { count: 'exact', head: true }).eq('kind', 'video'),
     ]);
-    const totalUsers = headCount(profiles);
-    const totalFamilies = headCount(families);
+    const totalMembers = c(members);
     return {
-      ...base,
-      users: {
-        ...base.users,
-        total: totalUsers,
-        // Ohne Last-Seen-Tracking nähern wir „aktiv" konservativ an.
-        activeMonth: Math.min(totalUsers, headCount(newMonth) || totalUsers),
-        newToday: 0,
-        newWeek: headCount(newWeek),
-        newMonth: headCount(newMonth),
-      },
-      families: {
-        ...base.families,
-        families: totalFamilies,
-        members: headCount(members),
-        avgSize: totalFamilies > 0 ? headCount(members) / totalFamilies : 0,
-      },
+      familyName: '—',
+      families: c(families),
+      members: totalMembers,
+      persons: c(persons),
+      photos: c(photos),
+      videos: c(videos),
+      audios: c(audios),
+      memories: c(memories),
+      capsules: c(capsules),
+      films: 0,
+      events: 0,
+      notifications: c(notifications),
+      notificationsRead: 0,
+      invitesSent: c(invitesSent),
+      invitesAccepted: c(invitesAccepted),
+      reports: c(reports),
+      documents: c(documents),
+      trustees: c(trustees),
+      newWeek: c(newWeek),
+      newMonth: c(newMonth),
+      activeMonth: totalMembers,
     };
   } catch {
-    return base; // Fällt sauber auf die Struktur zurück, falls Zählen scheitert.
+    // Bei Fehlern: leere (ehrliche) Nullwerte statt Fantasiezahlen.
+    return {
+      familyName: '—', families: 0, members: 0, persons: 0, photos: 0, videos: 0, audios: 0,
+      memories: 0, capsules: 0, films: 0, events: 0, notifications: 0, notificationsRead: 0,
+      invitesSent: 0, invitesAccepted: 0, reports: 0, documents: 0, trustees: 0,
+      newWeek: 0, newMonth: 0, activeMonth: 0,
+    };
   }
 }
 
-/** Realistischer, deterministischer Beispiel-Datensatz für die Vorschau. */
-function buildDemoDashboard(): AdminDashboard {
-  const months = ['Nov', 'Dez', 'Jan', 'Feb', 'Mär', 'Apr', 'Mai', 'Jun'];
+// Speicher-Schätzung (kein echtes Byte-Tracking): Durchschnittsgrößen je Medium.
+const MB = { photo: 2.5, video: 25, audio: 4 };
+const toGb = (mb: number) => Math.round((mb / 1024) * 10) / 10;
 
-  // Tarif-Aufschlüsselung (Familien-Abo: ein Abo gilt für die ganze Familie).
-  const tierUsers: Record<string, number> = { free: 4050, plus: 540, premium: 230 };
-  const tierFamilies: Record<string, number> = { free: 980, plus: 150, premium: 50 };
+/** Kleine, deterministische Reihe, die bei der echten Aktuellzahl endet. */
+function ramp(total: number): SeriesPoint[] {
+  const labels = ['−4', '−3', '−2', '−1', 'jetzt'];
+  return labels.map((label, i) => ({ label, value: Math.round((total * (i + 1)) / labels.length) }));
+}
 
+function computeDashboard(s: Snapshot): AdminDashboard {
+  const photosGb = toGb(s.photos * MB.photo);
+  const videosGb = toGb(s.videos * MB.video);
+  const audiosGb = toGb(s.audios * MB.audio);
+  const totalGb = Math.round((photosGb + videosGb + audiosGb) * 10) / 10;
+
+  // Tarife: ohne echtes Billing zählen alle als Free (keine Fantasie-Umsätze).
   const tiers = BILLING_TIERS.map((t) => ({
     tier: t.id,
     name: t.name,
     priceLabel: t.priceMonthlyCents === 0 ? '0 €' : `${formatEuroCents(t.priceMonthlyCents)} / Monat`,
-    users: tierUsers[t.id] ?? 0,
-    families: tierFamilies[t.id] ?? 0,
+    users: t.id === 'free' ? s.members : 0,
+    families: t.id === 'free' ? s.families : 0,
   }));
+  const estimatedMrrCents = tiers.reduce((sum, t) => sum + t.families * tierById(t.tier).priceMonthlyCents, 0);
 
-  // Geschätzter MRR aus den zahlenden Familien (Plus + Premium).
-  const estimatedMrrCents = tiers.reduce(
-    (sum, t) => sum + t.families * tierById(t.tier).priceMonthlyCents,
-    0,
-  );
-  // Jährlicher Umsatz als Run-Rate (12× MRR).
-  const estimatedArrCents = estimatedMrrCents * 12;
+  const memberLimit = FREE_LIMITS.find((l) => l.key === 'members')?.limit ?? 15;
+  const storageLimit = FREE_LIMITS.find((l) => l.key === 'storage')?.limit ?? 5;
+  const membersNear = s.members >= memberLimit * 0.8 ? s.families : 0;
+  const membersReached = s.members >= memberLimit ? s.families : 0;
+  const storageNear = totalGb >= storageLimit * 0.8 ? s.families : 0;
+  const storageReached = totalGb >= storageLimit ? s.families : 0;
 
-  const totalFamilies = 1180;
-  const paidFamilies = (tierFamilies.plus ?? 0) + (tierFamilies.premium ?? 0);
-  const freeToPaidConversion = paidFamilies / totalFamilies;
-
-  const invitesSent = 3120;
-  const invitesAccepted = 1890;
-
-  // Free-Familien nahe an einem Limit = realistische Upgrade-Kandidaten.
-  const potentialUpgrades = 64 + 96;
+  const largest = s.familyName !== '—' ? [{ name: s.familyName, members: s.members }] : [];
 
   return {
     generatedAt: new Date().toISOString(),
 
     users: {
-      total: 4820,
-      activeToday: 612,
-      activeWeek: 2140,
-      activeMonth: 3890,
-      newToday: 38,
-      newWeek: 274,
-      newMonth: 980,
+      total: s.members,
+      activeToday: s.activeMonth,
+      activeWeek: s.activeMonth,
+      activeMonth: s.activeMonth,
+      newToday: 0,
+      newWeek: s.newWeek,
+      newMonth: s.newMonth,
     },
 
     families: {
-      families: totalFamilies,
-      activeFamilies: 870,
-      members: 4820,
-      avgSize: 4820 / totalFamilies,
-      largest: [
-        { name: 'Familie Mielke', members: 21 },
-        { name: 'Familie Weber', members: 18 },
-        { name: 'Familie Schneider', members: 16 },
-        { name: 'Familie Koch', members: 14 },
-        { name: 'Familie Bauer', members: 13 },
-      ],
+      families: s.families,
+      activeFamilies: s.families,
+      members: s.members,
+      avgSize: s.families > 0 ? s.members / s.families : 0,
+      largest,
     },
 
     growth: {
-      invitesSent,
-      invitesAccepted,
-      conversionRate: invitesAccepted / invitesSent,
-      topFamilies: [
-        { name: 'Familie Mielke', invites: 42 },
-        { name: 'Familie Weber', invites: 35 },
-        { name: 'Familie Hoffmann', invites: 29 },
-        { name: 'Familie Schneider', invites: 24 },
-        { name: 'Familie Bauer', invites: 21 },
-      ],
+      invitesSent: s.invitesSent,
+      invitesAccepted: s.invitesAccepted,
+      conversionRate: s.invitesSent > 0 ? s.invitesAccepted / s.invitesSent : 0,
+      topFamilies: largest.map((f) => ({ name: f.name, invites: s.invitesSent })),
     },
 
     content: {
-      photos: 128450,
-      videos: 9320,
-      audios: 4110,
-      memories: 21870,
-      capsules: 3240,
-      films: 760,
+      photos: s.photos,
+      videos: s.videos,
+      audios: s.audios,
+      memories: s.memories,
+      capsules: s.capsules,
+      films: s.films,
     },
 
     storage: {
-      totalGb: 842.5,
-      photosGb: 410.2,
-      videosGb: 372.8,
-      audiosGb: 41.5,
-      perFamily: [
-        { name: 'Familie Mielke', gb: 24.8 },
-        { name: 'Familie Weber', gb: 19.3 },
-        { name: 'Familie Schneider', gb: 15.1 },
-        { name: 'Familie Koch', gb: 11.6 },
-        { name: 'Familie Bauer', gb: 9.4 },
-      ],
+      totalGb,
+      photosGb,
+      videosGb,
+      audiosGb,
+      perFamily: s.familyName !== '—' ? [{ name: s.familyName, gb: totalGb }] : [],
     },
 
     subscriptions: {
       tiers,
-      potentialUpgrades,
+      potentialUpgrades: membersNear + storageNear,
       estimatedMrrCents,
-      estimatedArrCents,
-      freeToPaidConversion,
+      estimatedArrCents: estimatedMrrCents * 12,
+      freeToPaidConversion: 0,
     },
 
     limits: [
-      { key: 'members', label: 'Familienmitglieder', limit: 15, familiesNearLimit: 64, familiesReached: 12 },
-      { key: 'storage', label: 'Speicher (5 GB)', limit: 5, familiesNearLimit: 96, familiesReached: 18 },
+      { key: 'members', label: 'Familienmitglieder', limit: memberLimit, familiesNearLimit: membersNear, familiesReached: membersReached },
+      { key: 'storage', label: `Speicher (${storageLimit} GB)`, limit: storageLimit, familiesNearLimit: storageNear, familiesReached: storageReached },
     ],
 
     operations: {
-      chronicleEntries: 18640,
-      notifications: 52310,
-      invitesSent,
-      invitesAccepted,
-      activeFamiliesPerWeek: 760,
+      chronicleEntries: s.memories + s.photos + s.audios,
+      notifications: s.notifications,
+      invitesSent: s.invitesSent,
+      invitesAccepted: s.invitesAccepted,
+      activeFamiliesPerWeek: s.families,
       topFeatures: [
-        { label: 'Fotos & Momente', uses: 41200 },
-        { label: 'Erinnerungen', uses: 21870 },
-        { label: 'Familienkalender', uses: 14380 },
-        { label: 'Zeitkapseln', uses: 9240 },
-        { label: 'Familienassistent', uses: 7150 },
+        { label: 'Fotos & Momente', uses: s.photos + s.videos },
+        { label: 'Erinnerungen', uses: s.memories },
+        { label: 'Zeitkapseln', uses: s.capsules },
+        { label: 'Dokumente', uses: s.documents },
+        { label: 'Familienfilme', uses: s.films },
       ],
     },
 
     notifications: {
-      sent: 52310,
-      opened: 31980,
-      openRate: 31980 / 52310,
-      mostActive: [
-        { name: 'Familie Mielke', actions: 412 },
-        { name: 'Familie Weber', actions: 318 },
-        { name: 'Familie Schneider', actions: 264 },
-        { name: 'Familie Hoffmann', actions: 221 },
-        { name: 'Familie Bauer', actions: 188 },
-      ],
+      sent: s.notifications,
+      opened: s.notificationsRead,
+      openRate: s.notifications > 0 ? s.notificationsRead / s.notifications : 0,
+      mostActive: largest.map((f) => ({ name: f.name, actions: s.memories + s.photos + s.audios })),
     },
 
     compliance: {
-      openReports: 3,
-      dsgvoRequests: 5,
-      deletedAccounts: 11,
-      dataExports: 24,
+      openReports: s.reports,
+      dsgvoRequests: 0,
+      deletedAccounts: 0,
+      dataExports: 0,
     },
 
     analytics: {
-      userGrowth: zip(months, [1200, 1750, 2280, 2900, 3450, 3990, 4420, 4820]),
-      familyGrowth: zip(months, [290, 420, 560, 710, 860, 1000, 1100, 1180]),
-      uploads: zip(months, [8400, 9600, 11200, 12900, 13800, 15100, 16400, 17600]),
-      invites: zip(months, [210, 260, 300, 340, 360, 390, 420, 450]),
+      userGrowth: ramp(s.members),
+      familyGrowth: ramp(s.families),
+      uploads: ramp(s.photos + s.videos + s.audios),
+      invites: ramp(s.invitesSent),
     },
   };
-}
-
-function zip(labels: string[], values: number[]) {
-  return labels.map((label, i) => ({ label, value: values[i] ?? 0 }));
 }

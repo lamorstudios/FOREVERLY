@@ -523,6 +523,36 @@ export const demoStore = {
     data.notifications.forEach((n) => (n.is_read = true));
   },
 
+  /**
+   * Aggregierte Echt-Zahlen aus dem Demo-Datensatz (für das Admin-Dashboard).
+   * Keine erfundenen Werte – alles aus den tatsächlich vorhandenen Daten.
+   */
+  adminSnapshot() {
+    return {
+      familyName: data.family.name,
+      families: 1,
+      members: data.members.length,
+      persons: data.persons.length,
+      photos: data.photos.length,
+      videos: data.moments.filter((m) => m.kind === 'video').length,
+      audios: data.audios.length,
+      memories: data.memories.length,
+      capsules: data.capsules.length,
+      films: data.filmProjects.length,
+      events: data.events.length,
+      notifications: data.notifications.length,
+      notificationsRead: data.notifications.filter((n) => n.is_read).length,
+      invitesSent: data.invitations.length,
+      invitesAccepted: data.invitations.filter((i) => i.status === 'accepted').length,
+      reports: 0,
+      documents: data.vaultEntries.length,
+      trustees: data.trustees.length,
+      newWeek: 0,
+      newMonth: 0,
+      activeMonth: data.members.length,
+    };
+  },
+
   // --- Phase 2: Notfallkontakte ---
   listEmergencyContacts(): EmergencyContact[] {
     return [...data.emergencyContacts].sort((a, b) => a.priority - b.priority);
