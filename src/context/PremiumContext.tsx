@@ -1,11 +1,14 @@
 import { createContext, useContext, useEffect, useMemo, useState, ReactNode, useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import type { PlanId, PremiumFeature } from '@/lib/premium';
+import { FEATURE_MIN_PLAN, PLAN_RANK, type PlanId, type PremiumFeature } from '@/lib/premium';
 
 const KEY = 'foreverly.plan';
 
 interface PremiumContextValue {
   plan: PlanId;
+  /** Bezahlter Tarif (Plus oder Premium). */
+  isPaid: boolean;
+  /** Höchster Tarif (Premium). */
   isPremium: boolean;
   hasFeature: (feature: PremiumFeature) => boolean;
   setPlan: (plan: PlanId) => void;
@@ -18,7 +21,7 @@ export function PremiumProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     AsyncStorage.getItem(KEY).then((v) => {
-      if (v === 'premium' || v === 'free') setPlanState(v);
+      if (v === 'premium' || v === 'plus' || v === 'free') setPlanState(v);
     });
   }, []);
 
@@ -28,12 +31,12 @@ export function PremiumProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const value = useMemo<PremiumContextValue>(() => {
-    const isPremium = plan === 'premium';
     return {
       plan,
-      isPremium,
-      // Im Demo-Modus sind Premium-Funktionen sichtbar; Gating ist vorbereitet.
-      hasFeature: (_feature: PremiumFeature) => isPremium,
+      isPaid: plan !== 'free',
+      isPremium: plan === 'premium',
+      // Planbasiertes Gating: schaltet frei, sobald der Tarif hoch genug ist.
+      hasFeature: (feature: PremiumFeature) => PLAN_RANK[plan] >= PLAN_RANK[FEATURE_MIN_PLAN[feature]],
       setPlan,
     };
   }, [plan, setPlan]);

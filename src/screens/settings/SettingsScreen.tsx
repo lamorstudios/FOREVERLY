@@ -5,6 +5,7 @@ import Constants from 'expo-constants';
 import { Screen, AppText, Card, Chip } from '@/components';
 import { usePremium } from '@/context/PremiumContext';
 import { useFamily } from '@/context/FamilyContext';
+import { planById } from '@/lib/premium';
 import { colors, spacing } from '@/theme';
 import type { ProfileStackParamList } from '@/navigation/types';
 
@@ -13,11 +14,11 @@ type IoniconName = keyof typeof Ionicons.glyphMap;
 type Target = 'Premium' | 'Roles' | 'NotificationSettings' | 'PrivacyData' | 'Feedback' | 'AdminDashboard';
 
 export function SettingsScreen({ navigation }: Props) {
-  const { isPremium } = usePremium();
+  const { plan, isPaid } = usePremium();
   const { isAdmin } = useFamily();
 
   const rows: { icon: IoniconName; title: string; subtitle: string; target: Target; color?: string }[] = [
-    { icon: 'star-outline', title: 'Foreverly Premium', subtitle: isPremium ? 'Aktiv – Family Premium' : 'Familienfilme, Historiker, PDF-Buch & mehr', target: 'Premium', color: colors.gold },
+    { icon: 'star-outline', title: 'Tarif & Premium', subtitle: isPaid ? `Aktiv – ${planById(plan).name}` : 'Free · Plus & Premium ansehen', target: 'Premium', color: colors.gold },
     { icon: 'people-outline', title: 'Rollen & Rechte', subtitle: 'Wer darf was in der Familie', target: 'Roles' },
     { icon: 'notifications-outline', title: 'Benachrichtigungen', subtitle: 'Push & Hinweise je Kategorie', target: 'NotificationSettings' },
     { icon: 'shield-checkmark-outline', title: 'Datenschutz & Daten', subtitle: 'Export, Löschung, Einwilligungen (DSGVO)', target: 'PrivacyData' },
@@ -43,7 +44,7 @@ export function SettingsScreen({ navigation }: Props) {
               <AppText variant="bodyStrong">{r.title}</AppText>
               <AppText variant="caption" color={colors.textSecondary}>{r.subtitle}</AppText>
             </View>
-            {r.target === 'Premium' && isPremium ? <Chip label="Premium" selected color={colors.gold} /> : null}
+            {r.target === 'Premium' && isPaid ? <Chip label={planById(plan).name.replace('Foreverly ', '')} selected color={colors.gold} /> : null}
             <Ionicons name="chevron-forward" size={22} color={colors.textMuted} />
           </View>
         </Card>
