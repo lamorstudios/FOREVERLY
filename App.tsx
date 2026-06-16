@@ -3,6 +3,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { QueryProvider } from '@/providers/QueryProvider';
 import { AuthProvider } from '@/context/AuthContext';
 import { FamilyProvider } from '@/context/FamilyContext';
+import { PremiumProvider } from '@/context/PremiumContext';
 import { RootNavigator } from '@/navigation/RootNavigator';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 
@@ -13,8 +14,10 @@ export default function App() {
         <QueryProvider>
           <AuthProvider>
             <FamilyProvider>
-              <StatusBar style="dark" />
-              <RootNavigator />
+              <PremiumProvider>
+                <StatusBar style="dark" />
+                <RootNavigator />
+              </PremiumProvider>
             </FamilyProvider>
           </AuthProvider>
         </QueryProvider>

@@ -56,6 +56,7 @@ type QuickRoute =
   | 'MomentsHome'
   | 'HistorianHome'
   | 'Assistant'
+  | 'GlobalSearch'
   | 'LegacyHub'
   | 'MuseumHub'
   | 'FilmGallery'
@@ -72,6 +73,7 @@ interface QuickAction {
 
 const QUICK_ACTIONS: QuickAction[] = [
   { label: 'Familienassistent', icon: 'sparkles-outline', color: colors.primary, route: 'Assistant' },
+  { label: 'Suche', icon: 'search-outline', color: colors.relationAdoption, route: 'GlobalSearch' },
   { label: 'Familienkarte', icon: 'location-outline', color: colors.relationMarried, route: 'LiveMap' },
   { label: 'SOS-Notruf', icon: 'warning-outline', color: colors.error, route: 'Sos' },
   { label: 'Familienmomente', icon: 'images-outline', color: colors.gold, route: 'MomentsHome' },

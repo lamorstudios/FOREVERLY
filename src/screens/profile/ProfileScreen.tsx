@@ -123,6 +123,19 @@ export function ProfileScreen({ navigation }: Props) {
           </View>
         </Card>
 
+        <Card onPress={() => navigation.navigate('Settings')}>
+          <View style={styles.row}>
+            <Ionicons name="settings-outline" size={32} color={colors.primary} />
+            <View style={styles.rowLabel}>
+              <AppText variant="bodyStrong">Einstellungen</AppText>
+              <AppText variant="caption" color={colors.textSecondary}>
+                Premium · Rollen · Datenschutz · Feedback
+              </AppText>
+            </View>
+            <Ionicons name="chevron-forward" size={24} color={colors.textMuted} />
+          </View>
+        </Card>
+
         <Card onPress={() => navigation.navigate('VaultHub')}>
           <View style={styles.row}>
             <Ionicons name="file-tray-full-outline" size={32} color={colors.primary} />

@@ -67,6 +67,8 @@ export type HomeStackParamList = {
   FilmPlayer: { projectId: string };
   // Phase 11 · KI-Familienassistent
   Assistant: undefined;
+  // Phase 15 · Globale Suche
+  GlobalSearch: undefined;
   // Phase 12 · Legacy AI · Familienstimmen
   LegacyHub: undefined;
   LegacyPerson: { personId: string };
@@ -120,6 +122,13 @@ export type ProfileStackParamList = {
   Profile: undefined;
   EditProfile: undefined;
   FamilySettings: undefined;
+  // Phase 15 · Production
+  Settings: undefined;
+  Premium: undefined;
+  Roles: undefined;
+  NotificationSettings: undefined;
+  PrivacyData: undefined;
+  Feedback: undefined;
   // Trustee & Nachlass-Freigabe
   EstateHub: undefined;
   Trustees: undefined;

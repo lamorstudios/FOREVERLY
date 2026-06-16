@@ -820,6 +820,19 @@ export interface LifeStory {
   created_at: string;
 }
 
+// ===================== Feedback (Phase 15) =====================
+
+export type FeedbackKind = 'bug' | 'wish' | 'idea';
+
+export interface Feedback {
+  id: string;
+  family_id: string;
+  user_id: string | null;
+  kind: FeedbackKind;
+  message: string;
+  created_at: string;
+}
+
 // ===================== Familienmuseum · Artefakte =====================
 
 export type ArtifactCategory =

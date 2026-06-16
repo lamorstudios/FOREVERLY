@@ -65,6 +65,8 @@ import type {
   LifeStoryKind,
   Artifact,
   ArtifactCategory,
+  Feedback,
+  FeedbackKind,
 } from '@/types/models';
 import { createSeedData, DEMO_FAMILY_ID, DEMO_USER_ID } from './demoData';
 
@@ -1719,6 +1721,25 @@ export const demoStore = {
   },
   deleteArtifact(id: string): void {
     data.artifacts = data.artifacts.filter((a) => a.id !== id);
+  },
+
+  // ===================== Feedback =====================
+  createFeedback(input: { familyId: string; userId: string | null; kind: FeedbackKind; message: string }): Feedback {
+    const f: Feedback = {
+      id: newId('fb'),
+      family_id: input.familyId,
+      user_id: input.userId,
+      kind: input.kind,
+      message: input.message,
+      created_at: nowIso(),
+    };
+    data.feedback.unshift(f);
+    return f;
+  },
+
+  /** DSGVO: vollständiger Datenexport der Familie (Demo-Dump). */
+  exportData(): unknown {
+    return JSON.parse(JSON.stringify(data));
   },
 };
 

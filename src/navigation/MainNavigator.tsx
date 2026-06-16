@@ -100,6 +100,14 @@ import { TimeTravelScreen } from '@/screens/museum/TimeTravelScreen';
 import { FamilyPlacesScreen } from '@/screens/museum/FamilyPlacesScreen';
 import { ArtifactsScreen } from '@/screens/museum/ArtifactsScreen';
 import { ArtifactFormScreen } from '@/screens/museum/ArtifactFormScreen';
+// Phase 15 · Production
+import { SettingsScreen } from '@/screens/settings/SettingsScreen';
+import { PremiumScreen } from '@/screens/settings/PremiumScreen';
+import { RolesScreen } from '@/screens/settings/RolesScreen';
+import { NotificationSettingsScreen } from '@/screens/settings/NotificationSettingsScreen';
+import { PrivacyDataScreen } from '@/screens/settings/PrivacyDataScreen';
+import { FeedbackScreen } from '@/screens/settings/FeedbackScreen';
+import { GlobalSearchScreen } from '@/screens/search/GlobalSearchScreen';
 // Phase 4 · Familienbuch
 import { BookHomeScreen } from '@/screens/book/BookHomeScreen';
 import { BookCreateScreen } from '@/screens/book/BookCreateScreen';
@@ -174,6 +182,7 @@ function HomeStackNavigator() {
       <HomeStack.Screen name="FilmCreate" component={FilmCreateScreen} options={{ title: 'Film erstellen' }} />
       <HomeStack.Screen name="FilmPlayer" component={FilmPlayerScreen} options={{ title: 'Familienfilm' }} />
       <HomeStack.Screen name="Assistant" component={AssistantScreen} options={{ title: 'Familienassistent' }} />
+      <HomeStack.Screen name="GlobalSearch" component={GlobalSearchScreen} options={{ title: 'Suche' }} />
       <HomeStack.Screen name="LegacyHub" component={LegacyHubScreen} options={{ title: 'Familienstimmen' }} />
       <HomeStack.Screen name="LegacyPerson" component={LegacyPersonScreen} options={{ title: 'Lebensgeschichte' }} />
       <HomeStack.Screen name="LifeInterview" component={LifeInterviewScreen} options={{ title: 'Erzähl deine Geschichte' }} />
@@ -248,6 +257,12 @@ function ProfileStackNavigator() {
       <ProfileStack.Screen name="TrusteeForm" component={TrusteeFormScreen} options={{ title: 'Vertrauensperson' }} />
       <ProfileStack.Screen name="EstateInfoForm" component={EstateInfoFormScreen} options={{ title: 'Nachlasshinweise' }} />
       <ProfileStack.Screen name="EstateCase" component={EstateCaseScreen} options={{ title: 'Nachlass-Freigabe' }} />
+      <ProfileStack.Screen name="Settings" component={SettingsScreen} options={{ title: 'Einstellungen' }} />
+      <ProfileStack.Screen name="Premium" component={PremiumScreen} options={{ title: 'Premium' }} />
+      <ProfileStack.Screen name="Roles" component={RolesScreen} options={{ title: 'Rollen & Rechte' }} />
+      <ProfileStack.Screen name="NotificationSettings" component={NotificationSettingsScreen} options={{ title: 'Benachrichtigungen' }} />
+      <ProfileStack.Screen name="PrivacyData" component={PrivacyDataScreen} options={{ title: 'Datenschutz & Daten' }} />
+      <ProfileStack.Screen name="Feedback" component={FeedbackScreen} options={{ title: 'Feedback' }} />
       <ProfileStack.Screen name="VaultHub" component={VaultHubScreen} options={{ title: 'Dokumente & Nachlass' }} />
       <ProfileStack.Screen name="VaultEntries" component={VaultEntriesScreen} options={{ title: 'Dokumente' }} />
       <ProfileStack.Screen name="VaultEntryForm" component={VaultEntryFormScreen} options={{ title: 'Dokument' }} />

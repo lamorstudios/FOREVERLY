@@ -44,6 +44,7 @@ import type {
   FilmProject,
   LifeStory,
   Artifact,
+  Feedback,
 } from '@/types/models';
 import { coverImage, photoImage, portraitImage } from './images';
 
@@ -108,6 +109,8 @@ export interface DemoDataset {
   lifeStories: LifeStory[];
   // Familienmuseum · Artefakte
   artifacts: Artifact[];
+  // Feedback
+  feedback: Feedback[];
 }
 
 /** Erzeugt einen frischen Demo-Datensatz (Familie Mielke). */
@@ -688,6 +691,7 @@ export function createSeedData(): DemoDataset {
     filmProjects,
     lifeStories,
     artifacts,
+    feedback: [],
   };
 
   // --- Fabrik-Helfer ---
