@@ -14,3 +14,4 @@ export { SignedImage } from './SignedImage';
 export { SelectField } from './SelectField';
 export type { SelectOption } from './SelectField';
 export { TextField } from './TextField';
+export { TourOverlay } from './TourOverlay';

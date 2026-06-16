@@ -18,6 +18,7 @@ import { getProfile } from '@/api/profiles';
 import { qk } from '@/api/queryKeys';
 import { useAuth } from '@/context/AuthContext';
 import { useFamily } from '@/context/FamilyContext';
+import { useOnboarding } from '@/context/OnboardingContext';
 import { colors, spacing } from '@/theme';
 import type { ProfileStackParamList } from '@/navigation/types';
 
@@ -26,6 +27,7 @@ type Props = NativeStackScreenProps<ProfileStackParamList, 'Profile'>;
 export function ProfileScreen({ navigation }: Props) {
   const { userId, signOut } = useAuth();
   const { activeFamily, families, setActiveFamily } = useFamily();
+  const { restartIntro } = useOnboarding();
 
   const profileQuery = useQuery({
     queryKey: qk.profile(userId!),
@@ -153,6 +155,19 @@ export function ProfileScreen({ navigation }: Props) {
               size={24}
               color={colors.textMuted}
             />
+          </View>
+        </Card>
+
+        <Card onPress={restartIntro}>
+          <View style={styles.row}>
+            <Ionicons name="help-buoy-outline" size={32} color={colors.primary} />
+            <View style={styles.rowLabel}>
+              <AppText variant="bodyStrong">Hilfe & Einführung</AppText>
+              <AppText variant="caption" color={colors.textSecondary}>
+                Willkommens-Tour jederzeit erneut starten
+              </AppText>
+            </View>
+            <Ionicons name="chevron-forward" size={24} color={colors.textMuted} />
           </View>
         </Card>
       </View>

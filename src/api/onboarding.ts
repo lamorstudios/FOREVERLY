@@ -9,8 +9,9 @@ import { getProfile } from './profiles';
 import { listMembers } from './families';
 import { listMemories } from './memories';
 import { listMyCapsules } from './timeCapsules';
+import { listPersons } from './persons';
 
-export type FirstStepKey = 'profile' | 'invite' | 'memory' | 'capsule';
+export type FirstStepKey = 'profile' | 'invite' | 'memory' | 'capsule' | 'tree';
 
 export interface FirstStep {
   key: FirstStepKey;
@@ -26,20 +27,20 @@ export interface FirstSteps {
 }
 
 export async function getFirstSteps(familyId: string, userId: string): Promise<FirstSteps> {
-  const [profile, members, memories, capsules] = await Promise.all([
+  const [profile, members, memories, capsules, persons] = await Promise.all([
     getProfile(userId),
     listMembers(familyId),
     listMemories(familyId),
     listMyCapsules(familyId),
+    listPersons(familyId),
   ]);
 
-  const profileComplete = !!profile && !!profile.full_name && (!!profile.avatar_url || !!profile.bio);
-
   const steps: FirstStep[] = [
-    { key: 'profile', label: 'Profil vervollständigen', done: profileComplete },
-    { key: 'invite', label: 'Familie einladen', done: members.length > 1 },
+    { key: 'profile', label: 'Profilbild hinzufügen', done: !!profile?.avatar_url },
+    { key: 'invite', label: 'Erstes Familienmitglied einladen', done: members.length > 1 },
     { key: 'memory', label: 'Erste Erinnerung speichern', done: memories.length > 0 },
     { key: 'capsule', label: 'Erste Zeitkapsel erstellen', done: capsules.length > 0 },
+    { key: 'tree', label: 'Familienbaum vervollständigen', done: persons.length >= 3 },
   ];
 
   const doneCount = steps.filter((s) => s.done).length;

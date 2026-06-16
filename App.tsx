@@ -4,6 +4,7 @@ import { QueryProvider } from '@/providers/QueryProvider';
 import { AuthProvider } from '@/context/AuthContext';
 import { FamilyProvider } from '@/context/FamilyContext';
 import { PremiumProvider } from '@/context/PremiumContext';
+import { OnboardingProvider } from '@/context/OnboardingContext';
 import { RootNavigator } from '@/navigation/RootNavigator';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 
@@ -15,8 +16,10 @@ export default function App() {
           <AuthProvider>
             <FamilyProvider>
               <PremiumProvider>
-                <StatusBar style="dark" />
-                <RootNavigator />
+                <OnboardingProvider>
+                  <StatusBar style="dark" />
+                  <RootNavigator />
+                </OnboardingProvider>
               </PremiumProvider>
             </FamilyProvider>
           </AuthProvider>

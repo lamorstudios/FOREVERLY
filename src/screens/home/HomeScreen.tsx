@@ -238,6 +238,7 @@ export function HomeScreen({ navigation }: Props) {
     if (key === 'profile') parent?.navigate('ProfileTab', { screen: 'EditProfile' });
     else if (key === 'invite') parent?.navigate('FamilyTab', { screen: 'SmartInvite' });
     else if (key === 'memory') parent?.navigate('MemoriesTab', { screen: 'MemoryForm' });
+    else if (key === 'tree') parent?.navigate('FamilyTab', { screen: 'Network' });
     else parent?.navigate('CapsulesTab', { screen: 'CapsuleForm' });
   }
 
@@ -439,9 +440,9 @@ export function HomeScreen({ navigation }: Props) {
           <Card style={styles.stepsCard}>
             <View style={styles.stepsHeader}>
               <View style={styles.rowText}>
-                <AppText variant="bodyStrong">Deine ersten Schritte</AppText>
+                <AppText variant="bodyStrong">🎯 Deine ersten Schritte</AppText>
                 <AppText variant="caption" color={colors.textSecondary}>
-                  {firstSteps.doneCount} von {firstSteps.total} erledigt
+                  {firstSteps.doneCount}/{firstSteps.total} erledigt
                 </AppText>
               </View>
               <Pressable onPress={dismissFirstSteps} hitSlop={10}>
