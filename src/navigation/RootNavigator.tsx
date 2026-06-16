@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
 import * as Linking from 'expo-linking';
-import { Loading, TourOverlay } from '@/components';
+import { Loading, TourOverlay, AppText } from '@/components';
 import { useAuth } from '@/context/AuthContext';
 import { useFamily } from '@/context/FamilyContext';
 import { useOnboarding } from '@/context/OnboardingContext';
@@ -97,7 +97,16 @@ export function RootNavigator() {
         {!session ? (
           <AuthNavigator />
         ) : stillLoading ? (
-          <Loading message="Foreverly wird geladen …" />
+          <View style={styles.diag}>
+            <Loading message="Foreverly wird geladen …" />
+            <View style={styles.diagBox}>
+              <AppText variant="caption" color={colors.textSecondary}>Auth Loading: {String(initializing)}</AppText>
+              <AppText variant="caption" color={colors.textSecondary}>Session: {session ? 'vorhanden' : 'nicht vorhanden'}</AppText>
+              <AppText variant="caption" color={colors.textSecondary}>Supabase: {isSupabaseConfigured ? 'verbunden' : 'nicht verbunden'}</AppText>
+              <AppText variant="caption" color={colors.textSecondary}>Demo Mode: {DEMO_MODE ? 'aktiv' : 'inaktiv'}</AppText>
+              <AppText variant="caption" color={colors.textMuted}>family={String(loading)} · intro={String(introReady)} · ready={String(forceReady)}</AppText>
+            </View>
+          </View>
         ) : families.length === 0 ? (
           <OnboardingNavigator />
         ) : (
@@ -121,4 +130,6 @@ export function RootNavigator() {
 const styles = StyleSheet.create({
   root: { flex: 1 },
   overlay: { ...StyleSheet.absoluteFillObject, backgroundColor: colors.background, zIndex: 100 },
+  diag: { flex: 1 },
+  diagBox: { position: 'absolute', bottom: 24, left: 16, right: 16, gap: 2, padding: 12, borderRadius: 12, backgroundColor: colors.surfaceAlt },
 });
