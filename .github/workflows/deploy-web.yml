@@ -1,16 +1,11 @@
 name: Deploy Web Preview (GitHub Pages)
 
-# Baut die Foreverly-Web-App im Demo-Modus und veröffentlicht sie in den
-# Branch `gh-pages`. GitHub Pages liefert diesen Branch aus.
-# Dieser Weg funktioniert aus jedem Branch (umgeht die Branch-Schutzregel
-# der `github-pages`-Umgebung).
-#
-# Ergebnis-URL: https://lamorstudios.github.io/FOREVERLY/
+# Baut Foreverly (Demo-Modus) und veröffentlicht nach gh-pages.
+# Einzige Live-Quelle: main. Ergebnis-URL: https://lamorstudios.github.io/FOREVERLY/
 
 on:
   push:
     branches:
-      - claude/optimistic-curie-9fue6s
       - main
       - master
   workflow_dispatch:
@@ -26,9 +21,10 @@ jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     env:
-      EXPO_PUBLIC_DEMO_MODE: 'true'
-      # Unterpfad = Repository-Name (case-sensitive). Seite liegt unter /FOREVERLY/
       EXPO_BASE_URL: '/FOREVERLY'
+      EXPO_PUBLIC_INVITE_BASE_URL: 'https://lamorstudios.github.io/FOREVERLY/invite'
+      # Web-Vorschau läuft im Demo-Modus (kein Auth-/Supabase-Gate).
+      EXPO_PUBLIC_DEMO_MODE: 'true'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -41,12 +37,21 @@ jobs:
       - name: Install dependencies
         run: npm install --no-audit --no-fund
 
+      - name: Build-Stempel setzen (sichtbar im Footer)
+        run: |
+          echo "EXPO_PUBLIC_BUILD_ID=${GITHUB_SHA::7}" >> "$GITHUB_ENV"
+          echo "EXPO_PUBLIC_BUILD_TIME=$(date -u '+%Y-%m-%d %H:%M UTC')" >> "$GITHUB_ENV"
+
       - name: Build web bundle
         run: npx expo export --platform web
 
-      - name: SPA-Fallback & Jekyll deaktivieren
+      - name: SPA-Fallback, No-Cache-HTML & Jekyll deaktivieren
         run: |
           touch dist/.nojekyll
+          sed -i 's#<head>#<head><meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" /><meta http-equiv="Pragma" content="no-cache" /><meta http-equiv="Expires" content="0" />#' dist/index.html
+          sed -i 's|<div id="root"></div>|<div id="root"><div id="fv-fallback" style="font-family:sans-serif;padding:48px 24px;text-align:center;color:#6F6253">Foreverly wird gestartet \&hellip;<br/><br/><span style="font-size:13px">App-Code wird geladen \&hellip;</span></div></div>|' dist/index.html
+          sed -i 's#<script src="/FOREVERLY/_expo#<script>window.__fvErr=function(){var f=document.getElementById("fv-fallback");if(sessionStorage.getItem("fv_e")){if(f)f.innerHTML="App-Code konnte nicht geladen werden (Netzwerk/404).<br/>Bitte Seite neu laden oder Cache leeren.";return;}sessionStorage.setItem("fv_e","1");location.replace(location.pathname+"?v="+Date.now());};</script><script src="/FOREVERLY/_expo#' dist/index.html
+          sed -i 's#\.js" defer></script>#.js" defer onerror="window.__fvErr()"></script>#' dist/index.html
           cp dist/index.html dist/404.html
 
       - name: Deploy to gh-pages branch
@@ -55,4 +60,5 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./dist
           publish_branch: gh-pages
-          force_orphan: true
+          force_orphan: false
+          keep_files: true
