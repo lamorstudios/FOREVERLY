@@ -6,6 +6,7 @@ export { Button } from './Button';
 export { Card } from './Card';
 export { Chip } from './Chip';
 export { DateField } from './DateField';
+export { Disclaimer } from './Disclaimer';
 export { EmptyState } from './EmptyState';
 export { GoogleSignInButton } from './GoogleSignInButton';
 export { InviteFamilyButton } from './InviteFamilyButton';

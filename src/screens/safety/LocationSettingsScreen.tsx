@@ -10,6 +10,7 @@ import {
   SelectField,
   TextField,
   Loading,
+  Disclaimer,
 } from '@/components';
 import type { SelectOption } from '@/components';
 import { listPersons } from '@/api/persons';
@@ -91,6 +92,10 @@ export function LocationSettingsScreen({ navigation }: Props) {
         Du bestimmst, wie lange und mit wem du deinen Standort teilst. Standardmäßig ist die Freigabe
         aus. Du kannst sie jederzeit beenden.
       </AppText>
+      <Disclaimer
+        icon="location-outline"
+        text="Standortfreigaben sind freiwillig und können jederzeit deaktiviert werden."
+      />
 
       <View style={styles.form}>
         <SelectField label="Wie lange teilen?" value={duration} options={durationOptions} onChange={setDuration} />

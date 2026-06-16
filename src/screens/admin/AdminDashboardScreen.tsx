@@ -50,7 +50,7 @@ export function AdminDashboardScreen({ navigation }: Props) {
   }
 
   const d = query.data;
-  const { users, families, growth, content, storage, subscriptions, limits, operations, notifications, analytics } = d;
+  const { users, families, growth, content, storage, subscriptions, limits, operations, notifications, compliance, analytics } = d;
   const maxFeature = Math.max(...operations.topFeatures.map((f) => f.uses), 1);
   const maxStorage = Math.max(...storage.perFamily.map((f) => f.gb), 1);
   const tierUsers = (id: string) => subscriptions.tiers.find((t) => t.tier === id)?.users ?? 0;
@@ -268,6 +268,17 @@ export function AdminDashboardScreen({ navigation }: Props) {
           <RankRow key={f.name} label={f.name} value={`${fmt(f.actions)} Aktionen`} />
         ))}
       </Card>
+
+      {/* Recht & Datenschutz */}
+      <SectionHeader title="Recht & Datenschutz" />
+      <StatGrid
+        items={[
+          { label: 'Offene Meldungen', value: fmt(compliance.openReports), accent: true },
+          { label: 'DSGVO-Anfragen', value: fmt(compliance.dsgvoRequests) },
+          { label: 'Gelöschte Konten', value: fmt(compliance.deletedAccounts) },
+          { label: 'Datenexporte', value: fmt(compliance.dataExports) },
+        ]}
+      />
 
       {/* 9 · Analytics */}
       <SectionHeader title="Analytics" />

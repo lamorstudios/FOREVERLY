@@ -12,6 +12,7 @@ import {
 import { SignedImage } from '@/components/SignedImage';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { listMembers, updateMemberRole, removeMember } from '@/api/families';
+import { submitReport, blockMember } from '@/api/moderation';
 import { qk } from '@/api/queryKeys';
 import { useFamily } from '@/context/FamilyContext';
 import { useAuth } from '@/context/AuthContext';
@@ -81,6 +82,39 @@ export function MembersScreen() {
         },
       ],
     );
+  }
+
+  function handleReportBlock(member: FamilyMember) {
+    const name = member.profile?.full_name ?? 'dieses Mitglied';
+    Alert.alert('Melden oder blockieren', name, [
+      {
+        text: 'Inhalt/Person melden',
+        onPress: () =>
+          submitReport({
+            familyId,
+            reporterId: userId!,
+            targetType: 'user',
+            targetId: member.user_id ?? member.id,
+            reason: 'inappropriate',
+          })
+            .then(() => Alert.alert('Danke', 'Deine Meldung wurde übermittelt und wird geprüft.'))
+            .catch((e) => Alert.alert('Fehler', friendlyError(e))),
+      },
+      {
+        text: 'Blockieren',
+        style: 'destructive',
+        onPress: () => {
+          if (!member.user_id) {
+            Alert.alert('Nicht möglich', 'Diese Person hat noch kein Konto.');
+            return;
+          }
+          blockMember({ familyId, blockerId: userId!, blockedUserId: member.user_id })
+            .then(() => Alert.alert('Blockiert', 'Du siehst Inhalte dieser Person künftig nicht mehr.'))
+            .catch((e) => Alert.alert('Fehler', friendlyError(e)));
+        },
+      },
+      { text: 'Abbrechen', style: 'cancel' },
+    ]);
   }
 
   if (isLoading) {
@@ -179,6 +213,17 @@ export function MembersScreen() {
                       onPress={() => handleRemove(member)}
                     />
                   </View>
+                ) : null}
+
+                {!isSelf ? (
+                  <Button
+                    label="Melden / Blockieren"
+                    icon="flag-outline"
+                    variant="ghost"
+                    fullWidth={false}
+                    style={styles.actionButton}
+                    onPress={() => handleReportBlock(member)}
+                  />
                 ) : null}
 
                 {isAdmin && isSelf ? (

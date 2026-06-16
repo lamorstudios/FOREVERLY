@@ -114,6 +114,14 @@ export interface AdminNotificationMetrics {
   mostActive: { name: string; actions: number }[];
 }
 
+/** Recht & Datenschutz (Betreiberpflichten). */
+export interface AdminComplianceMetrics {
+  openReports: number;
+  dsgvoRequests: number;
+  deletedAccounts: number;
+  dataExports: number;
+}
+
 /** Zeitreihen für die Analytics-Charts. */
 export interface AdminAnalytics {
   userGrowth: SeriesPoint[];
@@ -134,5 +142,6 @@ export interface AdminDashboard {
   limits: AdminLimitUsage[];
   operations: AdminOperationsMetrics;
   notifications: AdminNotificationMetrics;
+  compliance: AdminComplianceMetrics;
   analytics: AdminAnalytics;
 }

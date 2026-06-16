@@ -110,6 +110,7 @@ import { NotificationSettingsScreen } from '@/screens/settings/NotificationSetti
 import { PrivacyDataScreen } from '@/screens/settings/PrivacyDataScreen';
 import { FeedbackScreen } from '@/screens/settings/FeedbackScreen';
 import { AdminDashboardScreen } from '@/screens/admin/AdminDashboardScreen';
+import { LegalScreen } from '@/screens/legal/LegalScreen';
 import { GlobalSearchScreen } from '@/screens/search/GlobalSearchScreen';
 // Phase 4 · Familienbuch
 import { BookHomeScreen } from '@/screens/book/BookHomeScreen';
@@ -269,6 +270,7 @@ function ProfileStackNavigator() {
       <ProfileStack.Screen name="NotificationSettings" component={NotificationSettingsScreen} options={{ title: 'Benachrichtigungen' }} />
       <ProfileStack.Screen name="PrivacyData" component={PrivacyDataScreen} options={{ title: 'Datenschutz & Daten' }} />
       <ProfileStack.Screen name="Feedback" component={FeedbackScreen} options={{ title: 'Feedback' }} />
+      <ProfileStack.Screen name="Legal" component={LegalScreen} options={{ title: 'Rechtliches' }} />
       <ProfileStack.Screen name="VaultHub" component={VaultHubScreen} options={{ title: 'Dokumente & Nachlass' }} />
       <ProfileStack.Screen name="VaultEntries" component={VaultEntriesScreen} options={{ title: 'Dokumente' }} />
       <ProfileStack.Screen name="VaultEntryForm" component={VaultEntryFormScreen} options={{ title: 'Dokument' }} />

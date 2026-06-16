@@ -2,7 +2,7 @@ import { View, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useQuery } from '@tanstack/react-query';
-import { Screen, AppText, Card, Loading } from '@/components';
+import { Screen, AppText, Card, Loading, Disclaimer } from '@/components';
 import { listVaultEntries, listLegacyItems, listFarewellMessages } from '@/api/vault';
 import { listTrustees, getEstateInfo } from '@/api/estate';
 import { qk } from '@/api/queryKeys';
@@ -62,6 +62,11 @@ export function VaultHubScreen({ navigation }: Props) {
           gespeichert.
         </AppText>
       </View>
+
+      <Disclaimer
+        icon="document-text-outline"
+        text="Foreverly ersetzt keine notarische Verwahrung, Rechtsberatung oder offizielle Nachlassverwaltung. Dies ist nur eine Informations- und Archivfunktion."
+      />
 
       <Row icon="folder-open-outline" title="Dokumente" subtitle={`${entries.data?.length ?? 0} Hinweise hinterlegt`} onPress={() => navigation.navigate('VaultEntries')} />
       <Row icon="gift-outline" title="Was ich hinterlassen möchte" subtitle={`${legacy.data?.length ?? 0} Vermächtnisse`} color={colors.gold} onPress={() => navigation.navigate('Legacy')} />

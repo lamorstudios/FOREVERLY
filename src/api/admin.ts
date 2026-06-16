@@ -156,6 +156,13 @@ function buildDemoDashboard(): AdminDashboard {
       ],
     },
 
+    compliance: {
+      openReports: 3,
+      dsgvoRequests: 5,
+      deletedAccounts: 11,
+      dataExports: 24,
+    },
+
     analytics: {
       userGrowth: zip(months, [1200, 1750, 2280, 2900, 3450, 3990, 4420, 4820]),
       familyGrowth: zip(months, [290, 420, 560, 710, 860, 1000, 1100, 1180]),

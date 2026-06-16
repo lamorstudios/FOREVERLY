@@ -4,6 +4,7 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import Constants from 'expo-constants';
 import { Screen, AppText, Card, Chip } from '@/components';
 import { usePremium } from '@/context/PremiumContext';
+import { LEGAL_DOCS } from '@/lib/legalContent';
 import { planById } from '@/lib/premium';
 import { colors, spacing } from '@/theme';
 import type { ProfileStackParamList } from '@/navigation/types';
@@ -44,6 +45,19 @@ export function SettingsScreen({ navigation }: Props) {
         </Card>
       ))}
 
+      <AppText variant="bodyStrong" style={styles.sectionLabel}>Rechtliches</AppText>
+      {LEGAL_DOCS.map((d) => (
+        <Card key={d.doc} onPress={() => navigation.navigate('Legal', { doc: d.doc })}>
+          <View style={styles.row}>
+            <View style={styles.iconCircle}>
+              <Ionicons name={d.icon as keyof typeof Ionicons.glyphMap} size={22} color={colors.primary} />
+            </View>
+            <AppText variant="bodyStrong" style={styles.rowText}>{d.label}</AppText>
+            <Ionicons name="chevron-forward" size={22} color={colors.textMuted} />
+          </View>
+        </Card>
+      ))}
+
       <AppText variant="caption" center color={colors.textMuted} style={styles.version}>
         Foreverly · Version {Constants.expoConfig?.version ?? '1.0.0'}
       </AppText>
@@ -56,5 +70,6 @@ const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   iconCircle: { width: 44, height: 44, borderRadius: 22, backgroundColor: colors.surfaceAlt, alignItems: 'center', justifyContent: 'center' },
   rowText: { flex: 1, gap: 2 },
+  sectionLabel: { marginTop: spacing.lg, marginBottom: spacing.xs },
   version: { marginTop: spacing.xl },
 });

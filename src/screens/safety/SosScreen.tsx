@@ -3,7 +3,7 @@ import { View, StyleSheet, Pressable, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useQuery } from '@tanstack/react-query';
-import { Screen, AppText, Card, Button, TextField, Loading } from '@/components';
+import { Screen, AppText, Card, Button, TextField, Loading, Disclaimer } from '@/components';
 import { listPersons } from '@/api/persons';
 import { listSafetyAlerts, triggerSos, resolveSos, getMyLiveShare } from '@/api/safety';
 import { qk } from '@/api/queryKeys';
@@ -82,6 +82,11 @@ export function SosScreen({ navigation }: Props) {
         Im Notfall genügt ein Druck. Es werden dein aktueller bzw. letzter bekannter Standort, dein
         Akkustand und die Uhrzeit gesendet.
       </AppText>
+      <Disclaimer
+        tone="warning"
+        icon="alert-circle-outline"
+        text="Die SOS-Funktion ersetzt keine Rettungsdienste oder Notrufeinrichtungen. Wähle im Ernstfall den offiziellen Notruf (z. B. 112)."
+      />
 
       {myActive ? (
         <Card style={styles.activeCard}>
