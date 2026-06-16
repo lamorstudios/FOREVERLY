@@ -1,5 +1,5 @@
-import { useEffect, useLayoutEffect, useMemo, useState } from 'react';
-import { View, ScrollView, Pressable, StyleSheet } from 'react-native';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { View, ScrollView, Pressable, StyleSheet, type NativeSyntheticEvent, type NativeScrollEvent } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useQuery } from '@tanstack/react-query';
@@ -19,6 +19,7 @@ import {
 } from '@/components';
 import { useFamily } from '@/context/FamilyContext';
 import { useAuth } from '@/context/AuthContext';
+import { useTour, useTourTarget } from '@/context/TourContext';
 import { DemoBanner } from '@/demo/DemoBanner';
 import { listActivities } from '@/api/activities';
 import { listUpcomingForMe } from '@/api/timeCapsules';
@@ -136,6 +137,31 @@ export function HomeScreen({ navigation }: Props) {
   const { isTablet, width } = useResponsive();
   // <340px: 1 Spalte; ab 360px: 2 Spalten (Tablet: 3). Werte ohne Restraum.
   const tileBasis = width < 340 ? '100%' : isTablet ? '31%' : '48%';
+
+  // --- Geführte Tour: Scroll-Steuerung & Ziel-Elemente registrieren ---
+  const { setScroller } = useTour();
+  const scrollRef = useRef<ScrollView>(null);
+  const scrollOffset = useRef(0);
+  useEffect(() => {
+    setScroller({
+      scrollTo: (y: number) => scrollRef.current?.scrollTo({ y, animated: true }),
+      getOffset: () => scrollOffset.current,
+    });
+    return () => setScroller(null);
+  }, [setScroller]);
+  const onScroll = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+    scrollOffset.current = e.nativeEvent.contentOffset.y;
+  };
+  const inviteTarget = useTourTarget('invite');
+  const statusTarget = useTourTarget('status');
+  const momentsTarget = useTourTarget('moments');
+  const tileTargets: Record<string, ReturnType<typeof useTourTarget>> = {
+    HistorianHome: useTourTarget('tile-HistorianHome'),
+    LiveMap: useTourTarget('tile-LiveMap'),
+    Documents: useTourTarget('tile-Documents'),
+    Sos: useTourTarget('tile-Sos'),
+    Calendar: useTourTarget('tile-Calendar'),
+  };
 
   const activities = useQuery({
     queryKey: qk.activities(familyId),
@@ -401,7 +427,7 @@ export function HomeScreen({ navigation }: Props) {
   if (activities.isLoading) return <Loading message="Einen Moment …" />;
 
   return (
-    <Screen onRefresh={onRefresh} refreshing={refreshing}>
+    <Screen onRefresh={onRefresh} refreshing={refreshing} scrollRef={scrollRef} onScroll={onScroll}>
       <DemoBanner />
 
       {/* Emotionaler Held: Familienbild & warme Begrüßung */}
@@ -431,7 +457,9 @@ export function HomeScreen({ navigation }: Props) {
 
       {/* Prominenter Einladungs-Button (Wachstum) */}
       <Appear delay={20}>
-        <InviteFamilyButton />
+        <View ref={inviteTarget} collapsable={false}>
+          <InviteFamilyButton />
+        </View>
       </Appear>
 
       {/* Onboarding · Deine ersten Schritte */}
@@ -741,7 +769,7 @@ export function HomeScreen({ navigation }: Props) {
       {/* Familienmomente – Fotos im Vordergrund */}
       {photoMoments.length > 0 ? (
         <Appear delay={80}>
-          <View style={styles.section}>
+          <View ref={momentsTarget} collapsable={false} style={styles.section}>
             <SectionHeader
               title="Familienmomente"
               actionLabel="Alle ansehen"
@@ -766,7 +794,7 @@ export function HomeScreen({ navigation }: Props) {
 
       {/* Familienstatus */}
       <Appear delay={140}>
-        <View style={styles.section}>
+        <View ref={statusTarget} collapsable={false} style={styles.section}>
           <SectionHeader
             title="Familienstatus"
             actionLabel="Status senden"
@@ -830,6 +858,7 @@ export function HomeScreen({ navigation }: Props) {
             {QUICK_ACTIONS.map((a) => (
               <Pressable
                 key={a.route}
+                ref={tileTargets[a.route]}
                 onPress={() => navigation.navigate(a.route)}
                 style={({ pressed }) => [
                   styles.quickTile,

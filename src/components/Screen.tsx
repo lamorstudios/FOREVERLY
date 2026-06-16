@@ -1,4 +1,4 @@
-import { ReactNode } from 'react';
+import { ReactNode, Ref } from 'react';
 import {
   ScrollView,
   View,
@@ -7,6 +7,8 @@ import {
   KeyboardAvoidingView,
   Platform,
   ViewStyle,
+  NativeSyntheticEvent,
+  NativeScrollEvent,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { colors, spacing, useResponsive } from '@/theme';
@@ -22,6 +24,10 @@ interface ScreenProps {
   edges?: ('top' | 'bottom' | 'left' | 'right')[];
   /** Dezente Bereichs-Tönung des Hintergrunds (Orientierung je App-Bereich). */
   tint?: string;
+  /** Optionale Ref auf die interne ScrollView (z. B. für die geführte Tour). */
+  scrollRef?: Ref<ScrollView>;
+  /** Scroll-Position beobachten (z. B. für die geführte Tour). */
+  onScroll?: (e: NativeSyntheticEvent<NativeScrollEvent>) => void;
 }
 
 /**
@@ -37,6 +43,8 @@ export function Screen({
   contentStyle,
   edges = ['top'],
   tint,
+  scrollRef,
+  onScroll,
 }: ScreenProps) {
   const { mobilePadding, responsiveSpacing, contentMaxWidth } = useResponsive();
 
@@ -61,6 +69,9 @@ export function Screen({
       >
         {scroll ? (
           <ScrollView
+            ref={scrollRef}
+            onScroll={onScroll}
+            scrollEventThrottle={16}
             style={styles.flex}
             contentContainerStyle={styles.scrollContent}
             keyboardShouldPersistTaps="handled"
