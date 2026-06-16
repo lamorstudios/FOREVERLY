@@ -12,7 +12,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   name: 'Foreverly',
   slug: 'foreverly',
   scheme: process.env.EXPO_PUBLIC_APP_SCHEME ?? 'foreverly',
-  version: '1.0.0',
+  version: '1.0.0-rc1',
   orientation: 'portrait',
   userInterfaceStyle: 'light',
   newArchEnabled: true,
@@ -70,5 +70,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     inviteBaseUrl:
       process.env.EXPO_PUBLIC_INVITE_BASE_URL ?? 'https://foreverly.app/invite',
     demoMode: process.env.EXPO_PUBLIC_DEMO_MODE,
+    // Release-Kennzeichnung (interner Test).
+    releaseName: 'Foreverly RC1',
+    releaseStatus: 'Interner Test',
   },
 });
