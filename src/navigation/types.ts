@@ -1,5 +1,6 @@
 import type { NavigatorScreenParams } from '@react-navigation/native';
 import type { SafetyTripKind, FilmKind } from '@/types/models';
+import type { LegalDoc } from '@/lib/legalContent';
 
 export type AuthStackParamList = {
   Welcome: undefined;
@@ -134,6 +135,7 @@ export type ProfileStackParamList = {
   NotificationSettings: undefined;
   PrivacyData: undefined;
   Feedback: undefined;
+  Legal: { doc: LegalDoc };
   // Trustee & Nachlass-Freigabe
   EstateHub: undefined;
   Trustees: undefined;

@@ -1,8 +1,7 @@
 import { View, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import Constants from 'expo-constants';
-import { Screen, AppText, Card, Chip } from '@/components';
+import { Screen, AppText, Card, Chip, AppFooter } from '@/components';
 import { usePremium } from '@/context/PremiumContext';
 import { planById } from '@/lib/premium';
 import { colors, spacing } from '@/theme';
@@ -44,9 +43,7 @@ export function SettingsScreen({ navigation }: Props) {
         </Card>
       ))}
 
-      <AppText variant="caption" center color={colors.textMuted} style={styles.version}>
-        Foreverly · Version {Constants.expoConfig?.version ?? '1.0.0'}
-      </AppText>
+      <AppFooter onOpenLegal={(doc) => navigation.navigate('Legal', { doc })} />
     </Screen>
   );
 }
@@ -56,5 +53,4 @@ const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   iconCircle: { width: 44, height: 44, borderRadius: 22, backgroundColor: colors.surfaceAlt, alignItems: 'center', justifyContent: 'center' },
   rowText: { flex: 1, gap: 2 },
-  version: { marginTop: spacing.xl },
 });
