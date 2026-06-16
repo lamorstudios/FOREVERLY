@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { View, StyleSheet } from 'react-native';
 import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
 import * as Linking from 'expo-linking';
 import { Loading, TourOverlay } from '@/components';
@@ -54,23 +55,38 @@ export function RootNavigator() {
   }, [session]);
 
   const inFamily = session && !initializing && !loading && families.length > 0;
+  // Erststart-Einführung: Welcome-Flow, danach interaktive Tour.
+  const showWelcome = inFamily && introReady && !welcomeDone;
+  const showTour = inFamily && introReady && welcomeDone && !tourDone;
 
   return (
-    <NavigationContainer theme={navTheme} linking={linking as never}>
-      {!session ? (
-        <AuthNavigator />
-      ) : initializing || loading || !introReady ? (
-        <Loading message="Foreverly wird geladen …" />
-      ) : families.length === 0 ? (
-        <OnboardingNavigator />
-      ) : !welcomeDone ? (
-        // Erststart: Vollbild-Willkommensflow
-        <WelcomeFlowScreen onDone={completeWelcome} />
-      ) : (
-        <MainNavigator />
-      )}
-      {/* Interaktive Tour als Overlay über der App – nach dem Welcome-Flow */}
-      {inFamily && welcomeDone && !tourDone ? <TourOverlay onDone={completeTour} /> : null}
-    </NavigationContainer>
+    <View style={styles.root}>
+      <NavigationContainer theme={navTheme} linking={linking as never}>
+        {!session ? (
+          <AuthNavigator />
+        ) : initializing || loading || !introReady ? (
+          <Loading message="Foreverly wird geladen …" />
+        ) : families.length === 0 ? (
+          <OnboardingNavigator />
+        ) : (
+          <MainNavigator />
+        )}
+      </NavigationContainer>
+
+      {/* Vollbild-Willkommensflow als Overlay über der App (Erststart) */}
+      {showWelcome ? (
+        <View style={styles.overlay}>
+          <WelcomeFlowScreen onDone={completeWelcome} />
+        </View>
+      ) : null}
+
+      {/* Interaktive Tour als Overlay – nach dem Welcome-Flow */}
+      {showTour ? <TourOverlay onDone={completeTour} /> : null}
+    </View>
   );
 }
+
+const styles = StyleSheet.create({
+  root: { flex: 1 },
+  overlay: { ...StyleSheet.absoluteFillObject, backgroundColor: colors.background, zIndex: 100 },
+});

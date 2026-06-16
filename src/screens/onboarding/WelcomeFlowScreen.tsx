@@ -18,7 +18,7 @@ const SLIDES: Slide[] = [
   { emoji: '📸', title: 'Erinnerungen', text: 'Fotos, Videos, Sprachnachrichten und Geschichten an einem Ort.', accent: colors.relationMarried },
   { emoji: '⏳', title: 'Zeitkapseln', text: 'Erstelle Nachrichten für die Zukunft und öffne sie zu besonderen Momenten.', accent: colors.bronze },
   { emoji: '📍', title: 'Familienkarte', text: 'Bleibe mit deiner Familie verbunden und teile Standorte freiwillig.', note: 'Standortfreigabe ist immer optional.', accent: colors.relationAdoption },
-  { emoji: '💛', title: 'Frag Oma, solange du noch kannst', text: 'Bewahre die Geschichten deiner Familie, bevor sie verloren gehen.', accent: colors.gold },
+  { emoji: '💛', title: 'Familiengeschichten bewahren', text: 'Frag Oma, solange du noch kannst – bewahre die Geschichten deiner Familie, bevor sie verloren gehen.', accent: colors.gold },
 ];
 
 export function WelcomeFlowScreen({ onDone }: { onDone: () => void }) {

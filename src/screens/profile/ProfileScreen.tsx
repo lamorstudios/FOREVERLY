@@ -162,9 +162,9 @@ export function ProfileScreen({ navigation }: Props) {
           <View style={styles.row}>
             <Ionicons name="help-buoy-outline" size={32} color={colors.primary} />
             <View style={styles.rowLabel}>
-              <AppText variant="bodyStrong">Hilfe & Einführung</AppText>
+              <AppText variant="bodyStrong">Hilfe & Einführung erneut starten</AppText>
               <AppText variant="caption" color={colors.textSecondary}>
-                Willkommens-Tour jederzeit erneut starten
+                Vollbild-Onboarding & interaktive Tour neu abspielen
               </AppText>
             </View>
             <Ionicons name="chevron-forward" size={24} color={colors.textMuted} />
