@@ -29,10 +29,10 @@ jobs:
       # Unterpfad = Repository-Name (case-sensitive). Seite liegt unter /FOREVERLY/
       EXPO_BASE_URL: '/FOREVERLY'
       EXPO_PUBLIC_INVITE_BASE_URL: 'https://lamorstudios.github.io/FOREVERLY/invite'
-      # NOTFALL-FIX: Die Web-Vorschau läuft bewusst IMMER im Demo-Modus, damit
-      # die Seite garantiert lädt (kein Auth-/Supabase-Gate). Echte Nutzer
-      # werden später wieder isoliert aktiviert (z. B. eigener Deploy / native App).
-      EXPO_PUBLIC_DEMO_MODE: 'true'
+      # Echte Nutzer NUR, wenn beide Supabase-Secrets gesetzt sind – sonst Demo.
+      # (Auth ist robust: 3-s-Timeout + forceReady → niemals weiße/Loading-Hänger.)
+      EXPO_PUBLIC_SUPABASE_URL: ${{ secrets.EXPO_PUBLIC_SUPABASE_URL }}
+      EXPO_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.EXPO_PUBLIC_SUPABASE_ANON_KEY }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -41,6 +41,16 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
+
+      - name: Modus bestimmen (Demo, außer Supabase-Secrets sind gesetzt)
+        run: |
+          if [ -n "${{ secrets.EXPO_PUBLIC_SUPABASE_URL }}" ] && [ -n "${{ secrets.EXPO_PUBLIC_SUPABASE_ANON_KEY }}" ]; then
+            echo "EXPO_PUBLIC_DEMO_MODE=false" >> "$GITHUB_ENV"
+            echo "Mode: REAL users (Supabase)"
+          else
+            echo "EXPO_PUBLIC_DEMO_MODE=true" >> "$GITHUB_ENV"
+            echo "Mode: DEMO (keine Supabase-Secrets gefunden)"
+          fi
 
       - name: Install dependencies
         run: npm install --no-audit --no-fund
