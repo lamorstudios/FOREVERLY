@@ -116,8 +116,9 @@ export function HomeScreen({ navigation }: Props) {
   const { activeFamily } = useFamily();
   const { userId } = useAuth();
   const familyId = activeFamily!.id;
-  const { isTablet } = useResponsive();
-  const tileBasis = isTablet ? '31%' : '47%';
+  const { isTablet, width } = useResponsive();
+  // <340px: 1 Spalte; ab 360px: 2 Spalten (Tablet: 3). Werte ohne Restraum.
+  const tileBasis = width < 340 ? '100%' : isTablet ? '31%' : '48%';
 
   const activities = useQuery({
     queryKey: qk.activities(familyId),
@@ -579,7 +580,11 @@ export function HomeScreen({ navigation }: Props) {
               <Pressable
                 key={a.route}
                 onPress={() => navigation.navigate(a.route)}
-                style={({ pressed }) => [styles.quickTile, { width: tileBasis }, pressed && styles.pressed]}
+                style={({ pressed }) => [
+                  styles.quickTile,
+                  { width: tileBasis, maxWidth: tileBasis, flexBasis: tileBasis },
+                  pressed && styles.pressed,
+                ]}
                 accessibilityRole="button"
                 accessibilityLabel={a.label}
               >
@@ -798,12 +803,13 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   bubbleName: { width: 76 },
-  // Entdecken-Kacheln: 2 gleich breite Spalten, zentriert, gleiche Ränder
+  // Entdecken-Kacheln: 2 gleich breite Spalten, gleiche Ränder, kein Restraum
   quickGrid: {
+    width: '100%',
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'center',
-    columnGap: spacing.md,
+    justifyContent: 'space-between',
+    alignItems: 'stretch',
     rowGap: spacing.sm,
   },
   quickTile: {
