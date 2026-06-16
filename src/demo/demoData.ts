@@ -43,6 +43,7 @@ import type {
   FarewellMessage,
   FilmProject,
   LifeStory,
+  Artifact,
 } from '@/types/models';
 import { coverImage, photoImage, portraitImage } from './images';
 
@@ -105,6 +106,8 @@ export interface DemoDataset {
   filmProjects: FilmProject[];
   // Legacy AI · Familienstimmen
   lifeStories: LifeStory[];
+  // Familienmuseum · Artefakte
+  artifacts: Artifact[];
 }
 
 /** Erzeugt einen frischen Demo-Datensatz (Familie Mielke). */
@@ -592,6 +595,14 @@ export function createSeedData(): DemoDataset {
     life('ls-enkel', 'p-oma', 'Was möchtest du deinen Enkeln mitgeben?', 'text', 'Haltet zusammen und seid dankbar für die kleinen Dinge. Familie ist wichtiger als Geld.', true),
   ];
 
+  // --- Familienmuseum · Artefakte ---
+  const artifacts: Artifact[] = [
+    artifact('art-album', 'fotoalbum', 'Das alte Familienalbum', 'Ledergebundenes Fotoalbum mit Aufnahmen ab 1955.', 'Begonnen von Uroma Anna, weitergegeben an Oma Erika.', 'p-oma', 'Wohnzimmerschrank, Rostock', 1955),
+    artifact('art-uhr', 'uhr', 'Opas Taschenuhr', 'Silberne Taschenuhr, ein Geschenk zur Hochzeit 1963.', 'Von Opa Hans an Nick vererbt.', 'p-opa', 'Vitrine', 1963),
+    artifact('art-haus', 'haus', 'Das Familienhaus in Rostock', 'Das Haus, in dem Oma und Opa viele Jahrzehnte lebten.', 'Mehrere Generationen sind hier aufgewachsen.', 'p-oma', 'Rostock', 1958),
+    artifact('art-firma', 'unternehmen', 'Krügers Handwerksbetrieb', 'Kleiner Handwerksbetrieb in Stettin.', 'Gegründet von Uropa Karl.', 'p-uropa', 'Stettin', 1938),
+  ];
+
   // Eine Zeitkapsel „erst nach meinem Tod öffnen".
   for (const c of capsules) if (c.id === 'tc4') c.open_on_death = true;
 
@@ -676,9 +687,26 @@ export function createSeedData(): DemoDataset {
     farewellMessages,
     filmProjects,
     lifeStories,
+    artifacts,
   };
 
   // --- Fabrik-Helfer ---
+  function artifact(
+    id: string,
+    category: Artifact['category'],
+    title: string,
+    description: string,
+    story: string,
+    ownerPersonId: string | null,
+    location: string,
+    year: number,
+  ): Artifact {
+    return {
+      id, family_id: DEMO_FAMILY_ID, category, title, description, story,
+      owner_person_id: ownerPersonId, location, year, photo_path: null,
+      created_by: DEMO_USER_ID, created_at: daysFromNow(-9),
+    };
+  }
   function life(
     id: string,
     personId: string,

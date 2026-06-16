@@ -72,6 +72,13 @@ export type HomeStackParamList = {
   LegacyPerson: { personId: string };
   LifeInterview: { personId: string };
   MemoryJourney: { query: string; title: string };
+  // Phase 13 · Familienmuseum
+  MuseumHub: undefined;
+  Generations: undefined;
+  TimeTravel: undefined;
+  FamilyPlaces: undefined;
+  Artifacts: undefined;
+  ArtifactForm: { artifactId?: string } | undefined;
   // Phase 6 · Family Safety & Live Location
   LiveMap: undefined;
   LocationSettings: undefined;

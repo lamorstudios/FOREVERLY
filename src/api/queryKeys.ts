@@ -101,4 +101,10 @@ export const qk = {
   personStory: (familyId: string, personId: string) => ['personStory', familyId, personId] as const,
   lifeStories: (personId: string) => ['lifeStories', personId] as const,
   memoryJourney: (familyId: string, query: string) => ['memoryJourney', familyId, query] as const,
+  // Familienmuseum
+  museumOverview: (familyId: string) => ['museumOverview', familyId] as const,
+  museumGenerations: (familyId: string) => ['museumGenerations', familyId] as const,
+  museumTimeTravel: (familyId: string, year: number) => ['museumTimeTravel', familyId, year] as const,
+  museumPlaces: (familyId: string) => ['museumPlaces', familyId] as const,
+  artifacts: (familyId: string) => ['artifacts', familyId] as const,
 };

@@ -63,6 +63,8 @@ import type {
   FilmOptions,
   LifeStory,
   LifeStoryKind,
+  Artifact,
+  ArtifactCategory,
 } from '@/types/models';
 import { createSeedData, DEMO_FAMILY_ID, DEMO_USER_ID } from './demoData';
 
@@ -1668,6 +1670,55 @@ export const demoStore = {
     };
     data.lifeStories.unshift(s);
     return s;
+  },
+
+  // ===================== Familienmuseum · Artefakte =====================
+  listArtifacts(familyId: string): Artifact[] {
+    return data.artifacts
+      .filter((a) => a.family_id === familyId)
+      .sort((a, b) => (a.created_at < b.created_at ? 1 : -1));
+  },
+  saveArtifact(input: {
+    id?: string;
+    familyId: string;
+    category: ArtifactCategory;
+    title: string;
+    description?: string | null;
+    story?: string | null;
+    ownerPersonId?: string | null;
+    location?: string | null;
+    year?: number | null;
+    createdBy: string;
+  }): Artifact {
+    if (input.id) {
+      const a = data.artifacts.find((x) => x.id === input.id);
+      if (!a) throw new Error('Artefakt nicht gefunden');
+      Object.assign(a, {
+        category: input.category, title: input.title, description: input.description ?? null,
+        story: input.story ?? null, owner_person_id: input.ownerPersonId ?? null,
+        location: input.location ?? null, year: input.year ?? null,
+      });
+      return a;
+    }
+    const a: Artifact = {
+      id: newId('art'),
+      family_id: input.familyId,
+      category: input.category,
+      title: input.title,
+      description: input.description ?? null,
+      story: input.story ?? null,
+      owner_person_id: input.ownerPersonId ?? null,
+      location: input.location ?? null,
+      year: input.year ?? null,
+      photo_path: null,
+      created_by: input.createdBy,
+      created_at: nowIso(),
+    };
+    data.artifacts.unshift(a);
+    return a;
+  },
+  deleteArtifact(id: string): void {
+    data.artifacts = data.artifacts.filter((a) => a.id !== id);
   },
 };
 

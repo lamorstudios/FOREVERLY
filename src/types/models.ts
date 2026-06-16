@@ -820,5 +820,33 @@ export interface LifeStory {
   created_at: string;
 }
 
+// ===================== Familienmuseum · Artefakte =====================
+
+export type ArtifactCategory =
+  | 'fotoalbum'
+  | 'schmuck'
+  | 'uhr'
+  | 'erbstueck'
+  | 'fahrzeug'
+  | 'unternehmen'
+  | 'haus'
+  | 'sonstige';
+
+/** Wichtiges Familienobjekt / Erbstück (Museums-Exponat). */
+export interface Artifact {
+  id: string;
+  family_id: string;
+  category: ArtifactCategory;
+  title: string;
+  description: string | null;
+  story: string | null; // Generationenverlauf / Geschichte
+  owner_person_id: string | null; // aktueller/letzter Besitzer
+  location: string | null;
+  year: number | null;
+  photo_path: string | null;
+  created_by: string | null;
+  created_at: string;
+}
+
 
 

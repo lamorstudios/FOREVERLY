@@ -93,6 +93,13 @@ import { LegacyHubScreen } from '@/screens/legacy/LegacyHubScreen';
 import { LegacyPersonScreen } from '@/screens/legacy/LegacyPersonScreen';
 import { LifeInterviewScreen } from '@/screens/legacy/LifeInterviewScreen';
 import { MemoryJourneyScreen } from '@/screens/legacy/MemoryJourneyScreen';
+// Phase 13 · Familienmuseum
+import { MuseumHubScreen } from '@/screens/museum/MuseumHubScreen';
+import { GenerationsScreen } from '@/screens/museum/GenerationsScreen';
+import { TimeTravelScreen } from '@/screens/museum/TimeTravelScreen';
+import { FamilyPlacesScreen } from '@/screens/museum/FamilyPlacesScreen';
+import { ArtifactsScreen } from '@/screens/museum/ArtifactsScreen';
+import { ArtifactFormScreen } from '@/screens/museum/ArtifactFormScreen';
 // Phase 4 · Familienbuch
 import { BookHomeScreen } from '@/screens/book/BookHomeScreen';
 import { BookCreateScreen } from '@/screens/book/BookCreateScreen';
@@ -171,6 +178,12 @@ function HomeStackNavigator() {
       <HomeStack.Screen name="LegacyPerson" component={LegacyPersonScreen} options={{ title: 'Lebensgeschichte' }} />
       <HomeStack.Screen name="LifeInterview" component={LifeInterviewScreen} options={{ title: 'Erzähl deine Geschichte' }} />
       <HomeStack.Screen name="MemoryJourney" component={MemoryJourneyScreen} options={{ title: 'Erinnerungsreise' }} />
+      <HomeStack.Screen name="MuseumHub" component={MuseumHubScreen} options={{ title: 'Familienmuseum' }} />
+      <HomeStack.Screen name="Generations" component={GenerationsScreen} options={{ title: 'Generationenarchiv' }} />
+      <HomeStack.Screen name="TimeTravel" component={TimeTravelScreen} options={{ title: 'Zeitreise' }} />
+      <HomeStack.Screen name="FamilyPlaces" component={FamilyPlacesScreen} options={{ title: 'Familienorte' }} />
+      <HomeStack.Screen name="Artifacts" component={ArtifactsScreen} options={{ title: 'Familienartefakte' }} />
+      <HomeStack.Screen name="ArtifactForm" component={ArtifactFormScreen} options={{ title: 'Artefakt' }} />
       <HomeStack.Screen name="LiveMap" component={LiveMapScreen} options={{ title: 'Familienkarte' }} />
       <HomeStack.Screen name="LocationSettings" component={LocationSettingsScreen} options={{ title: 'Standort teilen' }} />
       <HomeStack.Screen name="TripStart" component={TripStartScreen} options={{ title: 'Unterwegs' }} />
