@@ -50,7 +50,8 @@ export function AdminDashboardScreen({ navigation }: Props) {
   }
 
   const d = query.data;
-  const { users, families, growth, content, storage, subscriptions, limits, analytics } = d;
+  const { users, families, growth, content, storage, subscriptions, limits, operations, analytics } = d;
+  const maxFeature = Math.max(...operations.topFeatures.map((f) => f.uses), 1);
   const maxStorage = Math.max(...storage.perFamily.map((f) => f.gb), 1);
   const tierUsers = (id: string) => subscriptions.tiers.find((t) => t.tier === id)?.users ?? 0;
 
@@ -224,6 +225,30 @@ export function AdminDashboardScreen({ navigation }: Props) {
               <Chip label={`${fmt(l.familiesNearLimit)} nahe Limit`} color={colors.warning} />
               <Chip label={`${fmt(l.familiesReached)} erreicht`} color={colors.error} />
             </View>
+          </View>
+        ))}
+      </Card>
+
+      {/* Betrieb & Nutzung */}
+      <SectionHeader title="Betrieb & Nutzung" />
+      <StatGrid
+        items={[
+          { label: 'Chronik-Einträge', value: fmt(operations.chronicleEntries) },
+          { label: 'Benachrichtigungen', value: fmt(operations.notifications) },
+          { label: 'Einladungen verschickt', value: fmt(operations.invitesSent) },
+          { label: 'Einladungen angenommen', value: fmt(operations.invitesAccepted) },
+          { label: 'Aktive Familien / Woche', value: fmt(operations.activeFamiliesPerWeek), accent: true },
+        ]}
+      />
+      <Card>
+        <AppText variant="bodyStrong">Häufig genutzte Features</AppText>
+        {operations.topFeatures.map((f) => (
+          <View key={f.label} style={styles.barRow}>
+            <AppText variant="caption" style={styles.barLabel} numberOfLines={1}>{f.label}</AppText>
+            <View style={styles.barTrack}>
+              <View style={[styles.barFill, { width: `${(f.uses / maxFeature) * 100}%`, backgroundColor: colors.relationAdoption }]} />
+            </View>
+            <AppText variant="caption" color={colors.textSecondary} style={styles.barValue}>{fmt(f.uses)}</AppText>
           </View>
         ))}
       </Card>

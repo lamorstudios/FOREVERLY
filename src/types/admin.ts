@@ -95,6 +95,16 @@ export interface AdminLimitUsage {
   familiesReached: number;
 }
 
+/** Betrieb & Nutzung (Chronik, Benachrichtigungen, Feature-Nutzung). */
+export interface AdminOperationsMetrics {
+  chronicleEntries: number;
+  notifications: number;
+  invitesSent: number;
+  invitesAccepted: number;
+  activeFamiliesPerWeek: number;
+  topFeatures: { label: string; uses: number }[];
+}
+
 /** Zeitreihen für die Analytics-Charts. */
 export interface AdminAnalytics {
   userGrowth: SeriesPoint[];
@@ -113,5 +123,6 @@ export interface AdminDashboard {
   storage: AdminStorageMetrics;
   subscriptions: AdminSubscriptionMetrics;
   limits: AdminLimitUsage[];
+  operations: AdminOperationsMetrics;
   analytics: AdminAnalytics;
 }

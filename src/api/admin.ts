@@ -128,6 +128,21 @@ function buildDemoDashboard(): AdminDashboard {
       { key: 'storage', label: 'Speicher (5 GB)', limit: 5, familiesNearLimit: 96, familiesReached: 18 },
     ],
 
+    operations: {
+      chronicleEntries: 18640,
+      notifications: 52310,
+      invitesSent,
+      invitesAccepted,
+      activeFamiliesPerWeek: 760,
+      topFeatures: [
+        { label: 'Fotos & Momente', uses: 41200 },
+        { label: 'Erinnerungen', uses: 21870 },
+        { label: 'Familienkalender', uses: 14380 },
+        { label: 'Zeitkapseln', uses: 9240 },
+        { label: 'Familienassistent', uses: 7150 },
+      ],
+    },
+
     analytics: {
       userGrowth: zip(months, [1200, 1750, 2280, 2900, 3450, 3990, 4420, 4820]),
       familyGrowth: zip(months, [290, 420, 560, 710, 860, 1000, 1100, 1180]),

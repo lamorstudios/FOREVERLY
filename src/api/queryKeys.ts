@@ -116,4 +116,6 @@ export const qk = {
   treasurePrompts: (familyId: string) => ['legacyMoments', 'treasures', familyId] as const,
   familyYear: (familyId: string, year: number) => ['legacyMoments', 'year', familyId, year] as const,
   familyWisdoms: (familyId: string) => ['legacyMoments', 'wisdoms', familyId] as const,
+  // Onboarding · Erste Schritte
+  firstSteps: (familyId: string, userId: string) => ['firstSteps', familyId, userId] as const,
 };

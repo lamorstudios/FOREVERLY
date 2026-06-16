@@ -15,6 +15,8 @@ export const PRODUCTION_FLAGS = {
   analytics: true, // datensparsame In-App-Kennzahlen
   billing: false, // echte Zahlungsabwicklung (Store/Stripe)
   adminDashboard: true, // betreiberinternes Admin-Dashboard (Kennzahlen)
+  pushNotificationsSimulated: true, // emotionale Push-Hinweise (Demo simuliert)
+  publicFamilyPage: false, // öffentlich teilbare Familienseite (Standard: privat)
 } as const;
 
 /** Datensparsame Kennzahlen-Schlüssel (keine invasiven Daten). */

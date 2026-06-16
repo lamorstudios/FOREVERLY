@@ -1,5 +1,6 @@
-import { useLayoutEffect, useMemo } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import { View, ScrollView, Pressable, StyleSheet } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useQuery } from '@tanstack/react-query';
 import { Ionicons } from '@expo/vector-icons';
@@ -30,6 +31,7 @@ import { listVaultEntries } from '@/api/vault';
 import { listTrustees, getEstateInfo } from '@/api/estate';
 import { getOnThisDay } from '@/api/historian';
 import { getMemoryOfTheDay, getTreasurePrompts, getElderToAsk } from '@/api/legacyMoments';
+import { getFirstSteps, type FirstStepKey } from '@/api/onboarding';
 import { listNotifications, unreadCount } from '@/api/familyNotifications';
 import { qk } from '@/api/queryKeys';
 import { STATUS_LEVELS } from '@/constants/phase2';
@@ -213,6 +215,31 @@ export function HomeScreen({ navigation }: Props) {
   const memoryOfDay = memoryOfDayQuery.data ?? null;
   const treasures = treasuresQuery.data ?? [];
   const elder = elderQuery.data ?? null;
+
+  // Onboarding · „Deine ersten Schritte"
+  const FIRST_STEPS_KEY = 'foreverly.firstStepsDismissed';
+  const [stepsDismissed, setStepsDismissed] = useState(true);
+  useEffect(() => {
+    AsyncStorage.getItem(FIRST_STEPS_KEY).then((v) => setStepsDismissed(v === 'true'));
+  }, []);
+  const firstStepsQuery = useQuery({
+    queryKey: qk.firstSteps(familyId, userId ?? ''),
+    queryFn: () => getFirstSteps(familyId, userId!),
+    enabled: !!userId,
+  });
+  const firstSteps = firstStepsQuery.data ?? null;
+  const showFirstSteps = !stepsDismissed && !!firstSteps && !firstSteps.complete;
+  function dismissFirstSteps() {
+    setStepsDismissed(true);
+    void AsyncStorage.setItem(FIRST_STEPS_KEY, 'true');
+  }
+  function openStep(key: FirstStepKey) {
+    const parent = navigation.getParent() as { navigate: (n: string, p?: object) => void } | undefined;
+    if (key === 'profile') parent?.navigate('ProfileTab', { screen: 'EditProfile' });
+    else if (key === 'invite') parent?.navigate('FamilyTab', { screen: 'SmartInvite' });
+    else if (key === 'memory') parent?.navigate('MemoriesTab', { screen: 'MemoryForm' });
+    else parent?.navigate('CapsulesTab', { screen: 'CapsuleForm' });
+  }
 
   // Familienschatz-Aktion → passende Aufnahme-Route (teils tab-übergreifend).
   function startTreasure(action: 'interview' | 'memory' | 'audio', personId: string | null) {
@@ -405,6 +432,47 @@ export function HomeScreen({ navigation }: Props) {
       <Appear delay={20}>
         <InviteFamilyButton />
       </Appear>
+
+      {/* Onboarding · Deine ersten Schritte */}
+      {showFirstSteps && firstSteps ? (
+        <Appear delay={25}>
+          <Card style={styles.stepsCard}>
+            <View style={styles.stepsHeader}>
+              <View style={styles.rowText}>
+                <AppText variant="bodyStrong">Deine ersten Schritte</AppText>
+                <AppText variant="caption" color={colors.textSecondary}>
+                  {firstSteps.doneCount} von {firstSteps.total} erledigt
+                </AppText>
+              </View>
+              <Pressable onPress={dismissFirstSteps} hitSlop={10}>
+                <AppText variant="label" color={colors.textMuted}>Ausblenden</AppText>
+              </Pressable>
+            </View>
+            {firstSteps.steps.map((s) => (
+              <Pressable
+                key={s.key}
+                onPress={() => openStep(s.key)}
+                style={({ pressed }) => [styles.stepRow, pressed && styles.pressed]}
+                disabled={s.done}
+              >
+                <Ionicons
+                  name={s.done ? 'checkmark-circle' : 'ellipse-outline'}
+                  size={22}
+                  color={s.done ? colors.success : colors.primary}
+                />
+                <AppText
+                  variant="body"
+                  color={s.done ? colors.textMuted : colors.textPrimary}
+                  style={[styles.flex, s.done && styles.stepDone]}
+                >
+                  {s.label}
+                </AppText>
+                {!s.done ? <Ionicons name="chevron-forward" size={18} color={colors.textMuted} /> : null}
+              </Pressable>
+            ))}
+          </Card>
+        </Appear>
+      ) : null}
 
       {/* Admin Dashboard – nur für Admins, separater Einstieg (nicht im Profil-Tab) */}
       {isAdmin ? (
@@ -927,6 +995,12 @@ const styles = StyleSheet.create({
   },
   heroOverlay: { padding: spacing.lg, gap: 2 },
   section: { gap: spacing.sm },
+  flex: { flex: 1 },
+  // Onboarding-Checkliste
+  stepsCard: { borderColor: colors.goldSoft, borderWidth: 1.5, backgroundColor: colors.warmWhite, gap: spacing.xs },
+  stepsHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.sm, marginBottom: spacing.xs },
+  stepRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingVertical: spacing.xs },
+  stepDone: { textDecorationLine: 'line-through' },
   adminCard: { borderColor: colors.bronze, borderWidth: 1.5, backgroundColor: colors.surfaceAlt },
   alertCard: { borderColor: colors.error, borderWidth: 1.5 },
   // Legacy Moments

@@ -374,10 +374,16 @@ export function createSeedData(): DemoDataset {
     status('st-opa', 'p-opa', 'okay', null, -2),
   ];
 
-  // --- Phase 2: Benachrichtigungen ---
+  // --- Phase 2: Benachrichtigungen (emotional, antippbar) ---
   const notifications: AppNotification[] = [
-    notify('nt1', 'status', 'Oma Erika fühlt sich nicht wohl', '🤒 „Mir geht es heute nicht so gut." – schau doch mal nach ihr.', 0),
-    notify('nt2', 'calendar', 'Bald: Arzttermin Opa Hans', 'In wenigen Tagen steht ein Termin an.', -1),
+    notify('nt1', 'status', '💛 Oma Erika fühlt sich gerade etwas allein.', 'Schau doch mal nach – eine Nachricht tut gut.', 0, { type: 'status', route: 'Status' }),
+    notify('nt2', 'info', '📸 Sabine hat neue Fotos geteilt.', 'Frische Momente vom Sommergrillen.', 0, { type: 'photo', tab: 'MemoriesTab', screen: 'PhotoGallery' }),
+    notify('nt3', 'info', '🎤 Opa Hans hat eine neue Sprachnachricht aufgenommen.', 'Hör dir die Originalstimme an.', -1, { type: 'audio', route: 'MomentsHome' }),
+    notify('nt4', 'info', '🎉 Max ist eurer Familie beigetreten.', 'Heißt das neue Familienmitglied willkommen.', -1, { type: 'member_joined', tab: 'FamilyTab', screen: 'Network' }),
+    notify('nt5', 'calendar', '⏳ Eure Zeitkapsel für Nick öffnet sich in 7 Tagen.', 'Bald gibt es etwas zu entdecken.', -2, { type: 'capsule_opening', tab: 'CapsulesTab', screen: 'CapsuleList' }),
+    notify('nt6', 'calendar', '🎂 Morgen hat Papa Geburtstag.', 'Vergiss nicht zu gratulieren.', -2, { type: 'event_soon', route: 'Calendar' }),
+    notify('nt7', 'info', '📍 Nick teilt gerade seinen Heimweg.', 'Du kannst den Weg live verfolgen.', -3, { type: 'location', route: 'LiveMap' }),
+    notify('nt8', 'info', '🎙️ Zeit, eine Geschichte zu bewahren.', 'Nimm dir einen Moment für Oma Erika.', -4, { type: 'interview_reminder', route: 'LegacyHub' }),
   ];
 
   // --- Phase 2: Notfallkontakte ---
@@ -1010,6 +1016,7 @@ export function createSeedData(): DemoDataset {
     title: string,
     body: string,
     offset: number,
+    data: Record<string, unknown> = {},
   ): AppNotification {
     return {
       id,
@@ -1019,7 +1026,7 @@ export function createSeedData(): DemoDataset {
       category,
       title,
       body,
-      data: {},
+      data,
       is_read: false,
       created_at: daysFromNow(offset),
     };
