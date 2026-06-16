@@ -45,6 +45,12 @@ import { TrusteesScreen } from '@/screens/estate/TrusteesScreen';
 import { TrusteeFormScreen } from '@/screens/estate/TrusteeFormScreen';
 import { EstateInfoFormScreen } from '@/screens/estate/EstateInfoFormScreen';
 import { EstateCaseScreen } from '@/screens/estate/EstateCaseScreen';
+// Phase 6 · Family Safety & Live Location
+import { LiveMapScreen } from '@/screens/safety/LiveMapScreen';
+import { LocationSettingsScreen } from '@/screens/safety/LocationSettingsScreen';
+import { TripStartScreen } from '@/screens/safety/TripStartScreen';
+import { TripDetailScreen } from '@/screens/safety/TripDetailScreen';
+import { SosScreen } from '@/screens/safety/SosScreen';
 // Phase 2
 import { StatusScreen } from '@/screens/phase2/StatusScreen';
 import { NotificationsScreen } from '@/screens/phase2/NotificationsScreen';
@@ -131,6 +137,11 @@ function HomeStackNavigator() {
       <HomeStack.Screen name="ImportantPeople" component={ImportantPeopleScreen} options={{ title: 'Wichtige Personen' }} />
       <HomeStack.Screen name="PersonInsight" component={PersonInsightScreen} options={{ title: 'Person' }} />
       <HomeStack.Screen name="KnowledgeGaps" component={KnowledgeGapsScreen} options={{ title: 'Familienwissen retten' }} />
+      <HomeStack.Screen name="LiveMap" component={LiveMapScreen} options={{ title: 'Familienkarte' }} />
+      <HomeStack.Screen name="LocationSettings" component={LocationSettingsScreen} options={{ title: 'Standort teilen' }} />
+      <HomeStack.Screen name="TripStart" component={TripStartScreen} options={{ title: 'Unterwegs' }} />
+      <HomeStack.Screen name="TripDetail" component={TripDetailScreen} options={{ title: 'Unterwegs' }} />
+      <HomeStack.Screen name="Sos" component={SosScreen} options={{ title: 'SOS-Notruf' }} />
     </HomeStack.Navigator>
   );
 }

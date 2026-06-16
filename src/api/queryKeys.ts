@@ -70,4 +70,10 @@ export const qk = {
   estateInfo: (ownerUserId: string) => ['estateInfo', ownerUserId] as const,
   estateCases: (familyId: string) => ['estateCases', familyId] as const,
   estateCase: (id: string) => ['estateCase', id] as const,
+  // Family Safety & Live Location
+  liveShares: (familyId: string) => ['liveShares', familyId] as const,
+  myLiveShare: (userId: string) => ['myLiveShare', userId] as const,
+  safetyTrips: (familyId: string) => ['safetyTrips', familyId] as const,
+  safetyTrip: (id: string) => ['safetyTrip', id] as const,
+  safetyAlerts: (familyId: string) => ['safetyAlerts', familyId] as const,
 };

@@ -46,6 +46,13 @@ import type {
   EstateAudience,
   EstateCase,
   EstateConfirmation,
+  LiveShare,
+  LiveStatus,
+  ShareDuration,
+  SafetyAudience,
+  SafetyTrip,
+  SafetyTripKind,
+  SafetyAlert,
 } from '@/types/models';
 import { createSeedData, DEMO_FAMILY_ID, DEMO_USER_ID } from './demoData';
 
@@ -1306,6 +1313,170 @@ export const demoStore = {
     c.released_at = null;
     c.updated_at = nowIso();
     return this.getEstateCase(c.id)!;
+  },
+
+  // ===================== Family Safety & Live Location =====================
+  getMyLiveShare(userId: string): LiveShare | null {
+    return data.liveShares.find((s) => s.user_id === userId) ?? null;
+  },
+  listLiveShares(familyId: string): LiveShare[] {
+    return data.liveShares
+      .filter((s) => s.family_id === familyId && s.active)
+      .map((s) => ({ ...s, person: data.persons.find((p) => p.id === s.person_id) }));
+  },
+  setLiveShare(input: {
+    familyId: string;
+    userId: string;
+    personId: string | null;
+    status: LiveStatus;
+    statusLabel?: string | null;
+    placeLabel?: string | null;
+    battery?: number | null;
+    audience: SafetyAudience;
+    recipientPersonIds?: string[];
+    duration: ShareDuration;
+    expiresAt?: string | null;
+  }): LiveShare {
+    let s = data.liveShares.find((x) => x.user_id === input.userId);
+    const patch: Partial<LiveShare> = {
+      family_id: input.familyId,
+      person_id: input.personId,
+      active: input.duration !== 'off',
+      status: input.status,
+      status_label: input.statusLabel ?? null,
+      place_label: input.placeLabel ?? null,
+      battery: input.battery ?? null,
+      audience: input.audience,
+      recipient_person_ids: input.recipientPersonIds ?? [],
+      duration: input.duration,
+      expires_at: input.expiresAt ?? null,
+      updated_at: nowIso(),
+    };
+    if (s) {
+      Object.assign(s, patch);
+    } else {
+      s = { id: newId('ls'), user_id: input.userId, latitude: null, longitude: null, ...patch } as LiveShare;
+      data.liveShares.push(s);
+    }
+    return s;
+  },
+  stopLiveShare(userId: string): void {
+    const s = data.liveShares.find((x) => x.user_id === userId);
+    if (s) {
+      s.active = false;
+      s.duration = 'off';
+      s.updated_at = nowIso();
+    }
+  },
+
+  listSafetyTrips(familyId: string): SafetyTrip[] {
+    return data.safetyTrips
+      .filter((t) => t.family_id === familyId)
+      .map((t) => ({ ...t, person: data.persons.find((p) => p.id === t.person_id) }))
+      .sort((a, b) => (a.started_at < b.started_at ? 1 : -1));
+  },
+  getSafetyTrip(id: string): SafetyTrip | null {
+    const t = data.safetyTrips.find((x) => x.id === id);
+    if (!t) return null;
+    return { ...t, person: data.persons.find((p) => p.id === t.person_id) };
+  },
+  startTrip(input: {
+    familyId: string;
+    userId: string;
+    personId: string | null;
+    kind: SafetyTripKind;
+    destinationLabel: string;
+    eta?: string | null;
+    audience: SafetyAudience;
+    recipientPersonIds?: string[];
+    battery?: number | null;
+  }): SafetyTrip {
+    const t: SafetyTrip = {
+      id: newId('trip'),
+      family_id: input.familyId,
+      user_id: input.userId,
+      person_id: input.personId,
+      kind: input.kind,
+      destination_label: input.destinationLabel,
+      eta: input.eta ?? null,
+      status: 'active',
+      audience: input.audience,
+      recipient_person_ids: input.recipientPersonIds ?? [],
+      battery: input.battery ?? null,
+      started_at: nowIso(),
+      arrived_at: null,
+      updated_at: nowIso(),
+    };
+    data.safetyTrips.unshift(t);
+    return this.getSafetyTrip(t.id)!;
+  },
+  arriveTrip(id: string): SafetyTrip {
+    const t = data.safetyTrips.find((x) => x.id === id);
+    if (!t) throw new Error('Trip nicht gefunden');
+    t.status = 'arrived';
+    t.arrived_at = nowIso();
+    t.updated_at = nowIso();
+    const person = data.persons.find((p) => p.id === t.person_id);
+    const name = person ? [person.first_name, person.last_name].filter(Boolean).join(' ') : 'Familienmitglied';
+    data.notifications.unshift({
+      id: newId('nt'), family_id: t.family_id, recipient_user_id: null, actor_user_id: t.user_id,
+      category: 'info', title: 'Sicher angekommen',
+      body: `${name} ist sicher angekommen (${t.destination_label}).`,
+      data: { tripId: t.id }, is_read: false, created_at: nowIso(),
+    });
+    return this.getSafetyTrip(t.id)!;
+  },
+  cancelTrip(id: string): SafetyTrip {
+    const t = data.safetyTrips.find((x) => x.id === id);
+    if (!t) throw new Error('Trip nicht gefunden');
+    t.status = 'cancelled';
+    t.updated_at = nowIso();
+    return this.getSafetyTrip(t.id)!;
+  },
+
+  listSafetyAlerts(familyId: string): SafetyAlert[] {
+    return data.safetyAlerts
+      .filter((a) => a.family_id === familyId)
+      .map((a) => ({ ...a, person: data.persons.find((p) => p.id === a.person_id) }))
+      .sort((a, b) => (a.created_at < b.created_at ? 1 : -1));
+  },
+  triggerSos(input: {
+    familyId: string;
+    userId: string;
+    personId: string | null;
+    message?: string | null;
+    placeLabel?: string | null;
+    battery?: number | null;
+  }): SafetyAlert {
+    const a: SafetyAlert = {
+      id: newId('sos'),
+      family_id: input.familyId,
+      user_id: input.userId,
+      person_id: input.personId,
+      message: input.message ?? null,
+      place_label: input.placeLabel ?? null,
+      latitude: null,
+      longitude: null,
+      battery: input.battery ?? null,
+      status: 'active',
+      created_at: nowIso(),
+      resolved_at: null,
+    };
+    data.safetyAlerts.unshift(a);
+    data.notifications.unshift({
+      id: newId('nt'), family_id: input.familyId, recipient_user_id: null, actor_user_id: input.userId,
+      category: 'emergency', title: '🆘 SOS – Hilfe benötigt',
+      body: input.message ?? 'Ein Familienmitglied hat den SOS-Notfallknopf ausgelöst.',
+      data: { alertId: a.id }, is_read: false, created_at: nowIso(),
+    });
+    return { ...a, person: data.persons.find((p) => p.id === a.person_id) };
+  },
+  resolveSos(id: string): SafetyAlert {
+    const a = data.safetyAlerts.find((x) => x.id === id);
+    if (!a) throw new Error('Meldung nicht gefunden');
+    a.status = 'resolved';
+    a.resolved_at = nowIso();
+    return { ...a, person: data.persons.find((p) => p.id === a.person_id) };
   },
 };
 

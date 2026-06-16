@@ -22,6 +22,7 @@ import { listStatuses } from '@/api/status';
 import { listMoments } from '@/api/moments';
 import { listCalendarEvents } from '@/api/calendar';
 import { listEvents } from '@/api/familyEvents';
+import { listSafetyTrips, listSafetyAlerts, listLiveShares } from '@/api/safety';
 import { listNotifications, unreadCount } from '@/api/familyNotifications';
 import { qk } from '@/api/queryKeys';
 import { STATUS_LEVELS } from '@/constants/phase2';
@@ -50,6 +51,8 @@ type QuickRoute =
   | 'Branches'
   | 'MomentsHome'
   | 'HistorianHome'
+  | 'LiveMap'
+  | 'Sos'
   | 'SeniorMode';
 
 interface QuickAction {
@@ -60,6 +63,8 @@ interface QuickAction {
 }
 
 const QUICK_ACTIONS: QuickAction[] = [
+  { label: 'Familienkarte', icon: 'location-outline', color: colors.relationMarried, route: 'LiveMap' },
+  { label: 'SOS-Notruf', icon: 'warning-outline', color: colors.error, route: 'Sos' },
   { label: 'Familienmomente', icon: 'images-outline', color: colors.gold, route: 'MomentsHome' },
   { label: 'Historiker', icon: 'sparkles-outline', color: colors.relationAdoption, route: 'HistorianHome' },
   { label: 'Status senden', icon: 'happy-outline', color: colors.success, route: 'Status' },
@@ -127,8 +132,23 @@ export function HomeScreen({ navigation }: Props) {
     queryKey: qk.events(familyId),
     queryFn: () => listEvents(familyId),
   });
+  const safetyTripsQuery = useQuery({
+    queryKey: qk.safetyTrips(familyId),
+    queryFn: () => listSafetyTrips(familyId),
+  });
+  const safetyAlertsQuery = useQuery({
+    queryKey: qk.safetyAlerts(familyId),
+    queryFn: () => listSafetyAlerts(familyId),
+  });
+  const liveSharesQuery = useQuery({
+    queryKey: qk.liveShares(familyId),
+    queryFn: () => listLiveShares(familyId),
+  });
 
   const unread = unreadCount(notifications.data ?? []);
+  const activeTrips = (safetyTripsQuery.data ?? []).filter((t) => t.status === 'active');
+  const activeAlerts = (safetyAlertsQuery.data ?? []).filter((a) => a.status === 'active');
+  const sharingCount = (liveSharesQuery.data ?? []).length;
 
   // „Heute in deiner Familie" – kuratierte, emotionale Zusammenfassung.
   const todayItems = useMemo<TodayItem[]>(() => {
@@ -301,6 +321,62 @@ export function HomeScreen({ navigation }: Props) {
           </View>
         </Appear>
       ) : null}
+
+      {/* Familien-Sicherheit */}
+      <Appear delay={60}>
+        <View style={styles.section}>
+          <SectionHeader title="Familien-Sicherheit" actionLabel="Karte" onAction={() => navigation.navigate('LiveMap')} />
+          {activeAlerts.length > 0 ? (
+            <Card onPress={() => navigation.navigate('Sos')} style={styles.alertCard}>
+              <View style={styles.row}>
+                <View style={[styles.iconCircle, { backgroundColor: withAlpha(colors.error, 0.16) }]}>
+                  <Ionicons name="warning" size={22} color={colors.error} />
+                </View>
+                <View style={styles.rowText}>
+                  <AppText variant="bodyStrong" color={colors.error}>SOS aktiv</AppText>
+                  <AppText variant="caption" color={colors.textSecondary} numberOfLines={1}>
+                    {fullName(activeAlerts[0]!.person?.first_name, activeAlerts[0]!.person?.last_name) || 'Jemand'} braucht Hilfe
+                  </AppText>
+                </View>
+              </View>
+            </Card>
+          ) : null}
+          {activeTrips.map((t) => (
+            <Card key={t.id} onPress={() => navigation.navigate('TripDetail', { tripId: t.id })}>
+              <View style={styles.row}>
+                <View style={[styles.iconCircle, { backgroundColor: withAlpha(colors.relationMarried, 0.16) }]}>
+                  <Ionicons name="navigate" size={20} color={colors.relationMarried} />
+                </View>
+                <View style={styles.rowText}>
+                  <AppText variant="bodyStrong" numberOfLines={1}>
+                    {fullName(t.person?.first_name, t.person?.last_name) || 'Familienmitglied'} ist unterwegs
+                  </AppText>
+                  <AppText variant="caption" color={colors.textSecondary} numberOfLines={1}>
+                    Heimweg → {t.destination_label}
+                  </AppText>
+                </View>
+                <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
+              </View>
+            </Card>
+          ))}
+          {activeAlerts.length === 0 && activeTrips.length === 0 ? (
+            <Card onPress={() => navigation.navigate('LiveMap')}>
+              <View style={styles.row}>
+                <View style={[styles.iconCircle, { backgroundColor: withAlpha(colors.relationMarried, 0.16) }]}>
+                  <Ionicons name="location-outline" size={20} color={colors.relationMarried} />
+                </View>
+                <View style={styles.rowText}>
+                  <AppText variant="bodyStrong">Familienkarte</AppText>
+                  <AppText variant="caption" color={colors.textSecondary}>
+                    {sharingCount > 0 ? `${sharingCount} teilen gerade ihren Standort` : 'Niemand teilt gerade – alles ruhig'}
+                  </AppText>
+                </View>
+                <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
+              </View>
+            </Card>
+          ) : null}
+        </View>
+      </Appear>
 
       {/* Familienmomente – Fotos im Vordergrund */}
       {photoMoments.length > 0 ? (
@@ -556,6 +632,7 @@ const styles = StyleSheet.create({
   },
   heroOverlay: { padding: spacing.lg, gap: 2 },
   section: { gap: spacing.sm },
+  alertCard: { borderColor: colors.error, borderWidth: 1.5 },
   row: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   rowText: { flex: 1, gap: 2 },
   // Heute-in-deiner-Familie Digest

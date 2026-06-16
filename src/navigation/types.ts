@@ -1,4 +1,5 @@
 import type { NavigatorScreenParams } from '@react-navigation/native';
+import type { SafetyTripKind } from '@/types/models';
 
 export type AuthStackParamList = {
   Welcome: undefined;
@@ -56,6 +57,12 @@ export type HomeStackParamList = {
   ImportantPeople: undefined;
   PersonInsight: { personId: string };
   KnowledgeGaps: undefined;
+  // Phase 6 · Family Safety & Live Location
+  LiveMap: undefined;
+  LocationSettings: undefined;
+  TripStart: { kind?: SafetyTripKind } | undefined;
+  TripDetail: { tripId: string };
+  Sos: undefined;
 };
 
 export type FamilyStackParamList = {

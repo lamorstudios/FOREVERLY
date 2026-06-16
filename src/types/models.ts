@@ -590,3 +590,82 @@ export interface EstateConfirmation {
   created_at: string;
 }
 
+// ===================== Family Safety & Live Location =====================
+
+/** Wer darf etwas sehen (Standort, Heimweg, SOS). */
+export type SafetyAudience = 'inner' | 'trusted' | 'family' | 'selected';
+
+/** Dauer einer Standortfreigabe. */
+export type ShareDuration = 'off' | '1h' | 'today' | 'custom' | 'permanent';
+
+/** Aktivitäts-/Ortsstatus auf der Familienkarte. */
+export type LiveStatus =
+  | 'home'
+  | 'moving'
+  | 'work'
+  | 'school'
+  | 'doctor'
+  | 'vacation'
+  | 'custom';
+
+/** Freiwillige Live-Standortfreigabe einer Person (Standard: deaktiviert). */
+export interface LiveShare {
+  id: string;
+  family_id: string;
+  user_id: string;
+  person_id: string | null;
+  active: boolean;
+  status: LiveStatus;
+  status_label: string | null; // benutzerdefinierter Status
+  place_label: string | null; // z.B. „Zuhause", „Praxis Dr. Wagner"
+  latitude: number | null;
+  longitude: number | null;
+  battery: number | null; // 0–100
+  audience: SafetyAudience;
+  recipient_person_ids: string[];
+  duration: ShareDuration;
+  expires_at: string | null; // automatische Beendigung
+  updated_at: string;
+  person?: Person;
+}
+
+/** „Heimweg teilen" / „Sicher angekommen". */
+export type SafetyTripKind = 'heimweg' | 'safe_arrival';
+export type SafetyTripStatus = 'active' | 'arrived' | 'cancelled';
+
+export interface SafetyTrip {
+  id: string;
+  family_id: string;
+  user_id: string;
+  person_id: string | null;
+  kind: SafetyTripKind;
+  destination_label: string;
+  eta: string | null; // ISO-Zeitpunkt der erwarteten Ankunft
+  status: SafetyTripStatus;
+  audience: SafetyAudience;
+  recipient_person_ids: string[];
+  battery: number | null;
+  started_at: string;
+  arrived_at: string | null;
+  updated_at: string;
+  person?: Person;
+}
+
+/** SOS-Notfallmeldung mit letzter bekannter Position. */
+export interface SafetyAlert {
+  id: string;
+  family_id: string;
+  user_id: string;
+  person_id: string | null;
+  message: string | null;
+  place_label: string | null;
+  latitude: number | null;
+  longitude: number | null;
+  battery: number | null;
+  status: 'active' | 'resolved';
+  created_at: string;
+  resolved_at: string | null;
+  person?: Person;
+}
+
+

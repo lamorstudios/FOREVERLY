@@ -35,6 +35,9 @@ import type {
   EstateInfo,
   EstateCase,
   EstateConfirmation,
+  LiveShare,
+  SafetyTrip,
+  SafetyAlert,
 } from '@/types/models';
 import { coverImage, photoImage, portraitImage } from './images';
 
@@ -85,6 +88,10 @@ export interface DemoDataset {
   estateInfos: EstateInfo[];
   estateCases: EstateCase[];
   estateConfirmations: EstateConfirmation[];
+  // Family Safety & Live Location
+  liveShares: LiveShare[];
+  safetyTrips: SafetyTrip[];
+  safetyAlerts: SafetyAlert[];
 }
 
 /** Erzeugt einen frischen Demo-Datensatz (Familie Mielke). */
@@ -500,6 +507,47 @@ export function createSeedData(): DemoDataset {
   const estateCases: EstateCase[] = [];
   const estateConfirmations: EstateConfirmation[] = [];
 
+  // --- Family Safety & Live Location ---
+  const minsFromNow = (m: number) => new Date(now.getTime() + m * 60000).toISOString();
+  const liveShares: LiveShare[] = [
+    {
+      id: 'ls-nick', family_id: DEMO_FAMILY_ID, user_id: DEMO_USER_ID, person_id: 'p-nick',
+      active: true, status: 'moving', status_label: null, place_label: 'Hamburg, Innenstadt',
+      latitude: 53.5511, longitude: 9.9937, battery: 72, audience: 'inner', recipient_person_ids: [],
+      duration: 'today', expires_at: minsFromNow(360), updated_at: minsFromNow(-4),
+    },
+    {
+      id: 'ls-oma', family_id: DEMO_FAMILY_ID, user_id: 'u-oma', person_id: 'p-oma',
+      active: true, status: 'doctor', status_label: null, place_label: 'Praxis Dr. Wagner, Lübeck',
+      latitude: 53.8655, longitude: 10.6866, battery: 45, audience: 'trusted', recipient_person_ids: [],
+      duration: '1h', expires_at: minsFromNow(40), updated_at: minsFromNow(-9),
+    },
+  ];
+
+  const safetyTrips: SafetyTrip[] = [
+    {
+      id: 'trip-sabine', family_id: DEMO_FAMILY_ID, user_id: 'u-sabine', person_id: 'p-mutter',
+      kind: 'heimweg', destination_label: 'Zuhause, Lübeck', eta: minsFromNow(18), status: 'active',
+      audience: 'inner', recipient_person_ids: [], battery: 63,
+      started_at: minsFromNow(-12), arrived_at: null, updated_at: minsFromNow(-2),
+    },
+    {
+      id: 'trip-oma', family_id: DEMO_FAMILY_ID, user_id: 'u-oma', person_id: 'p-oma',
+      kind: 'safe_arrival', destination_label: 'Praxis Dr. Wagner', eta: null, status: 'arrived',
+      audience: 'inner', recipient_person_ids: [], battery: 45,
+      started_at: minsFromNow(-50), arrived_at: minsFromNow(-8), updated_at: minsFromNow(-8),
+    },
+  ];
+
+  const safetyAlerts: SafetyAlert[] = [
+    {
+      id: 'sos-demo', family_id: DEMO_FAMILY_ID, user_id: 'u-opa', person_id: 'p-opa',
+      message: 'Mir ist schwindelig, bitte ruft mich an.', place_label: 'Zuhause, Rostock',
+      latitude: 54.0924, longitude: 12.0991, battery: 88, status: 'resolved',
+      created_at: daysFromNow(-2), resolved_at: daysFromNow(-2),
+    },
+  ];
+
   return {
     profile,
     family,
@@ -532,6 +580,9 @@ export function createSeedData(): DemoDataset {
     estateInfos,
     estateCases,
     estateConfirmations,
+    liveShares,
+    safetyTrips,
+    safetyAlerts,
   };
 
   // --- Fabrik-Helfer ---
