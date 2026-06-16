@@ -109,6 +109,8 @@ export const qk = {
   artifacts: (familyId: string) => ['artifacts', familyId] as const,
   // Admin-Dashboard (betreiberintern)
   adminDashboard: () => ['adminDashboard'] as const,
+  // Family Network Engine
+  familyGrowth: (familyId: string) => ['familyGrowth', familyId] as const,
   // Legacy Moments & Family Memories
   memoryOfTheDay: (familyId: string) => ['legacyMoments', 'memoryOfTheDay', familyId] as const,
   legacyScores: (familyId: string) => ['legacyMoments', 'scores', familyId] as const,

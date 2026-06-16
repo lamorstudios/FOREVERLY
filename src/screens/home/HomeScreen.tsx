@@ -33,6 +33,7 @@ import { listVaultEntries } from '@/api/vault';
 import { listTrustees, getEstateInfo } from '@/api/estate';
 import { getOnThisDay } from '@/api/historian';
 import { getMemoryOfTheDay, getTreasurePrompts, getElderToAsk } from '@/api/legacyMoments';
+import { getFamilyGrowth } from '@/api/familyNetwork';
 import { getFirstSteps, type FirstStepKey } from '@/api/onboarding';
 import { listNotifications, unreadCount } from '@/api/familyNotifications';
 import { qk } from '@/api/queryKeys';
@@ -239,9 +240,14 @@ export function HomeScreen({ navigation }: Props) {
     queryKey: qk.elderToAsk(familyId),
     queryFn: () => getElderToAsk(familyId, userId ?? undefined),
   });
+  const growthQuery = useQuery({
+    queryKey: qk.familyGrowth(familyId),
+    queryFn: () => getFamilyGrowth(familyId, userId ?? undefined),
+  });
   const memoryOfDay = memoryOfDayQuery.data ?? null;
   const treasures = treasuresQuery.data ?? [];
   const elder = elderQuery.data ?? null;
+  const growth = growthQuery.data ?? null;
 
   // Onboarding · „Deine ersten Schritte"
   const FIRST_STEPS_KEY = 'foreverly.firstStepsDismissed';
@@ -501,6 +507,24 @@ export function HomeScreen({ navigation }: Props) {
                 {!s.done ? <Ionicons name="chevron-forward" size={18} color={colors.textMuted} /> : null}
               </Pressable>
             ))}
+          </Card>
+        </Appear>
+      ) : null}
+
+      {/* Familienwachstum */}
+      {growth ? (
+        <Appear delay={25}>
+          <Card onPress={() => { const p = navigation.getParent() as { navigate: (n: string, x?: object) => void } | undefined; p?.navigate('FamilyTab', { screen: 'Network' }); }} style={styles.growthCard}>
+            <View style={styles.growthHeader}>
+              <Ionicons name="leaf-outline" size={20} color={colors.success} />
+              <AppText variant="bodyStrong">Eure Familie wächst</AppText>
+            </View>
+            <View style={styles.growthGrid}>
+              <GrowthStat value={growth.members} label={growth.members === 1 ? 'Mitglied' : 'Mitglieder'} />
+              <GrowthStat value={growth.generations} label={growth.generations === 1 ? 'Generation' : 'Generationen'} />
+              <GrowthStat value={growth.memories} label="Erinnerungen" />
+              <GrowthStat value={growth.capsules} label="Zeitkapseln" />
+            </View>
           </Card>
         </Appear>
       ) : null}
@@ -908,6 +932,15 @@ export function HomeScreen({ navigation }: Props) {
   );
 }
 
+function GrowthStat({ value, label }: { value: number; label: string }) {
+  return (
+    <View style={styles.growthStat}>
+      <AppText variant="heading" color={colors.primaryDark}>{value}</AppText>
+      <AppText variant="caption" color={colors.textSecondary} center>{label}</AppText>
+    </View>
+  );
+}
+
 function TodayRow({
   item,
   showDivider,
@@ -1034,6 +1067,10 @@ const styles = StyleSheet.create({
   stepRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingVertical: spacing.xs },
   stepDone: { textDecorationLine: 'line-through' },
   adminCard: { borderColor: colors.bronze, borderWidth: 1.5, backgroundColor: colors.surfaceAlt },
+  growthCard: { gap: spacing.sm },
+  growthHeader: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  growthGrid: { flexDirection: 'row', justifyContent: 'space-between', gap: spacing.sm },
+  growthStat: { flex: 1, alignItems: 'center', gap: 2 },
   alertCard: { borderColor: colors.error, borderWidth: 1.5 },
   // Legacy Moments
   memoryDayCard: { overflow: 'hidden' },

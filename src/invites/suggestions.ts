@@ -86,6 +86,28 @@ export function computeSuggestions(
           reason: `${nameOf(Z)} ist ein Elternteil von ${nameOf(Y)}.`,
         });
       }
+
+      // Geschwister(Y von X) + Geschwister(Z von Y) -> Geschwister (transitiv)
+      if (SIBLINGS.includes(a.type) && SIBLINGS.includes(b.type) && Z !== X) {
+        add({
+          from_person_id: X,
+          to_person_id: Z,
+          suggested_type: b.type,
+          suggested_category: 'biological',
+          reason: `${nameOf(Z)} ist ein Geschwister von ${nameOf(Y)} – also auch von dir.`,
+        });
+      }
+
+      // Kind(Y von X) + Kind(Z von Y) -> Enkel/in (als Tante/Onkel-Spiegel: Großeltern-Sicht)
+      if (CHILDREN.includes(a.type) && CHILDREN.includes(b.type)) {
+        add({
+          from_person_id: X,
+          to_person_id: Z,
+          suggested_type: 'sonstige',
+          suggested_category: 'biological',
+          reason: `${nameOf(Z)} ist das Enkelkind über ${nameOf(Y)}.`,
+        });
+      }
     }
   }
 

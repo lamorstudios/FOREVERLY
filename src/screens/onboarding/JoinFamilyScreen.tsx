@@ -4,7 +4,9 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Screen, AppText, Button, TextField } from '@/components';
 import { useFamily } from '@/context/FamilyContext';
+import { useAuth } from '@/context/AuthContext';
 import { acceptInvitation } from '@/api/invitations';
+import { generateSuggestions } from '@/api/suggestions';
 import { clearPendingInvite } from '@/lib/pendingInvite';
 import { qk } from '@/api/queryKeys';
 import { friendlyError } from '@/lib/errors';
@@ -15,6 +17,7 @@ type Props = NativeStackScreenProps<OnboardingStackParamList, 'JoinFamily'>;
 
 export function JoinFamilyScreen({ navigation, route }: Props) {
   const { setActiveFamily, refetch } = useFamily();
+  const { userId } = useAuth();
   const queryClient = useQueryClient();
   const [code, setCode] = useState(route.params?.code ?? '');
   const [error, setError] = useState<string | null>(null);
@@ -23,6 +26,12 @@ export function JoinFamilyScreen({ navigation, route }: Props) {
     mutationFn: () => acceptInvitation(code),
     onSuccess: async (familyId) => {
       await clearPendingInvite();
+      // Kettenreaktion: abgeleitete Beziehungen (z. B. Nichte/Neffe) vorschlagen.
+      try {
+        if (userId) await generateSuggestions(familyId, userId);
+      } catch {
+        /* nicht kritisch für den Beitritt */
+      }
       await queryClient.invalidateQueries({ queryKey: qk.families() });
       refetch();
       setActiveFamily(familyId);
