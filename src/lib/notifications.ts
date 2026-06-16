@@ -57,6 +57,24 @@ export async function registerPushToken(): Promise<string | null> {
 }
 
 /**
+ * Zeigt sofort eine lokale Benachrichtigung an (Beta/Test-Modus). Auf echten
+ * Geräten erscheint sie als System-Mitteilung; im Web ein No-Op. Bildet die
+ * Brücke zwischen „simuliert" und echtem Push, bis der Server-Versand steht.
+ */
+export async function presentLocalNotification(
+  title: string,
+  body?: string,
+  data?: Record<string, unknown>,
+): Promise<void> {
+  if (!NOTIFICATIONS_SUPPORTED) return;
+  await registerForNotifications();
+  await Notifications.scheduleNotificationAsync({
+    content: { title, body: body ?? '', data: data ?? {} },
+    trigger: null, // sofort
+  });
+}
+
+/**
  * Plant eine lokale Erinnerung zum Öffnungszeitpunkt einer Zeitkapsel.
  * (MVP: lokale Benachrichtigung; serverseitige Push folgt in späterer Phase.)
  */

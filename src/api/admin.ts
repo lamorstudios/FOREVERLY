@@ -143,6 +143,19 @@ function buildDemoDashboard(): AdminDashboard {
       ],
     },
 
+    notifications: {
+      sent: 52310,
+      opened: 31980,
+      openRate: 31980 / 52310,
+      mostActive: [
+        { name: 'Familie Mielke', actions: 412 },
+        { name: 'Familie Weber', actions: 318 },
+        { name: 'Familie Schneider', actions: 264 },
+        { name: 'Familie Hoffmann', actions: 221 },
+        { name: 'Familie Bauer', actions: 188 },
+      ],
+    },
+
     analytics: {
       userGrowth: zip(months, [1200, 1750, 2280, 2900, 3450, 3990, 4420, 4820]),
       familyGrowth: zip(months, [290, 420, 560, 710, 860, 1000, 1100, 1180]),

@@ -105,6 +105,15 @@ export interface AdminOperationsMetrics {
   topFeatures: { label: string; uses: number }[];
 }
 
+/** Benachrichtigungs-Kennzahlen (Versand & Engagement). */
+export interface AdminNotificationMetrics {
+  sent: number;
+  opened: number;
+  /** Klick-/Öffnungsrate (0–1). */
+  openRate: number;
+  mostActive: { name: string; actions: number }[];
+}
+
 /** Zeitreihen für die Analytics-Charts. */
 export interface AdminAnalytics {
   userGrowth: SeriesPoint[];
@@ -124,5 +133,6 @@ export interface AdminDashboard {
   subscriptions: AdminSubscriptionMetrics;
   limits: AdminLimitUsage[];
   operations: AdminOperationsMetrics;
+  notifications: AdminNotificationMetrics;
   analytics: AdminAnalytics;
 }

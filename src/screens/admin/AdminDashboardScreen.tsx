@@ -50,7 +50,7 @@ export function AdminDashboardScreen({ navigation }: Props) {
   }
 
   const d = query.data;
-  const { users, families, growth, content, storage, subscriptions, limits, operations, analytics } = d;
+  const { users, families, growth, content, storage, subscriptions, limits, operations, notifications, analytics } = d;
   const maxFeature = Math.max(...operations.topFeatures.map((f) => f.uses), 1);
   const maxStorage = Math.max(...storage.perFamily.map((f) => f.gb), 1);
   const tierUsers = (id: string) => subscriptions.tiers.find((t) => t.tier === id)?.users ?? 0;
@@ -250,6 +250,22 @@ export function AdminDashboardScreen({ navigation }: Props) {
             </View>
             <AppText variant="caption" color={colors.textSecondary} style={styles.barValue}>{fmt(f.uses)}</AppText>
           </View>
+        ))}
+      </Card>
+
+      {/* Benachrichtigungen */}
+      <SectionHeader title="Benachrichtigungen" />
+      <StatGrid
+        items={[
+          { label: 'Versendet', value: fmt(notifications.sent) },
+          { label: 'Geöffnet', value: fmt(notifications.opened) },
+          { label: 'Klickrate', value: pct(notifications.openRate), accent: true },
+        ]}
+      />
+      <Card>
+        <AppText variant="bodyStrong">Aktivste Familien</AppText>
+        {notifications.mostActive.map((f) => (
+          <RankRow key={f.name} label={f.name} value={`${fmt(f.actions)} Aktionen`} />
         ))}
       </Card>
 

@@ -1,38 +1,62 @@
 import { useEffect, useState } from 'react';
-import { View, StyleSheet, Switch } from 'react-native';
+import { View, StyleSheet, Switch, Alert } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Screen, AppText, Card } from '@/components';
+import { Screen, AppText, Card, Button } from '@/components';
+import { useAuth } from '@/context/AuthContext';
+import { useFamily } from '@/context/FamilyContext';
+import { notifyFamily } from '@/api/familyNotifications';
+import {
+  NOTIFICATION_CATEGORIES,
+  defaultPrefs,
+  getNotificationPrefs,
+  setNotificationPrefs,
+  type NotificationPrefs,
+  type PrefKey,
+} from '@/lib/notificationPrefs';
 import { PRODUCTION_FLAGS } from '@/lib/productionFlags';
 import { colors, spacing } from '@/theme';
 import type { ProfileStackParamList } from '@/navigation/types';
 
 type Props = NativeStackScreenProps<ProfileStackParamList, 'NotificationSettings'>;
-const KEY = 'foreverly.notifications';
-
-const CATEGORIES: { key: string; label: string }[] = [
-  { key: 'memories', label: 'Neue Erinnerungen & Fotos' },
-  { key: 'capsules', label: 'Zeitkapseln' },
-  { key: 'birthdays', label: 'Geburtstage & Jubiläen' },
-  { key: 'events', label: 'Familienevents' },
-  { key: 'sos', label: 'SOS-Notfälle' },
-  { key: 'location', label: 'Standortfreigaben & Heimweg' },
-  { key: 'estate', label: 'Nachlass-Freigaben' },
-];
 
 export function NotificationSettingsScreen(_: Props) {
-  const [prefs, setPrefs] = useState<Record<string, boolean>>(() => Object.fromEntries(CATEGORIES.map((c) => [c.key, true])));
+  const { userId } = useAuth();
+  const { activeFamily } = useFamily();
+  const [prefs, setPrefs] = useState<NotificationPrefs>(defaultPrefs);
+  const [testing, setTesting] = useState(false);
 
   useEffect(() => {
-    AsyncStorage.getItem(KEY).then((v) => { if (v) setPrefs((p) => ({ ...p, ...JSON.parse(v) })); });
+    getNotificationPrefs().then(setPrefs);
   }, []);
 
-  function toggle(key: string) {
+  function toggle(key: PrefKey) {
     setPrefs((p) => {
       const next = { ...p, [key]: !p[key] };
-      void AsyncStorage.setItem(KEY, JSON.stringify(next));
+      void setNotificationPrefs(next);
       return next;
     });
+  }
+
+  async function sendTest() {
+    if (!activeFamily) return;
+    setTesting(true);
+    try {
+      const n = await notifyFamily({
+        familyId: activeFamily.id,
+        actorUserId: userId ?? 'demo',
+        type: 'member_joined',
+        name: 'Max',
+        target: { tab: 'FamilyTab', screen: 'Network' },
+      });
+      Alert.alert(
+        n ? 'Test gesendet 💛' : 'Kategorie deaktiviert',
+        n
+          ? 'Schau ins Benachrichtigungscenter (Glocke oben rechts) – auf dem Handy erscheint zusätzlich eine Mitteilung.'
+          : 'Diese Kategorie ist in deinen Einstellungen ausgeschaltet.',
+      );
+    } finally {
+      setTesting(false);
+    }
   }
 
   return (
@@ -45,14 +69,15 @@ export function NotificationSettingsScreen(_: Props) {
       {!PRODUCTION_FLAGS.pushNotifications ? (
         <Card style={styles.noteCard}>
           <AppText variant="caption" color={colors.textSecondary}>
-            Echte Push-Benachrichtigungen werden mit dem App-Store-Release aktiviert. Deine
-            Einstellungen werden bereits gespeichert.
+            Beta: Benachrichtigungen erscheinen im In-App-Center und als lokale
+            Mitteilung auf dem Gerät. Echtes Server-Push (Expo → FCM/APNs) folgt
+            mit dem Store-Release. Deine Auswahl wird bereits gespeichert.
           </AppText>
         </Card>
       ) : null}
 
       <Card>
-        {CATEGORIES.map((c, i) => (
+        {NOTIFICATION_CATEGORIES.map((c, i) => (
           <View key={c.key} style={[styles.row, i > 0 && styles.divider]}>
             <AppText variant="body" style={styles.flex}>{c.label}</AppText>
             <Switch
@@ -64,6 +89,14 @@ export function NotificationSettingsScreen(_: Props) {
           </View>
         ))}
       </Card>
+
+      <Button
+        label="Test-Benachrichtigung senden"
+        icon="notifications-outline"
+        variant="secondary"
+        loading={testing}
+        onPress={sendTest}
+      />
     </Screen>
   );
 }

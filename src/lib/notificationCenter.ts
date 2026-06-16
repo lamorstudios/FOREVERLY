@@ -18,14 +18,17 @@ export type NotificationType =
   | 'memory'
   | 'photo'
   | 'audio'
+  | 'video'
   | 'member_joined'
   | 'capsule_created'
   | 'capsule_opening'
   | 'event_soon'
+  | 'birthday'
   | 'sos'
   | 'location'
   | 'estate'
-  | 'interview_reminder';
+  | 'interview_reminder'
+  | 'interview_saved';
 
 /** Optionales Navigationsziel, das in `AppNotification.data` mitgegeben wird. */
 export interface NotificationTarget {
@@ -55,14 +58,17 @@ export const NOTIFICATION_META: Record<NotificationType, TypeMeta> = {
   memory: { category: 'info', emoji: '✨', icon: 'sparkles-outline', color: colors.gold, label: 'Neue Erinnerung' },
   photo: { category: 'info', emoji: '📸', icon: 'image-outline', color: colors.relationMarried, label: 'Neues Foto' },
   audio: { category: 'info', emoji: '🎤', icon: 'mic-outline', color: colors.success, label: 'Neue Aufnahme' },
+  video: { category: 'info', emoji: '🎥', icon: 'videocam-outline', color: colors.relationAdoption, label: 'Neues Video' },
   member_joined: { category: 'info', emoji: '🎉', icon: 'people-outline', color: colors.bronze, label: 'Neues Mitglied' },
   capsule_created: { category: 'info', emoji: '⏳', icon: 'time-outline', color: colors.bronze, label: 'Neue Zeitkapsel' },
   capsule_opening: { category: 'calendar', emoji: '⏳', icon: 'lock-open-outline', color: colors.gold, label: 'Zeitkapsel öffnet bald' },
   event_soon: { category: 'calendar', emoji: '🎉', icon: 'balloon-outline', color: colors.relationMarried, label: 'Familienevent' },
+  birthday: { category: 'calendar', emoji: '🎂', icon: 'gift-outline', color: colors.gold, label: 'Geburtstag' },
   sos: { category: 'emergency', emoji: '🚨', icon: 'alert-circle', color: colors.error, label: 'SOS' },
   location: { category: 'info', emoji: '📍', icon: 'location-outline', color: colors.relationMarried, label: 'Standort' },
   estate: { category: 'info', emoji: '🗝️', icon: 'file-tray-full-outline', color: colors.primary, label: 'Nachlass' },
   interview_reminder: { category: 'info', emoji: '🎙️', icon: 'chatbubbles-outline', color: colors.success, label: 'Interview' },
+  interview_saved: { category: 'info', emoji: '📖', icon: 'book-outline', color: colors.success, label: 'Interview gespeichert' },
 };
 
 export interface NotificationMessage {
@@ -91,6 +97,8 @@ export function buildNotificationMessage(type: NotificationType, input: MessageI
       return { title: `${e} ${name} hat neue Fotos geteilt.`, body: subject || 'Schau dir die neuen Momente an.' };
     case 'audio':
       return { title: `${e} ${name} hat eine neue Sprachnachricht aufgenommen.`, body: 'Hör dir die Originalstimme an.' };
+    case 'video':
+      return { title: `${e} ${name} hat ein neues Video geteilt.`, body: subject || 'Schau dir den Moment an.' };
     case 'member_joined':
       return { title: `${e} ${name} ist eurer Familie beigetreten.`, body: 'Heißt das neue Familienmitglied willkommen.' };
     case 'capsule_created':
@@ -99,6 +107,8 @@ export function buildNotificationMessage(type: NotificationType, input: MessageI
       return { title: `${e} Eure Zeitkapsel öffnet sich in ${days} ${days === 1 ? 'Tag' : 'Tagen'}.`, body: subject };
     case 'event_soon':
       return { title: `${e} Bald geht es los: ${subject || 'ein Familienevent'}.`, body: days <= 1 ? 'Es ist bald so weit.' : `Noch ${days} Tage.` };
+    case 'birthday':
+      return { title: `${e} Morgen hat ${name} Geburtstag.`, body: 'Vergiss nicht zu gratulieren.' };
     case 'sos':
       return { title: `${e} SOS von ${name} – Standort verfügbar.`, body: 'Bitte schau sofort nach.' };
     case 'location':
@@ -107,6 +117,8 @@ export function buildNotificationMessage(type: NotificationType, input: MessageI
       return { title: `${e} Ein Nachlasshinweis wurde aktualisiert.`, body: subject };
     case 'interview_reminder':
       return { title: `${e} Zeit, eine Geschichte zu bewahren.`, body: subject || `Nimm dir einen Moment für ${name}.` };
+    case 'interview_saved':
+      return { title: `${e} ${name} hat eine neue Geschichte bewahrt.`, body: subject || 'Ein neues Interview wurde gespeichert.' };
   }
 }
 
