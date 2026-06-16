@@ -8,6 +8,8 @@ import {
   useCallback,
 } from 'react';
 import { Session } from '@supabase/supabase-js';
+import { Platform } from 'react-native';
+import * as Linking from 'expo-linking';
 import { supabase } from '@/lib/supabase';
 import { config, DEMO_MODE } from '@/lib/config';
 import { DEMO_USER_ID } from '@/demo/demoData';
@@ -38,6 +40,7 @@ interface AuthContextValue {
     fullName: string;
   }) => Promise<{ needsConfirmation: boolean }>;
   signIn: (email: string, password: string) => Promise<void>;
+  signInWithGoogle: () => Promise<void>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
   resendConfirmation: (email: string) => Promise<void>;
@@ -100,6 +103,25 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [],
   );
 
+  const signInWithGoogle = useCallback(async () => {
+    if (DEMO_MODE) {
+      // Im Demo-Modus gibt es keine echte Auth – direkt die Demo-Sitzung nutzen.
+      setSession(demoSession);
+      return;
+    }
+    // Web: voller Seiten-Redirect zurück auf die App; die Sitzung wird über
+    // detectSessionInUrl automatisch erkannt. Nativ: über das App-Schema.
+    const redirectTo =
+      Platform.OS === 'web' && typeof window !== 'undefined'
+        ? window.location.origin + window.location.pathname
+        : Linking.createURL('/');
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo, queryParams: { prompt: 'select_account' } },
+    });
+    if (error) throw error;
+  }, []);
+
   const signOut = useCallback(async () => {
     if (DEMO_MODE) {
       setSession(null);
@@ -138,11 +160,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       initializing,
       signUp,
       signIn,
+      signInWithGoogle,
       signOut,
       resetPassword,
       resendConfirmation,
     }),
-    [session, initializing, signUp, signIn, signOut, resetPassword, resendConfirmation],
+    [session, initializing, signUp, signIn, signInWithGoogle, signOut, resetPassword, resendConfirmation],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

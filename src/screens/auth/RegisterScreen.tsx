@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { View, StyleSheet, Pressable } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { Screen, AppText, Button, TextField } from '@/components';
+import { Screen, AppText, Button, TextField, GoogleSignInButton } from '@/components';
 import { BrandHeader } from './BrandHeader';
 import { useAuth } from '@/context/AuthContext';
 import { friendlyError } from '@/lib/errors';
@@ -73,6 +73,10 @@ export function RegisterScreen({ navigation }: Props) {
           </AppText>
         ) : null}
         <Button label="Konto erstellen" onPress={handleRegister} loading={loading} />
+        <View style={styles.divider}>
+          <AppText variant="caption" color={colors.textMuted} center>oder</AppText>
+        </View>
+        <GoogleSignInButton label="Mit Google registrieren" />
       </View>
       <Pressable onPress={() => navigation.navigate('Login')} style={styles.footer}>
         <AppText variant="body" color={colors.textSecondary} center>
@@ -89,5 +93,6 @@ export function RegisterScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   content: { gap: spacing.lg, paddingTop: spacing.lg },
   form: { gap: spacing.md },
+  divider: { paddingVertical: spacing.xs },
   footer: { marginTop: spacing.md },
 });

@@ -5,6 +5,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { Screen, AppText, Button, TextField } from '@/components';
 import { useFamily } from '@/context/FamilyContext';
 import { acceptInvitation } from '@/api/invitations';
+import { clearPendingInvite } from '@/lib/pendingInvite';
 import { qk } from '@/api/queryKeys';
 import { friendlyError } from '@/lib/errors';
 import { colors, spacing } from '@/theme';
@@ -21,6 +22,7 @@ export function JoinFamilyScreen({ navigation, route }: Props) {
   const mutation = useMutation({
     mutationFn: () => acceptInvitation(code),
     onSuccess: async (familyId) => {
+      await clearPendingInvite();
       await queryClient.invalidateQueries({ queryKey: qk.families() });
       refetch();
       setActiveFamily(familyId);

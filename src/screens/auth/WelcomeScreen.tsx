@@ -1,6 +1,6 @@
 import { View, StyleSheet } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { Screen, AppText, Button } from '@/components';
+import { Screen, AppText, Button, GoogleSignInButton } from '@/components';
 import { BrandHeader } from './BrandHeader';
 import { spacing } from '@/theme';
 import type { AuthStackParamList } from '@/navigation/types';
@@ -18,10 +18,11 @@ export function WelcomeScreen({ navigation }: Props) {
         </AppText>
       </View>
       <View style={styles.actions}>
-        <Button label="Anmelden" onPress={() => navigation.navigate('Login')} />
+        <GoogleSignInButton label="Mit Google fortfahren" />
+        <Button label="Mit E-Mail anmelden" onPress={() => navigation.navigate('Login')} />
         <Button
           label="Neues Konto erstellen"
-          variant="secondary"
+          variant="ghost"
           onPress={() => navigation.navigate('Register')}
         />
       </View>

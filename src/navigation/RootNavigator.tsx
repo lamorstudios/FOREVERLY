@@ -7,6 +7,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useFamily } from '@/context/FamilyContext';
 import { useOnboarding } from '@/context/OnboardingContext';
 import { registerForNotifications } from '@/lib/notifications';
+import { parseInviteCode, setPendingInvite } from '@/lib/pendingInvite';
 import { DEMO_MODE } from '@/lib/config';
 import { colors } from '@/theme';
 import { AuthNavigator } from './AuthNavigator';
@@ -54,6 +55,19 @@ export function RootNavigator() {
       registerForNotifications().catch(() => undefined);
     }
   }, [session]);
+
+  // Einladungscode aus dem Öffnungs-Link merken (übersteht den OAuth-Redirect).
+  useEffect(() => {
+    Linking.getInitialURL().then((url) => {
+      const code = parseInviteCode(url);
+      if (code) void setPendingInvite(code);
+    });
+    const sub = Linking.addEventListener('url', ({ url }) => {
+      const code = parseInviteCode(url);
+      if (code) void setPendingInvite(code);
+    });
+    return () => sub.remove();
+  }, []);
 
   const inFamily = session && !initializing && !loading && families.length > 0;
   // Erststart-Einführung: Welcome-Flow, danach interaktive Tour.
