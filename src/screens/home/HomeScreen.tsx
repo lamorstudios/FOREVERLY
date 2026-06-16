@@ -935,7 +935,7 @@ export function HomeScreen({ navigation }: Props) {
 function GrowthStat({ value, label }: { value: number; label: string }) {
   return (
     <View style={styles.growthStat}>
-      <AppText variant="heading" color={colors.primaryDark}>{value}</AppText>
+      <AppText variant="title" color={colors.primaryDark}>{value}</AppText>
       <AppText variant="caption" color={colors.textSecondary} center>{label}</AppText>
     </View>
   );
@@ -1069,8 +1069,9 @@ const styles = StyleSheet.create({
   adminCard: { borderColor: colors.bronze, borderWidth: 1.5, backgroundColor: colors.surfaceAlt },
   growthCard: { gap: spacing.sm },
   growthHeader: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  growthGrid: { flexDirection: 'row', justifyContent: 'space-between', gap: spacing.sm },
-  growthStat: { flex: 1, alignItems: 'center', gap: 2 },
+  // 4 Spalten, wenn Platz – sonst automatisch 2x2 (flexWrap + minWidth).
+  growthGrid: { flexDirection: 'row', flexWrap: 'wrap', rowGap: spacing.md, columnGap: spacing.md },
+  growthStat: { flexGrow: 1, flexBasis: '20%', minWidth: 76, alignItems: 'center', gap: 2 },
   alertCard: { borderColor: colors.error, borderWidth: 1.5 },
   // Legacy Moments
   memoryDayCard: { overflow: 'hidden' },
