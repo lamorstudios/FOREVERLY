@@ -265,7 +265,7 @@ function ProfileStackNavigator() {
       <ProfileStack.Screen name="EstateInfoForm" component={EstateInfoFormScreen} options={{ title: 'Nachlasshinweise' }} />
       <ProfileStack.Screen name="EstateCase" component={EstateCaseScreen} options={{ title: 'Nachlass-Freigabe' }} />
       <ProfileStack.Screen name="Settings" component={SettingsScreen} options={{ title: 'Einstellungen' }} />
-      <ProfileStack.Screen name="Premium" component={PremiumScreen} options={{ title: 'Premium' }} />
+      <ProfileStack.Screen name="Premium" component={PremiumScreen} options={{ title: 'Speicher' }} />
       <ProfileStack.Screen name="Roles" component={RolesScreen} options={{ title: 'Rollen & Rechte' }} />
       <ProfileStack.Screen name="NotificationSettings" component={NotificationSettingsScreen} options={{ title: 'Benachrichtigungen' }} />
       <ProfileStack.Screen name="PrivacyData" component={PrivacyDataScreen} options={{ title: 'Datenschutz & Daten' }} />

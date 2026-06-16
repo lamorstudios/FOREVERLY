@@ -1,6 +1,6 @@
 import { createContext, useContext, useEffect, useMemo, useState, ReactNode, useCallback } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { FEATURE_MIN_PLAN, PLAN_RANK, type PlanId, type PremiumFeature } from '@/lib/premium';
+import { type PlanId, type PremiumFeature } from '@/lib/premium';
 
 const KEY = 'foreverly.plan';
 
@@ -35,8 +35,9 @@ export function PremiumProvider({ children }: { children: ReactNode }) {
       plan,
       isPaid: plan !== 'free',
       isPremium: plan === 'premium',
-      // Planbasiertes Gating: schaltet frei, sobald der Tarif hoch genug ist.
-      hasFeature: (feature: PremiumFeature) => PLAN_RANK[plan] >= PLAN_RANK[FEATURE_MIN_PLAN[feature]],
+      // FAMII ist aktuell vollständig kostenlos: ALLE Funktionen sind freigeschaltet,
+      // unabhängig vom Tarif. Es gibt keine gesperrten Features.
+      hasFeature: (_feature: PremiumFeature) => true,
       setPlan,
     };
   }, [plan, setPlan]);

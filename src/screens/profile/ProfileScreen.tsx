@@ -134,7 +134,7 @@ export function ProfileScreen({ navigation }: Props) {
             <View style={styles.rowLabel}>
               <AppText variant="bodyStrong">Einstellungen</AppText>
               <AppText variant="caption" color={colors.textSecondary}>
-                Premium · Rollen · Datenschutz · Feedback
+                Speicher · Rollen · Datenschutz · Feedback
               </AppText>
             </View>
             <Ionicons name="chevron-forward" size={24} color={colors.textMuted} />

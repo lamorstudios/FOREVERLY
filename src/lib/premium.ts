@@ -1,10 +1,13 @@
 /**
- * Freemium-Modell (Free · Plus · Premium) – speicher- & familiengrößenbasiert.
+ * Tarifmodell – AKTUELL ist FAMII vollständig KOSTENLOS.
  *
- * Strategie: Nahezu alle Kernfunktionen sind bereits kostenlos nutzbar, damit
- * FAMII schnell wächst. Monetarisiert wird über Speicherplatz und
- * Familiengröße – nicht über gesperrte Funktionen. Plus ist die empfohlene
- * Mitte. Preise/Limits sind deckungsgleich mit `lib/billing.ts`.
+ * Alle Funktionen sind im Free-Tarif enthalten, es gibt keine gesperrten
+ * Features. Der einzige spätere Upgrade-Grund ist zusätzlicher SPEICHER.
+ * FAMII Plus (0,99 € / Monat oder 9,99 € / Jahr, pro Familie) wird erst dann
+ * relevant, wenn das kostenlose Speicherlimit erreicht ist – und wird vorher
+ * nicht aktiv beworben. Ein Premium-Tarif bleibt in den Daten erhalten, wird
+ * aktuell aber NICHT in den Vordergrund gestellt.
+ * Preise/Limits sind deckungsgleich mit `lib/billing.ts`.
  */
 
 export type PlanId = 'free' | 'plus' | 'premium';
@@ -34,48 +37,45 @@ export const PLANS: Plan[] = [
   {
     id: 'free',
     name: 'FAMII Free',
-    tagline: 'Für kleine Familien und zum Kennenlernen.',
+    tagline: 'FAMII ist kostenlos – mit allen Funktionen.',
     priceMonthly: '0 €',
     storageLabel: '5 GB Speicher',
-    membersLabel: 'Bis zu 15 Familienmitglieder',
+    membersLabel: 'Unbegrenzte Familienmitglieder',
     features: [
       'Familienbaum',
-      'Familienmomente',
-      'Familienstatus',
-      'Zeitkapseln',
-      'Fotos',
-      'Videos',
-      'Audioaufnahmen',
-      'Dokumententresor',
-      'Familienkarte',
-      'SOS-Funktion',
-      'Familienassistent',
       'Erinnerungen',
+      'Zeitkapseln',
+      'Familienbuch',
+      'Dokumente',
+      'Familienhistoriker',
+      'Familienkarte',
+      'Einladungen',
+      'Benachrichtigungen',
+      'Vertrauenspersonen',
+      'Nachlassfunktionen',
+      'Alle zukünftigen Standardfunktionen',
     ],
-    note: 'Du kannst FAMII kostenlos nutzen, bis deine Familie oder dein Speicher wächst.',
+    note: 'Alle Funktionen sind kostenlos. Mehr brauchst du erst, wenn euer Speicher wächst.',
     storageGb: 5,
-    maxMembers: 15,
+    maxMembers: Infinity,
   },
   {
     id: 'plus',
     name: 'FAMII Plus',
-    tagline: 'Beste Preis-Leistung für die meisten Familien.',
-    priceMonthly: '1,99 € / Monat',
-    priceAnnual: '19,99 € / Jahr',
+    tagline: 'Zusätzlicher Speicher, wenn eure Familiengeschichte wächst.',
+    priceMonthly: '0,99 € / Monat',
+    priceAnnual: '9,99 € / Jahr',
     recommended: true,
-    badge: 'Beliebteste Wahl',
     storageLabel: '50 GB Speicher',
-    membersLabel: 'Bis zu 50 Familienmitglieder',
+    membersLabel: 'Unbegrenzte Familienmitglieder',
     features: [
       'Alle Funktionen aus Free',
-      'Bis zu 50 Familienmitglieder',
-      '50 GB Speicher',
-      'Mehr Speicher für Fotos, Videos & Dokumente',
-      'Ein Abo gilt für die gesamte Familie',
+      'Deutlich mehr Speicher für Fotos, Videos & Dokumente',
+      'Ein Abo gilt für die gesamte Familie – nicht pro Person',
     ],
     note: 'Ein Abo für die ganze Familie. Eine Person zahlt, alle profitieren.',
     storageGb: 50,
-    maxMembers: 50,
+    maxMembers: Infinity,
   },
   {
     id: 'premium',

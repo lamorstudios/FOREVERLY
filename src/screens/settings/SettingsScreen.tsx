@@ -1,9 +1,7 @@
 import { View, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { Screen, AppText, Card, Chip, AppFooter } from '@/components';
-import { usePremium } from '@/context/PremiumContext';
-import { planById } from '@/lib/premium';
+import { Screen, AppText, Card, AppFooter } from '@/components';
 import { colors, spacing } from '@/theme';
 import type { ProfileStackParamList } from '@/navigation/types';
 
@@ -12,10 +10,8 @@ type IoniconName = keyof typeof Ionicons.glyphMap;
 type Target = 'Premium' | 'Roles' | 'NotificationSettings' | 'PrivacyData' | 'Feedback';
 
 export function SettingsScreen({ navigation }: Props) {
-  const { plan, isPaid } = usePremium();
-
   const rows: { icon: IoniconName; title: string; subtitle: string; target: Target; color?: string }[] = [
-    { icon: 'star-outline', title: 'Tarif & Premium', subtitle: isPaid ? `Aktiv – ${planById(plan).name}` : 'Free · Plus & Premium ansehen', target: 'Premium', color: colors.gold },
+    { icon: 'cloud-outline', title: 'Speicher', subtitle: 'Speicherplatz eurer Familie', target: 'Premium' },
     { icon: 'people-outline', title: 'Rollen & Rechte', subtitle: 'Wer darf was in der Familie', target: 'Roles' },
     { icon: 'notifications-outline', title: 'Benachrichtigungen', subtitle: 'Push & Hinweise je Kategorie', target: 'NotificationSettings' },
     { icon: 'shield-checkmark-outline', title: 'Datenschutz & Daten', subtitle: 'Export, Löschung, Einwilligungen (DSGVO)', target: 'PrivacyData' },
@@ -26,7 +22,7 @@ export function SettingsScreen({ navigation }: Props) {
     <Screen>
       <AppText variant="title">Einstellungen</AppText>
       <AppText variant="body" color={colors.textSecondary} style={styles.intro}>
-        Konto, Sicherheit, Premium und Datenschutz an einem Ort.
+        Konto, Sicherheit, Speicher und Datenschutz an einem Ort.
       </AppText>
 
       {rows.map((r) => (
@@ -37,7 +33,6 @@ export function SettingsScreen({ navigation }: Props) {
               <AppText variant="bodyStrong">{r.title}</AppText>
               <AppText variant="caption" color={colors.textSecondary}>{r.subtitle}</AppText>
             </View>
-            {r.target === 'Premium' && isPaid ? <Chip label={planById(plan).name.replace('FAMII ', '')} selected color={colors.gold} /> : null}
             <Ionicons name="chevron-forward" size={22} color={colors.textMuted} />
           </View>
         </Card>

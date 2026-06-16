@@ -1,10 +1,21 @@
 /**
- * Business Foundation – Tarife, Speicher/Mitglieder-Limits & Abrechnungsbasis.
+ * Business Foundation – Tarife, Speicher-Limit & Abrechnungsbasis.
  *
- * Monetarisierungs-Strategie: möglichst viele Funktionen sind bereits kostenlos.
- * Bezahlt wird vor allem für mehr Speicher und größere Familien – nicht für
- * gesperrte Kernfunktionen. Noch KEINE echte Abrechnung; nur die Struktur, auf
- * der eine spätere Monetarisierung (Stripe / App-Store-Abos) aufsetzt.
+ * AKTUELLE STRATEGIE (Stand 2026-06): FAMII ist vollständig KOSTENLOS nutzbar.
+ * Alle Funktionen sind enthalten, es gibt keine gesperrten Features, keine
+ * Kaufaufforderungen und keine Preiswerbung. Der EINZIGE spätere Upgrade-Grund
+ * ist zusätzlicher Speicherplatz – keine künstlichen Limits außer Speicher.
+ *
+ * Speichermodell (technisch vorbereitet, noch keine echte Abrechnung):
+ *   • Kostenloser Speicher (Free):  5 GB pro Familie
+ *   • Upgrade-Auslöser:             Familie erreicht das kostenlose Speicherlimit
+ *   • FAMII Plus:                   0,99 € / Monat  oder  9,99 € / Jahr
+ *                                   – pro FAMILIE, nicht pro Person
+ *
+ * Zukünftige Preisstruktur: Plus deckt den Standard-Mehrbedarf ab; ein
+ * Premium-Tarif (mehr Speicher) bleibt in den Daten erhalten, wird aktuell
+ * aber NICHT beworben. Die Abwicklung erfolgt später über App Store / Google
+ * Play bzw. Stripe.
  */
 
 export type BillingTierId = 'free' | 'plus' | 'premium';
@@ -24,9 +35,10 @@ export interface BillingTier {
   maxMembers: number;
 }
 
+// Mitglieder sind UNBEGRENZT (keine künstlichen Limits außer Speicher).
 export const BILLING_TIERS: BillingTier[] = [
-  { id: 'free', name: 'Free', priceMonthlyCents: 0, priceAnnualCents: 0, currency: 'EUR', storageGb: 5, maxMembers: 15 },
-  { id: 'plus', name: 'Plus', priceMonthlyCents: 199, priceAnnualCents: 1999, currency: 'EUR', storageGb: 50, maxMembers: 50 },
+  { id: 'free', name: 'Free', priceMonthlyCents: 0, priceAnnualCents: 0, currency: 'EUR', storageGb: 5, maxMembers: Infinity },
+  { id: 'plus', name: 'Plus', priceMonthlyCents: 99, priceAnnualCents: 999, currency: 'EUR', storageGb: 50, maxMembers: Infinity },
   { id: 'premium', name: 'Premium', priceMonthlyCents: 999, priceAnnualCents: 9900, currency: 'EUR', storageGb: 500, maxMembers: Infinity },
 ];
 
@@ -47,9 +59,9 @@ export function annualSavingsPct(id: BillingTierId): number {
   return Math.round(((yearly - t.priceAnnualCents) / yearly) * 100);
 }
 
-// --- Limits (Speicher & Mitglieder = die Monetarisierungs-Hebel) ------------
+// --- Limit (NUR Speicher ist ein Limit – sonst nichts) ----------------------
 
-export type FreeLimitKey = 'members' | 'storage';
+export type FreeLimitKey = 'storage';
 
 export interface FreeLimit {
   key: FreeLimitKey;
@@ -58,11 +70,16 @@ export interface FreeLimit {
   unit?: string;
 }
 
-/** Free-Tarif – die relevanten Obergrenzen (Mitglieder & Speicher). */
+/**
+ * Free-Tarif – die EINZIGE Obergrenze ist der Speicher. Mitglieder und
+ * Funktionen sind bewusst unbegrenzt bzw. kostenlos.
+ */
 export const FREE_LIMITS: FreeLimit[] = [
-  { key: 'members', label: 'Familienmitglieder', limit: 15 },
   { key: 'storage', label: 'Speicher', limit: 5, unit: 'GB' },
 ];
+
+/** Kostenloser Speicher pro Familie (GB). */
+export const FREE_STORAGE_GB = 5;
 
 /** Ab diesem Anteil der Obergrenze wird ein dezenter Hinweis angezeigt. */
 export const LIMIT_WARN_RATIO = 0.8;
@@ -87,10 +104,19 @@ export function limitStatus(used: number, limit: number): LimitStatus {
 }
 
 /**
- * Sanfter Speicher-Hinweis statt harter Paywall. Beispiel:
- * „Eure Familie nutzt aktuell 4,8 von 5 GB Speicher. Um weitere Erinnerungen,
- *  Videos und Dokumente zu speichern, kann ein Familienmitglied FAMII Plus
- *  freischalten."
+ * Freundlicher Hinweis, der NUR erscheint, wenn eine Familie das kostenlose
+ * Speicherlimit erreicht hat (keine harte Paywall, keine Preiswerbung vorher).
+ */
+export const STORAGE_LIMIT_NOTICE = {
+  title: 'Eure Familiengeschichte wächst ❤️',
+  body:
+    'Ihr habt euren kostenlosen Speicherplatz genutzt.\n\n' +
+    'Für zusätzlichen Speicher könnt ihr FAMII Plus freischalten.',
+} as const;
+
+/**
+ * Detail-Variante mit konkretem Speicherstand (optional verwendbar). Beispiel:
+ * „Eure Familie nutzt aktuell 4,8 von 5 GB Speicher. …"
  */
 export function storageUpgradeMessage(usedGb: number, limitGb: number): string {
   const used = usedGb.toLocaleString('de-DE', { maximumFractionDigits: 1 });
