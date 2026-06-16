@@ -820,6 +820,15 @@ export interface LifeStory {
   created_at: string;
 }
 
+/** Kurze, gesammelte Familienweisheit (für Buch/Film wiederverwendbar). */
+export interface FamilyWisdom {
+  id: string;
+  family_id: string;
+  text: string;
+  author_person_id: string | null;
+  created_at: string;
+}
+
 // ===================== Feedback (Phase 15) =====================
 
 export type FeedbackKind = 'bug' | 'wish' | 'idea';

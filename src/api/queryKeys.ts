@@ -109,4 +109,11 @@ export const qk = {
   artifacts: (familyId: string) => ['artifacts', familyId] as const,
   // Admin-Dashboard (betreiberintern)
   adminDashboard: () => ['adminDashboard'] as const,
+  // Legacy Moments & Family Memories
+  memoryOfTheDay: (familyId: string) => ['legacyMoments', 'memoryOfTheDay', familyId] as const,
+  legacyScores: (familyId: string) => ['legacyMoments', 'scores', familyId] as const,
+  elderToAsk: (familyId: string) => ['legacyMoments', 'elder', familyId] as const,
+  treasurePrompts: (familyId: string) => ['legacyMoments', 'treasures', familyId] as const,
+  familyYear: (familyId: string, year: number) => ['legacyMoments', 'year', familyId, year] as const,
+  familyWisdoms: (familyId: string) => ['legacyMoments', 'wisdoms', familyId] as const,
 };

@@ -74,6 +74,9 @@ export type HomeStackParamList = {
   LegacyPerson: { personId: string };
   LifeInterview: { personId: string };
   MemoryJourney: { query: string; title: string };
+  // Legacy Moments & Family Memories
+  FamilyYear: undefined;
+  FamilyWisdoms: undefined;
   // Phase 13 · Familienmuseum
   MuseumHub: undefined;
   Generations: undefined;

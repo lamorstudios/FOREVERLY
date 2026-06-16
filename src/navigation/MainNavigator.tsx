@@ -93,6 +93,8 @@ import { LegacyHubScreen } from '@/screens/legacy/LegacyHubScreen';
 import { LegacyPersonScreen } from '@/screens/legacy/LegacyPersonScreen';
 import { LifeInterviewScreen } from '@/screens/legacy/LifeInterviewScreen';
 import { MemoryJourneyScreen } from '@/screens/legacy/MemoryJourneyScreen';
+import { FamilyYearScreen } from '@/screens/legacy/FamilyYearScreen';
+import { FamilyWisdomsScreen } from '@/screens/legacy/FamilyWisdomsScreen';
 // Phase 13 · Familienmuseum
 import { MuseumHubScreen } from '@/screens/museum/MuseumHubScreen';
 import { GenerationsScreen } from '@/screens/museum/GenerationsScreen';
@@ -188,6 +190,8 @@ function HomeStackNavigator() {
       <HomeStack.Screen name="LegacyPerson" component={LegacyPersonScreen} options={{ title: 'Lebensgeschichte' }} />
       <HomeStack.Screen name="LifeInterview" component={LifeInterviewScreen} options={{ title: 'Erzähl deine Geschichte' }} />
       <HomeStack.Screen name="MemoryJourney" component={MemoryJourneyScreen} options={{ title: 'Erinnerungsreise' }} />
+      <HomeStack.Screen name="FamilyYear" component={FamilyYearScreen} options={{ title: 'Euer Familienjahr' }} />
+      <HomeStack.Screen name="FamilyWisdoms" component={FamilyWisdomsScreen} options={{ title: 'Familienweisheiten' }} />
       <HomeStack.Screen name="MuseumHub" component={MuseumHubScreen} options={{ title: 'Familienmuseum' }} />
       <HomeStack.Screen name="Generations" component={GenerationsScreen} options={{ title: 'Generationenarchiv' }} />
       <HomeStack.Screen name="TimeTravel" component={TimeTravelScreen} options={{ title: 'Zeitreise' }} />

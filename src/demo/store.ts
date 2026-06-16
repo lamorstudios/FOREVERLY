@@ -63,6 +63,7 @@ import type {
   FilmOptions,
   LifeStory,
   LifeStoryKind,
+  FamilyWisdom,
   Artifact,
   ArtifactCategory,
   Feedback,
@@ -1672,6 +1673,27 @@ export const demoStore = {
     };
     data.lifeStories.unshift(s);
     return s;
+  },
+  listFamilyLifeStories(familyId: string): LifeStory[] {
+    return data.lifeStories
+      .filter((s) => s.family_id === familyId)
+      .sort((a, b) => (a.created_at < b.created_at ? 1 : -1));
+  },
+  listFamilyWisdoms(familyId: string): FamilyWisdom[] {
+    return data.familyWisdoms
+      .filter((w) => w.family_id === familyId)
+      .sort((a, b) => (a.created_at < b.created_at ? 1 : -1));
+  },
+  addFamilyWisdom(input: { familyId: string; text: string; authorPersonId?: string | null }): FamilyWisdom {
+    const w: FamilyWisdom = {
+      id: newId('fw'),
+      family_id: input.familyId,
+      text: input.text,
+      author_person_id: input.authorPersonId ?? null,
+      created_at: nowIso(),
+    };
+    data.familyWisdoms.unshift(w);
+    return w;
   },
 
   // ===================== Familienmuseum · Artefakte =====================

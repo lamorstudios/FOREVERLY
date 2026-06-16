@@ -7,6 +7,7 @@ import {
   Screen,
   AppText,
   Appear,
+  Button,
   Card,
   Avatar,
   SignedImage,
@@ -28,6 +29,7 @@ import { listSafetyTrips, listSafetyAlerts, listLiveShares } from '@/api/safety'
 import { listVaultEntries } from '@/api/vault';
 import { listTrustees, getEstateInfo } from '@/api/estate';
 import { getOnThisDay } from '@/api/historian';
+import { getMemoryOfTheDay, getTreasurePrompts, getElderToAsk } from '@/api/legacyMoments';
 import { listNotifications, unreadCount } from '@/api/familyNotifications';
 import { qk } from '@/api/queryKeys';
 import { STATUS_LEVELS } from '@/constants/phase2';
@@ -43,6 +45,14 @@ const ACTIVITY_ICON: Record<string, keyof typeof Ionicons.glyphMap> = {
   'photo.uploaded': 'image-outline',
   'audio.created': 'mic-outline',
   'time_capsule.created': 'time-outline',
+};
+
+const MEMORY_KIND_ICON: Record<string, keyof typeof Ionicons.glyphMap> = {
+  photo: 'image-outline',
+  audio: 'mic-outline',
+  video: 'videocam-outline',
+  memory: 'sparkles-outline',
+  event: 'balloon-outline',
 };
 
 type QuickRoute =
@@ -63,6 +73,8 @@ type QuickRoute =
   | 'FilmGallery'
   | 'LiveMap'
   | 'Sos'
+  | 'FamilyYear'
+  | 'FamilyWisdoms'
   | 'SeniorMode';
 
 interface QuickAction {
@@ -80,6 +92,8 @@ const QUICK_ACTIONS: QuickAction[] = [
   { label: 'Familienmomente', icon: 'images-outline', color: colors.gold, route: 'MomentsHome' },
   { label: 'Familienfilm', icon: 'film-outline', color: colors.bronze, route: 'FilmGallery' },
   { label: 'Familienstimmen', icon: 'mic-outline', color: colors.success, route: 'LegacyHub' },
+  { label: 'Euer Familienjahr', icon: 'calendar-number-outline', color: colors.gold, route: 'FamilyYear' },
+  { label: 'Familienweisheiten', icon: 'heart-circle-outline', color: colors.success, route: 'FamilyWisdoms' },
   { label: 'Familienmuseum', icon: 'business-outline', color: colors.bronze, route: 'MuseumHub' },
   { label: 'Historiker', icon: 'sparkles-outline', color: colors.relationAdoption, route: 'HistorianHome' },
   { label: 'Status senden', icon: 'happy-outline', color: colors.success, route: 'Status' },
@@ -182,6 +196,37 @@ export function HomeScreen({ navigation }: Props) {
     queryFn: () => getOnThisDay(familyId, userId ?? undefined),
   });
   const onThisDayItems = onThisDayQuery.data ?? [];
+
+  // Legacy Moments & Family Memories
+  const memoryOfDayQuery = useQuery({
+    queryKey: qk.memoryOfTheDay(familyId),
+    queryFn: () => getMemoryOfTheDay(familyId, userId ?? undefined),
+  });
+  const treasuresQuery = useQuery({
+    queryKey: qk.treasurePrompts(familyId),
+    queryFn: () => getTreasurePrompts(familyId, userId ?? undefined),
+  });
+  const elderQuery = useQuery({
+    queryKey: qk.elderToAsk(familyId),
+    queryFn: () => getElderToAsk(familyId, userId ?? undefined),
+  });
+  const memoryOfDay = memoryOfDayQuery.data ?? null;
+  const treasures = treasuresQuery.data ?? [];
+  const elder = elderQuery.data ?? null;
+
+  // Familienschatz-Aktion → passende Aufnahme-Route (teils tab-übergreifend).
+  function startTreasure(action: 'interview' | 'memory' | 'audio', personId: string | null) {
+    if (action === 'interview' && personId) {
+      navigation.navigate('LifeInterview', { personId });
+      return;
+    }
+    const parent = navigation.getParent() as { navigate: (n: string, p?: object) => void } | undefined;
+    if (action === 'audio') {
+      parent?.navigate('MemoriesTab', { screen: 'AudioRecord', params: personId ? { personId } : undefined });
+    } else {
+      parent?.navigate('MemoriesTab', { screen: 'MemoryForm', params: personId ? { personId } : undefined });
+    }
+  }
 
   const unread = unreadCount(notifications.data ?? []);
   const activeTrips = (safetyTripsQuery.data ?? []).filter((t) => t.status === 'active');
@@ -487,6 +532,117 @@ export function HomeScreen({ navigation }: Props) {
         </Appear>
       ) : null}
 
+      {/* Erinnerung des Tages */}
+      {memoryOfDay ? (
+        <Appear delay={72}>
+          <View style={styles.section}>
+            <SectionHeader title="Erinnerung des Tages" />
+            <Card padded={false} style={styles.memoryDayCard}>
+              {memoryOfDay.bucket && memoryOfDay.mediaPath ? (
+                <SignedImage bucket={memoryOfDay.bucket} path={memoryOfDay.mediaPath} style={styles.memoryDayImage} />
+              ) : (
+                <View style={[styles.memoryDayImage, styles.memoryDayPlaceholder]}>
+                  <Ionicons name={MEMORY_KIND_ICON[memoryOfDay.kind]} size={40} color={colors.gold} />
+                </View>
+              )}
+              <View style={styles.memoryDayBody}>
+                <AppText variant="bodyStrong" numberOfLines={2}>{memoryOfDay.title}</AppText>
+                <AppText variant="caption" color={colors.textSecondary} numberOfLines={2}>
+                  {memoryOfDay.personName ? `${memoryOfDay.personName} · ` : ''}{memoryOfDay.subtitle}
+                </AppText>
+              </View>
+            </Card>
+          </View>
+        </Appear>
+      ) : null}
+
+      {/* Frag …, solange du noch kannst */}
+      {elder ? (
+        <Appear delay={74}>
+          <View style={styles.section}>
+            <Card style={styles.elderCard}>
+              <View style={styles.row}>
+                <View style={[styles.iconCircle, { backgroundColor: withAlpha(colors.gold, 0.18) }]}>
+                  <Ionicons name="mic-outline" size={22} color={colors.bronze} />
+                </View>
+                <View style={styles.rowText}>
+                  <AppText variant="bodyStrong">{elder.title}</AppText>
+                  <AppText variant="caption" color={colors.textSecondary}>{elder.message}</AppText>
+                </View>
+              </View>
+              <AppText variant="caption" color={colors.textMuted}>
+                {elder.score.memories} Erinnerungen · {elder.score.audios} Audios · {elder.score.interviews} Interviews · {elder.score.hint}
+              </AppText>
+              <Button
+                label="Interview starten"
+                icon="chatbubbles-outline"
+                onPress={() => navigation.navigate('LifeInterview', { personId: elder.score.person.id })}
+                style={styles.elderBtn}
+              />
+            </Card>
+          </View>
+        </Appear>
+      ) : null}
+
+      {/* Familienschatz-Karten */}
+      {treasures.length > 0 ? (
+        <Appear delay={76}>
+          <View style={styles.section}>
+            <SectionHeader title="Familienschatz" />
+            {treasures.map((t) => (
+              <Card key={t.id} style={styles.treasureCard}>
+                <View style={styles.row}>
+                  <View style={[styles.iconCircle, { backgroundColor: withAlpha(colors.bronze, 0.14) }]}>
+                    <Ionicons name={t.icon as keyof typeof Ionicons.glyphMap} size={20} color={colors.bronze} />
+                  </View>
+                  <View style={styles.rowText}>
+                    <AppText variant="bodyStrong">{t.title}</AppText>
+                    <AppText variant="caption" color={colors.textSecondary}>{t.message}</AppText>
+                  </View>
+                </View>
+                <Button
+                  label="Jetzt festhalten"
+                  icon="add-circle-outline"
+                  variant="secondary"
+                  onPress={() => startTreasure(t.action, t.personId)}
+                  style={styles.treasureBtn}
+                />
+              </Card>
+            ))}
+          </View>
+        </Appear>
+      ) : null}
+
+      {/* Euer Familienjahr & Familienweisheiten */}
+      <Appear delay={78}>
+        <View style={styles.section}>
+          <Card onPress={() => navigation.navigate('FamilyYear')}>
+            <View style={styles.row}>
+              <View style={[styles.iconCircle, { backgroundColor: withAlpha(colors.gold, 0.16) }]}>
+                <Ionicons name="calendar-number-outline" size={22} color={colors.bronze} />
+              </View>
+              <View style={styles.rowText}>
+                <AppText variant="bodyStrong">Euer Familienjahr {new Date().getFullYear()}</AppText>
+                <AppText variant="caption" color={colors.textSecondary}>Automatischer Jahresrückblick eurer Familie</AppText>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
+            </View>
+          </Card>
+          <Card onPress={() => navigation.navigate('FamilyWisdoms')}>
+            <View style={styles.row}>
+              <View style={[styles.iconCircle, { backgroundColor: withAlpha(colors.success, 0.16) }]}>
+                <Ionicons name="heart-circle-outline" size={22} color={colors.success} />
+              </View>
+              <View style={styles.rowText}>
+                <AppText variant="bodyStrong">Familienweisheiten</AppText>
+                <AppText variant="caption" color={colors.textSecondary}>Kurze Sätze, die ihr weitergebt – für Buch & Film</AppText>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
+            </View>
+          </Card>
+        </View>
+      </Appear>
+
       {/* Vorsorge */}
       <Appear delay={80}>
         <View style={styles.section}>
@@ -779,6 +935,15 @@ const styles = StyleSheet.create({
   section: { gap: spacing.sm },
   adminCard: { borderColor: colors.bronze, borderWidth: 1.5, backgroundColor: colors.surfaceAlt },
   alertCard: { borderColor: colors.error, borderWidth: 1.5 },
+  // Legacy Moments
+  memoryDayCard: { overflow: 'hidden' },
+  memoryDayImage: { width: '100%', height: 180 },
+  memoryDayPlaceholder: { backgroundColor: colors.primarySoft, alignItems: 'center', justifyContent: 'center' },
+  memoryDayBody: { padding: spacing.md, gap: 2 },
+  elderCard: { borderColor: colors.goldSoft, borderWidth: 1.5, backgroundColor: colors.warmWhite, gap: spacing.sm },
+  elderBtn: { marginTop: spacing.xs },
+  treasureCard: { gap: spacing.sm },
+  treasureBtn: { marginTop: spacing.xs },
   row: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   rowText: { flex: 1, gap: 2 },
   // Heute-in-deiner-Familie Digest

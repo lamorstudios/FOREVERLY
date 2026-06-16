@@ -11,7 +11,7 @@ import { formatRelative } from '@/lib/format';
 import { colors, spacing, radius } from '@/theme';
 import type { HomeStackParamList } from '@/navigation/types';
 import type { LifeStoryKind } from '@/types/models';
-import { INTERVIEW_QUESTIONS, FUTURE_QUESTIONS } from './legacyMeta';
+import { INTERVIEW_GROUPS } from './legacyMeta';
 
 type Props = NativeStackScreenProps<HomeStackParamList, 'LifeInterview'>;
 
@@ -81,18 +81,21 @@ export function LifeInterviewScreen({ route }: Props) {
         </Card>
       ) : (
         <>
-          <View style={styles.section}>
-            <AppText variant="bodyStrong">Lebensinterview</AppText>
-            <View style={styles.chips}>
-              {INTERVIEW_QUESTIONS.map((q) => <Chip key={q} label={q} onPress={() => pick(q, false)} />)}
+          {INTERVIEW_GROUPS.map((group) => (
+            <View key={group.title} style={styles.section}>
+              <AppText variant="bodyStrong">{group.emoji}  {group.title}</AppText>
+              <View style={styles.chips}>
+                {group.questions.map((q) => (
+                  <Chip
+                    key={q}
+                    label={q}
+                    color={group.future ? colors.gold : undefined}
+                    onPress={() => pick(q, !!group.future)}
+                  />
+                ))}
+              </View>
             </View>
-          </View>
-          <View style={styles.section}>
-            <AppText variant="bodyStrong">Fragen für die Zukunft</AppText>
-            <View style={styles.chips}>
-              {FUTURE_QUESTIONS.map((q) => <Chip key={q} label={q} color={colors.gold} onPress={() => pick(q, true)} />)}
-            </View>
-          </View>
+          ))}
         </>
       )}
 

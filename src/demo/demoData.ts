@@ -43,6 +43,7 @@ import type {
   FarewellMessage,
   FilmProject,
   LifeStory,
+  FamilyWisdom,
   Artifact,
   Feedback,
 } from '@/types/models';
@@ -107,6 +108,7 @@ export interface DemoDataset {
   filmProjects: FilmProject[];
   // Legacy AI · Familienstimmen
   lifeStories: LifeStory[];
+  familyWisdoms: FamilyWisdom[];
   // Familienmuseum · Artefakte
   artifacts: Artifact[];
   // Feedback
@@ -598,6 +600,13 @@ export function createSeedData(): DemoDataset {
     life('ls-enkel', 'p-oma', 'Was möchtest du deinen Enkeln mitgeben?', 'text', 'Haltet zusammen und seid dankbar für die kleinen Dinge. Familie ist wichtiger als Geld.', true),
   ];
 
+  // --- Familienweisheiten (kurze gesammelte Aussagen) ---
+  const familyWisdoms: FamilyWisdom[] = [
+    { id: 'fw-1', family_id: DEMO_FAMILY_ID, text: 'Familie steht an erster Stelle.', author_person_id: 'p-oma', created_at: daysFromNow(-30) },
+    { id: 'fw-2', family_id: DEMO_FAMILY_ID, text: 'Gib niemals auf.', author_person_id: 'p-opa', created_at: daysFromNow(-22) },
+    { id: 'fw-3', family_id: DEMO_FAMILY_ID, text: 'Nutze jede Chance.', author_person_id: null, created_at: daysFromNow(-12) },
+  ];
+
   // --- Familienmuseum · Artefakte ---
   const artifacts: Artifact[] = [
     artifact('art-album', 'fotoalbum', 'Das alte Familienalbum', 'Ledergebundenes Fotoalbum mit Aufnahmen ab 1955.', 'Begonnen von Uroma Anna, weitergegeben an Oma Erika.', 'p-oma', 'Wohnzimmerschrank, Rostock', 1955),
@@ -690,6 +699,7 @@ export function createSeedData(): DemoDataset {
     farewellMessages,
     filmProjects,
     lifeStories,
+    familyWisdoms,
     artifacts,
     feedback: [],
   };
