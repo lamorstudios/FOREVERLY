@@ -116,12 +116,8 @@ export function HomeScreen({ navigation }: Props) {
   const { activeFamily } = useFamily();
   const { userId } = useAuth();
   const familyId = activeFamily!.id;
-  const { isTablet, width, mobilePadding, contentMaxWidth } = useResponsive();
-  // Exakte Kachelbreite: füllt die Zeile ohne Rest → gleiche Ränder links/rechts.
-  const gridGap = spacing.sm;
-  const cols = isTablet ? 3 : 2;
-  const innerWidth = Math.min(width, contentMaxWidth) - mobilePadding * 2;
-  const tileWidth = Math.floor((innerWidth - gridGap * (cols - 1)) / cols);
+  const { isTablet } = useResponsive();
+  const tileBasis = isTablet ? '31%' : '47%';
 
   const activities = useQuery({
     queryKey: qk.activities(familyId),
@@ -583,7 +579,7 @@ export function HomeScreen({ navigation }: Props) {
               <Pressable
                 key={a.route}
                 onPress={() => navigation.navigate(a.route)}
-                style={({ pressed }) => [styles.quickTile, { width: tileWidth }, pressed && styles.pressed]}
+                style={({ pressed }) => [styles.quickTile, { width: tileBasis }, pressed && styles.pressed]}
                 accessibilityRole="button"
                 accessibilityLabel={a.label}
               >
@@ -802,12 +798,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   bubbleName: { width: 76 },
-  // Entdecken-Kacheln: feste Kachelbreite + Spalten-/Zeilenabstand → bündig
+  // Entdecken-Kacheln
   quickGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'flex-start',
-    columnGap: spacing.sm,
+    justifyContent: 'space-between',
     rowGap: spacing.sm,
   },
   quickTile: {
