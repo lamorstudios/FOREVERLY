@@ -67,14 +67,15 @@ jobs:
       - name: SPA-Fallback, No-Cache-HTML & Jekyll deaktivieren
         run: |
           touch dist/.nojekyll
-          # index.html NICHT cachen, damit Browser/CDN nie auf ein bereits
-          # ersetztes, gehashtes JS-Bundle zeigen (Ursache für weißen Screen).
+          # index.html NICHT cachen (verhindert veraltete Verweise auf Bundles).
           sed -i 's#<head>#<head><meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" /><meta http-equiv="Pragma" content="no-cache" /><meta http-equiv="Expires" content="0" />#' dist/index.html
-          # Sichtbarer, eindeutiger Start-Platzhalter (klar vom In-App-Loader unterscheidbar).
-          sed -i 's|<div id="root"></div>|<div id="root"><div id="fv-fallback" style="font-family:sans-serif;padding:48px 24px;text-align:center;color:#6F6253">Foreverly wird gestartet \&hellip;<br/><br/><span style="font-size:13px">App-Code wird geladen. Sollte dies bestehen bleiben, wird automatisch neu geladen.</span></div></div>|' dist/index.html
-          # Selbstheilung: Hat React nach 6 s nicht gemountet (Platzhalter noch da),
-          # einmal mit Cache-Buster neu laden (behebt veraltete index.html / 404-Bundle).
-          sed -i 's#</body>#<script>(function(){setTimeout(function(){if(document.getElementById("fv-fallback")\&\&!sessionStorage.getItem("fv_reload")){sessionStorage.setItem("fv_reload","1");location.replace(location.pathname+"?v="+Date.now());}},6000);})();</script></body>#' dist/index.html
+          # Sichtbarer Start-Platzhalter (React ersetzt ihn beim Mounten).
+          sed -i 's|<div id="root"></div>|<div id="root"><div id="fv-fallback" style="font-family:sans-serif;padding:48px 24px;text-align:center;color:#6F6253">Foreverly wird gestartet \&hellip;<br/><br/><span style="font-size:13px">App-Code wird geladen \&hellip;</span></div></div>|' dist/index.html
+          # Fehler-Handler VOR dem App-Bundle definieren: greift nur, wenn das
+          # Bundle wirklich NICHT lädt (404/Netzwerk) – kein blinder Timer, der
+          # langsame Downloads abbricht. Reload einmalig mit Cache-Buster.
+          sed -i 's#<script src="/FOREVERLY/_expo#<script>window.__fvErr=function(){var f=document.getElementById("fv-fallback");if(sessionStorage.getItem("fv_e")){if(f)f.innerHTML="App-Code konnte nicht geladen werden (Netzwerk/404).<br/>Bitte Seite neu laden oder Cache leeren.";return;}sessionStorage.setItem("fv_e","1");location.replace(location.pathname+"?v="+Date.now());};</script><script src="/FOREVERLY/_expo#' dist/index.html
+          sed -i 's#\.js" defer></script>#.js" defer onerror="window.__fvErr()"></script>#' dist/index.html
           cp dist/index.html dist/404.html
 
       - name: Deploy to gh-pages branch
