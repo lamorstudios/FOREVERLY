@@ -59,7 +59,11 @@ export function SettingsScreen({ navigation }: Props) {
       ))}
 
       <AppText variant="caption" center color={colors.textMuted} style={styles.version}>
-        Foreverly · Version {Constants.expoConfig?.version ?? '1.0.0'}
+        Foreverly · v{Constants.expoConfig?.version ?? '1.0.0'} · Build{' '}
+        {String(Constants.expoConfig?.extra?.buildId ?? 'dev')}
+      </AppText>
+      <AppText variant="caption" center color={colors.textMuted}>
+        Stand: {String(Constants.expoConfig?.extra?.buildTime ?? 'lokal')}
       </AppText>
     </Screen>
   );

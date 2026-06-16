@@ -10,7 +10,7 @@ name: Deploy Web Preview (GitHub Pages)
 on:
   push:
     branches:
-      - claude/optimistic-curie-9fue6s
+      - 'claude/**'
       - main
       - master
   workflow_dispatch:
@@ -44,6 +44,11 @@ jobs:
 
       - name: Install dependencies
         run: npm install --no-audit --no-fund
+
+      - name: Build-Stempel setzen (sichtbar im Footer)
+        run: |
+          echo "EXPO_PUBLIC_BUILD_ID=${GITHUB_SHA::7}" >> "$GITHUB_ENV"
+          echo "EXPO_PUBLIC_BUILD_TIME=$(date -u '+%Y-%m-%d %H:%M UTC')" >> "$GITHUB_ENV"
 
       - name: Build web bundle
         run: npx expo export --platform web
