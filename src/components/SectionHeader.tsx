@@ -12,10 +12,12 @@ interface SectionHeaderProps {
 export function SectionHeader({ title, actionLabel, onAction }: SectionHeaderProps) {
   return (
     <View style={styles.row}>
-      <AppText variant="heading">{title}</AppText>
+      <AppText variant="heading" style={styles.title} numberOfLines={2}>
+        {title}
+      </AppText>
       {actionLabel && onAction ? (
-        <Pressable onPress={onAction} hitSlop={10}>
-          <AppText variant="label" color={colors.primary}>
+        <Pressable onPress={onAction} hitSlop={10} style={styles.action}>
+          <AppText variant="label" color={colors.primary} numberOfLines={1}>
             {actionLabel}
           </AppText>
         </Pressable>
@@ -29,6 +31,9 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+    gap: spacing.sm,
     marginBottom: spacing.xs,
   },
+  title: { flexShrink: 1 },
+  action: { flexShrink: 0 },
 });

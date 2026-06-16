@@ -22,8 +22,9 @@ import { uploadPhoto, uploadAudio } from '@/api/media';
 import { qk } from '@/api/queryKeys';
 import { formatDuration } from '@/lib/format';
 import { friendlyError } from '@/lib/errors';
+import { VISIBILITY_LEVELS, LEVEL_VISIBILITY_OPTIONS } from '@/constants/closeness';
 import { colors, spacing, radius } from '@/theme';
-import type { ContentType } from '@/types/models';
+import type { ContentType, VisibilityLevel } from '@/types/models';
 import type { MemoriesStackParamList } from '@/navigation/types';
 
 type Props = NativeStackScreenProps<MemoriesStackParamList, 'MemoryForm'>;
@@ -33,6 +34,10 @@ const CONTENT_TYPE_OPTIONS: SelectOption<ContentType>[] = [
   { value: 'photo', label: 'Foto' },
   { value: 'audio', label: 'Audio' },
 ];
+
+const VISIBILITY_OPTIONS: SelectOption<VisibilityLevel>[] = LEVEL_VISIBILITY_OPTIONS.map(
+  (v) => ({ value: v, label: `${VISIBILITY_LEVELS[v].emoji} ${VISIBILITY_LEVELS[v].label}` }),
+);
 
 interface PickedImage {
   uri: string;
@@ -54,6 +59,7 @@ export function MemoryFormScreen({ navigation, route }: Props) {
   const [description, setDescription] = useState('');
   const [occurredOn, setOccurredOn] = useState<string | null>(null);
   const [contentType, setContentType] = useState<ContentType>('text');
+  const [visibility, setVisibility] = useState<VisibilityLevel>('family');
   const [titleError, setTitleError] = useState<string | undefined>();
 
   const [photo, setPhoto] = useState<PickedImage | null>(null);
@@ -69,6 +75,7 @@ export function MemoryFormScreen({ navigation, route }: Props) {
         content_type: contentType,
         person_id: personId ?? null,
         occurred_on: occurredOn,
+        visibility,
       });
 
       if (contentType === 'photo' && photo) {
@@ -158,6 +165,13 @@ export function MemoryFormScreen({ navigation, route }: Props) {
         value={contentType}
         options={CONTENT_TYPE_OPTIONS}
         onChange={setContentType}
+      />
+
+      <SelectField<VisibilityLevel>
+        label="Sichtbar für"
+        value={visibility}
+        options={VISIBILITY_OPTIONS}
+        onChange={setVisibility}
       />
 
       {contentType === 'photo' ? (

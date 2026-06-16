@@ -4,6 +4,7 @@ import { LoginScreen } from '@/screens/auth/LoginScreen';
 import { RegisterScreen } from '@/screens/auth/RegisterScreen';
 import { ForgotPasswordScreen } from '@/screens/auth/ForgotPasswordScreen';
 import { VerifyEmailScreen } from '@/screens/auth/VerifyEmailScreen';
+import { LegalScreen } from '@/screens/legal/LegalScreen';
 import { stackScreenOptions } from './options';
 import type { AuthStackParamList } from './types';
 
@@ -37,6 +38,7 @@ export function AuthNavigator() {
         component={VerifyEmailScreen}
         options={{ title: 'E-Mail bestätigen' }}
       />
+      <Stack.Screen name="Legal" component={LegalScreen} options={{ title: 'Rechtliches' }} />
     </Stack.Navigator>
   );
 }

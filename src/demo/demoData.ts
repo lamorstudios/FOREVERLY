@@ -19,6 +19,33 @@ import type {
   CalendarEventType,
   FamilyDocument,
   StatusLevel,
+  BookProject,
+  TrustedContact,
+  TrustedRole,
+  ClosenessRating,
+  ClosenessLevel,
+  FamilyBranch,
+  VisibilityLevel,
+  RelationshipSuggestion,
+  FamilyEvent,
+  EventParticipant,
+  Moment,
+  MomentComment,
+  Trustee,
+  EstateInfo,
+  EstateCase,
+  EstateConfirmation,
+  LiveShare,
+  SafetyTrip,
+  SafetyAlert,
+  VaultEntry,
+  LegacyItem,
+  FarewellMessage,
+  FilmProject,
+  LifeStory,
+  FamilyWisdom,
+  Artifact,
+  Feedback,
 } from '@/types/models';
 import { coverImage, photoImage, portraitImage } from './images';
 
@@ -55,6 +82,37 @@ export interface DemoDataset {
   emergencyEvents: EmergencyEvent[];
   calendarEvents: CalendarEvent[];
   documents: FamilyDocument[];
+  bookProjects: BookProject[];
+  trustedContacts: TrustedContact[];
+  closenessRatings: ClosenessRating[];
+  branches: FamilyBranch[];
+  suggestions: RelationshipSuggestion[];
+  events: FamilyEvent[];
+  eventParticipants: EventParticipant[];
+  moments: Moment[];
+  momentComments: MomentComment[];
+  // Trustee & Nachlass-Freigabe
+  trustees: Trustee[];
+  estateInfos: EstateInfo[];
+  estateCases: EstateCase[];
+  estateConfirmations: EstateConfirmation[];
+  // Family Safety & Live Location
+  liveShares: LiveShare[];
+  safetyTrips: SafetyTrip[];
+  safetyAlerts: SafetyAlert[];
+  // Family Vault · Dokumente & Vermächtnis
+  vaultEntries: VaultEntry[];
+  legacyItems: LegacyItem[];
+  farewellMessages: FarewellMessage[];
+  // Familienfilm
+  filmProjects: FilmProject[];
+  // Legacy AI · Familienstimmen
+  lifeStories: LifeStory[];
+  familyWisdoms: FamilyWisdom[];
+  // Familienmuseum · Artefakte
+  artifacts: Artifact[];
+  // Feedback
+  feedback: Feedback[];
 }
 
 /** Erzeugt einen frischen Demo-Datensatz (Familie Mielke). */
@@ -100,6 +158,16 @@ export function createSeedData(): DemoDataset {
     person('p-uropa', 'Karl', 'Krüger', '1915-01-22', 'Stettin', '1991-06-15', 'KK'),
     person('p-stief', 'Peter', 'Hoffmann', '1962-09-09', 'Bremen', null, 'PH'),
     person('p-pflege', 'Mia', 'Mielke', '2012-03-15', 'Hamburg', null, 'MM'),
+    // Phase 4.5: zusätzliche Personen für „Beziehung ≠ Nähe"
+    person('p-halb', 'Jonas', 'Mielke', '2000-05-05', 'Hamburg', null, 'JM'),
+    person('p-stiefmutter', 'Claudia', 'Mielke', '1970-03-03', 'Kiel', null, 'CM'),
+    person('p-cousin', 'Max', 'Krüger', '1996-08-08', 'Berlin', null, 'MK'),
+    person('p-schwager', 'Peter', 'Wagner', '1985-01-01', 'Hamburg', null, 'PW'),
+    // Stiefgeschwister: Tochter des Stiefvaters Peter Hoffmann
+    person('p-stiefschwester', 'Lena', 'Hoffmann', '1998-10-10', 'Bremen', null, 'LH'),
+    // Phase 5 · Smart Invites: Nick lud Bruder Max ein; Max fügte Tochter Lea hinzu
+    person('p-max', 'Max', 'Mielke', '1992-02-02', 'Hamburg', null, 'MX', 'demo-user-max'),
+    person('p-lea', 'Lea', 'Mielke', '2018-06-06', 'Hamburg', null, 'LE'),
   ];
 
   // Biografien (vorhandene Daten – Grundlage für Kurzbiografien & Lebensweisheiten)
@@ -118,6 +186,10 @@ export function createSeedData(): DemoDataset {
   };
   for (const person of persons) {
     if (biographies[person.id]) person.biography = biographies[person.id]!;
+  }
+  // Phase 12: Familienlegenden (eigene Legacy-Seite)
+  for (const person of persons) {
+    if (['p-oma', 'p-opa', 'p-uroma'].includes(person.id)) person.is_legend = true;
   }
 
   // --- Beziehungen (farblich codiert) ---
@@ -140,6 +212,78 @@ export function createSeedData(): DemoDataset {
     // Lila – Adoption / Pflegefamilie
     rel('r13', 'p-mutter', 'p-pflege', 'pflegekind', 'adoption'),
     rel('r14', 'p-vater', 'p-pflege', 'pflegekind', 'adoption'),
+    // Phase 4.5: Beziehungen der zusätzlichen Personen
+    rel('r15', 'p-nick', 'p-halb', 'bruder', 'biological'),
+    rel('r16', 'p-nick', 'p-stiefmutter', 'stiefmutter', 'patchwork'),
+    rel('r17', 'p-nick', 'p-cousin', 'cousin', 'biological'),
+    rel('r18', 'p-nick', 'p-schwager', 'sonstige', 'married'),
+    // Phase 5: Nick → Max (Bruder), Max → Lea (Tochter)
+    rel('r19', 'p-nick', 'p-max', 'bruder', 'biological'),
+    rel('r20', 'p-max', 'p-lea', 'tochter', 'biological'),
+    // Stiefgeschwister Lena (Tochter des Stiefvaters) – Patchwork (gelb)
+    rel('r21', 'p-stief', 'p-stiefschwester', 'tochter', 'patchwork'),
+    rel('r22', 'p-nick', 'p-stiefschwester', 'schwester', 'patchwork'),
+  ];
+
+  // Phase 5 · Smart Invites: gesendete Einladung (Nick lud Max ein, angenommen)
+  const invitations: Invitation[] = [
+    {
+      id: 'inv-max',
+      family_id: DEMO_FAMILY_ID,
+      code: 'MAXBRUDER',
+      role: 'member',
+      email: null,
+      status: 'accepted',
+      invited_by: DEMO_USER_ID,
+      accepted_by: 'demo-user-max',
+      accepted_at: daysFromNow(-12),
+      expires_at: daysFromNow(18),
+      created_at: daysFromNow(-14),
+      person_id: 'p-max',
+      inviter_person_id: 'p-nick',
+      relationship_type: 'bruder',
+      suggested_closeness: 'inner',
+      message: 'Nick lädt dich ein, Teil der Familiengeschichte auf Foreverly zu werden.',
+    },
+  ];
+
+  // Phase 5 · Beziehungsvorschlag: „Lea könnte deine Nichte sein"
+  const suggestions: RelationshipSuggestion[] = [
+    {
+      id: 'sug-lea',
+      family_id: DEMO_FAMILY_ID,
+      from_person_id: 'p-nick',
+      to_person_id: 'p-lea',
+      suggested_type: 'nichte',
+      suggested_category: 'biological',
+      reason: 'Lea ist das Kind von Max (deinem Bruder).',
+      status: 'pending',
+      created_by: DEMO_USER_ID,
+      created_at: daysFromNow(-2),
+    },
+  ];
+
+  // Phase 4.5: individuelle Familiennähe von Nick (Beziehung ≠ Nähe!)
+  const closenessRatings: ClosenessRating[] = [
+    closeness('cl1', 'p-halb', 'inner'),        // Halbbruder, aber ❤️ Inner Circle
+    closeness('cl2', 'p-stiefmutter', 'inner'), // Stiefmutter, aber ❤️ Inner Circle
+    closeness('cl3', 'p-oma', 'sehr_nah'),      // 💛
+    closeness('cl4', 'p-cousin', 'familie'),    // 💙
+    closeness('cl5', 'p-schwager', 'erweitert'),// 🤍 Erweiterter Kreis
+    closeness('cl6', 'p-mutter', 'inner'),
+    closeness('cl7', 'p-vater', 'inner'),
+    closeness('cl8', 'p-max', 'inner'), // Nick stuft Bruder Max als Inner Circle ein
+    closeness('cl9', 'p-stiefschwester', 'familie'), // Stiefschwester Lena 💙
+    closeness('cl10', 'p-pflege', 'inner'),          // Pflegekind Mia ❤️
+    closeness('cl11', 'p-stief', 'sehr_nah'),         // Stiefvater 💛
+  ];
+
+  // Phase 4.5: Familienzweige
+  const branches: FamilyBranch[] = [
+    branch('br-vater', 'Vaterseite', '#5B8A5A', ['p-vater', 'p-oma', 'p-opa', 'p-uroma', 'p-uropa']),
+    branch('br-mutter', 'Mutterseite', '#4A78A8', ['p-mutter', 'p-cousin']),
+    branch('br-patchwork', 'Patchwork-Seite', '#D6A93B', ['p-stiefmutter', 'p-stief', 'p-pflege', 'p-stiefschwester']),
+    branch('br-angeheiratet', 'Angeheiratete Familie', '#8A6BB0', ['p-schwager', 'p-stief', 'p-stiefmutter']),
   ];
 
   // --- Erinnerungen ---
@@ -149,7 +293,22 @@ export function createSeedData(): DemoDataset {
     memory('m3', 'Opas Geschichten', 'Opa Hans erzählt von seiner Kindheit in Rostock. Diese Aufnahme ist ein kleiner Schatz.', 'audio', 'p-opa', '2015-11-01', -200),
     memory('m4', 'Mias erster Schultag', 'Mit Schultüte und einem riesigen Lächeln – Mia konnte es kaum erwarten.', 'photo', 'p-pflege', '2018-09-01', -7),
     memory('m5', 'Sonntagskaffee bei Uroma Anna', 'Jeden Sonntag gab es selbstgebackenen Streuselkuchen. Den Duft vergisst man nie.', 'text', 'p-uroma', '1997-05-11', -300),
+    memory('m6', 'Oma Erikas 80. Geburtstag', 'Die ganze Familie feierte Erika zum 80. Geburtstag – mit Streuselkuchen, alten Fotos und vielen Geschichten aus Rostock.', 'photo', 'p-oma', '2022-11-30', -60),
+    // „Heute in der Familiengeschichte": gleicher Tag/Monat, frühere Jahre
+    memory('m7', 'Familienurlaub in Italien', 'Im Sommer waren wir gemeinsam am Gardasee – Eis, Sonne und lange Abende mit der ganzen Familie.', 'photo', 'p-nick', new Date(now.getFullYear() - 12, now.getMonth(), now.getDate()).toISOString().slice(0, 10), -90),
+    memory('m8', 'Oma Erikas Kindheit in Rostock', 'Erika wuchs nach dem Krieg in Rostock auf. Sie erzählte oft von der Schule, vom Garten ihrer Mutter und davon, wie wichtig Zusammenhalt in schweren Zeiten war.', 'audio', 'p-oma', '1955-04-10', -140),
   ];
+
+  // Phase 4.5: Sichtbarkeit einzelner Erinnerungen (Demo)
+  const memoryVisibility: Record<string, VisibilityLevel> = {
+    m1: 'family', // Urlaub – für alle
+    m3: 'sehr_nah', // Opas Geschichten – nur sehr nahe Familie
+    m4: 'inner', // Mias Schultag – nur Inner Circle
+    m5: 'family',
+  };
+  for (const m of memories) {
+    m.visibility = memoryVisibility[m.id] ?? 'family';
+  }
 
   // --- Fotos (Platzhalter) ---
   const photos: Photo[] = [
@@ -166,7 +325,22 @@ export function createSeedData(): DemoDataset {
     audio('a1', 'Opas Kriegserinnerungen', 'p-opa', 'm3', 184, -200),
     audio('a2', 'Annas Lieblingsrezept', 'p-uroma', null, 95, -260),
     audio('a3', 'Nicks Geburtstagsständchen', 'p-nick', null, 42, -3),
+    audio('a4', 'Oma Erika erzählt von früher', 'p-oma', null, 132, -150),
   ];
+  // Phase 12: Transkripte (durchsuchbar, Originalstimmen für Filme/Legacy)
+  const transcripts: Record<string, string> = {
+    a4: 'Ich bin in Rostock aufgewachsen. Als Kind haben wir im Garten meiner Mutter gespielt. Familie war immer das Wichtigste – das möchte ich euch mitgeben.',
+    a1: 'Die Jahre nach dem Krieg waren hart, aber ehrliche Arbeit hat uns durchgebracht.',
+    a2: 'Mein Streuselkuchen-Rezept: viel Butter, viel Geduld und noch mehr Liebe.',
+  };
+  for (const a of audios) if (transcripts[a.id]) a.transcript = transcripts[a.id]!;
+  // Phase 8: automatische Transkriptionen (durchsuchbar für den Historiker)
+  const audioTranscripts: Record<string, string> = {
+    a1: 'Ich war Tischler und liebte die Seefahrt. Ehrliche Arbeit bringt Zufriedenheit.',
+    a2: 'Mein Streuselkuchen gelingt mit doppelt so vielen Streuseln und viel Butter – mit Liebe gebacken.',
+    a4: 'Ich wuchs in Rostock auf und arbeitete viele Jahre als Lehrerin. Familie ist wichtiger als Geld. Am liebsten erinnere ich mich an unsere Sommer an der Ostsee.',
+  };
+  for (const a of audios) a.transcript = audioTranscripts[a.id] ?? null;
 
   // --- Zeitkapseln ---
   const capsules: TimeCapsule[] = [
@@ -200,10 +374,16 @@ export function createSeedData(): DemoDataset {
     status('st-opa', 'p-opa', 'okay', null, -2),
   ];
 
-  // --- Phase 2: Benachrichtigungen ---
+  // --- Phase 2: Benachrichtigungen (emotional, antippbar) ---
   const notifications: AppNotification[] = [
-    notify('nt1', 'status', 'Oma Erika fühlt sich nicht wohl', '🤒 „Mir geht es heute nicht so gut." – schau doch mal nach ihr.', 0),
-    notify('nt2', 'calendar', 'Bald: Arzttermin Opa Hans', 'In wenigen Tagen steht ein Termin an.', -1),
+    notify('nt1', 'status', '💛 Oma Erika fühlt sich gerade etwas allein.', 'Schau doch mal nach – eine Nachricht tut gut.', 0, { type: 'status', route: 'Status' }),
+    notify('nt2', 'info', '📸 Sabine hat neue Fotos geteilt.', 'Frische Momente vom Sommergrillen.', 0, { type: 'photo', tab: 'MemoriesTab', screen: 'PhotoGallery' }),
+    notify('nt3', 'info', '🎤 Opa Hans hat eine neue Sprachnachricht aufgenommen.', 'Hör dir die Originalstimme an.', -1, { type: 'audio', route: 'MomentsHome' }),
+    notify('nt4', 'info', '🎉 Max ist eurer Familie beigetreten.', 'Heißt das neue Familienmitglied willkommen.', -1, { type: 'member_joined', tab: 'FamilyTab', screen: 'Network' }),
+    notify('nt5', 'calendar', '⏳ Eure Zeitkapsel für Nick öffnet sich in 7 Tagen.', 'Bald gibt es etwas zu entdecken.', -2, { type: 'capsule_opening', tab: 'CapsulesTab', screen: 'CapsuleList' }),
+    notify('nt6', 'calendar', '🎂 Morgen hat Papa Geburtstag.', 'Vergiss nicht zu gratulieren.', -2, { type: 'event_soon', route: 'Calendar' }),
+    notify('nt7', 'info', '📍 Nick teilt gerade seinen Heimweg.', 'Du kannst den Weg live verfolgen.', -3, { type: 'location', route: 'LiveMap' }),
+    notify('nt8', 'info', '🎙️ Zeit, eine Geschichte zu bewahren.', 'Nimm dir einen Moment für Oma Erika.', -4, { type: 'interview_reminder', route: 'LegacyHub' }),
   ];
 
   // --- Phase 2: Notfallkontakte ---
@@ -237,6 +417,7 @@ export function createSeedData(): DemoDataset {
     calRel('cal3', 'arzttermin', 'Arzttermin Opa Hans', 3, ['p-opa'], '10:30'),
     calRel('cal4', 'familienereignis', 'Großes Familienfest im Garten', 21, [], null, true),
     calRel('cal5', 'erinnerung', 'Mia für Schwimmkurs anmelden', 9, ['p-pflege'], null),
+    calRel('cal6', 'geburtstag', 'Geburtstag Mia', 5, ['p-pflege'], null),
   ];
 
   // --- Phase 2: Dokumentenübersicht (nur Metadaten) ---
@@ -247,11 +428,248 @@ export function createSeedData(): DemoDataset {
     doc('doc4', 'versicherung', 'Versicherungsunterlagen', true, 'Versicherungsordner im Wohnzimmer', 'Max Mustermann', null),
   ];
 
+  // --- Trusted Circle: Vertrauenspersonen (Opa Hans wohnt 700 km entfernt) ---
+  const trustedContacts: TrustedContact[] = [
+    trusted('tc-mueller', 'p-opa', 'Herr Müller', 'nachbar', '+49 381 5550101',
+      'Wohnt im selben Haus und kann im Notfall nachsehen.', true),
+    trusted('tc-peter', 'p-opa', 'Peter Schneider', 'freund', '+49 381 5550202',
+      'Kennt Opa Hans seit 30 Jahren.', false),
+    trusted('tc-berger', 'p-opa', 'Frau Berger', 'pflegekontakt', '+49 381 5550303',
+      'Kommt zweimal pro Woche vorbei.', true),
+    trusted('tc-schneiderin', 'p-oma', 'Frau Schneider', 'nachbar', '+49 451 5550404',
+      'Nachbarin von Oma Erika, immer erreichbar.', false),
+    trusted('tc-pflege-oma', 'p-oma', 'Pflegedienst Lübeck', 'pflegekontakt', '+49 451 5550505',
+      'Betreut Oma Erika werktags.', true),
+  ];
+
+  // --- Phase 4: Beispiel-Familienbuch ---
+  const bookProjects: BookProject[] = [
+    {
+      id: 'book1',
+      family_id: DEMO_FAMILY_ID,
+      type: 'komplett',
+      title: 'Die Geschichte der Familie Mielke',
+      subtitle: 'Ein Familienbuch',
+      cover_photo_path: family.image_url,
+      hidden_chapters: [],
+      chapter_order: [],
+      options: {},
+      status: 'ready',
+      created_by: DEMO_USER_ID,
+      created_at: daysFromNow(-5),
+      updated_at: daysFromNow(-5),
+    },
+  ];
+
+  // --- Phase 6: Familienevent „Sommergrillen bei Nick" ---
+  const events: FamilyEvent[] = [
+    {
+      id: 'ev-grill',
+      family_id: DEMO_FAMILY_ID,
+      type: 'grillfest',
+      title: 'Sommergrillen bei Nick',
+      description: 'Großes Grillfest im Garten – die ganze Familie ist eingeladen!',
+      event_date: daysFromNow(-3).slice(0, 10),
+      event_time: '16:00',
+      location: 'Nicks Garten, Hamburg',
+      host_user_id: DEMO_USER_ID,
+      host_person_id: 'p-nick',
+      visibility: 'family',
+      created_by: DEMO_USER_ID,
+      created_at: daysFromNow(-20),
+      updated_at: daysFromNow(-20),
+    },
+    {
+      id: 'ev-fest',
+      family_id: DEMO_FAMILY_ID,
+      type: 'feier',
+      title: 'Sommerfest der Familie Mielke',
+      description: 'Ein lauer Sommerabend mit der ganzen Familie – kommt vorbei!',
+      event_date: daysFromNow(14).slice(0, 10),
+      event_time: '15:00',
+      location: 'Garten bei Oma Erika, Lübeck',
+      host_user_id: DEMO_USER_ID,
+      host_person_id: 'p-nick',
+      visibility: 'family',
+      created_by: DEMO_USER_ID,
+      created_at: daysFromNow(-2),
+      updated_at: daysFromNow(-2),
+    },
+  ];
+
+  const eventParticipants: EventParticipant[] = [
+    part('ep1', 'p-nick', DEMO_USER_ID, 'yes', null, '🔥 Grillkohle'),
+    part('ep2', 'p-max', 'demo-user-max', 'yes', 'Ich freu mich riesig!', '🥤 Getränke'),
+    part('ep3', 'p-oma', null, 'maybe', null, null),
+    part('ep4', 'p-opa', null, 'yes', null, '🍰 Kuchen'),
+  ];
+
+  const moments: Moment[] = [
+    moment('mo1', 'photo', 'Das Grillen war ein Fest! 🔥', photoImage('Sommergrillen', '#D6A93B'), DEMO_USER_ID, 'ev-grill', -3),
+    moment('mo2', 'photo', 'Max am Grill 😄', photoImage('Am Grill', '#B07D4B'), 'demo-user-max', 'ev-grill', -3),
+    moment('mo3', 'audio', 'Opas Anekdote vom Grill', '', DEMO_USER_ID, 'ev-grill', -3),
+    moment('mo4', 'text', 'Schön war es mit der ganzen Familie 💛', null, DEMO_USER_ID, 'ev-grill', -3),
+    // Familienfeed (ohne Event)
+    moment('mo5', 'text', 'Guten Morgen, liebe Familie! ☀️', null, DEMO_USER_ID, null, -1),
+    moment('mo6', 'photo', 'Sonntagsspaziergang', photoImage('Spaziergang', '#5B8A5A'), DEMO_USER_ID, null, -2),
+  ];
+
+  const momentComments: MomentComment[] = [
+    { id: 'mc1', moment_id: 'mo1', author_user_id: 'demo-user-max', text: 'Tolle Aufnahme!', created_at: daysFromNow(-3) },
+    { id: 'mc2', moment_id: 'mo1', author_user_id: DEMO_USER_ID, text: 'Danke! War ein super Tag.', created_at: daysFromNow(-3) },
+  ];
+
+  // --- Vertrauenspersonen (Trustees) von Nick ---
+  const trustees: Trustee[] = [
+    trustee('tr-max', 'Max Mielke', 'Bruder', 'p-max', '+49 170 2223344'),
+    trustee('tr-sabine', 'Sabine Mielke', 'Mutter', 'p-mutter', '+49 170 1234567'),
+    trustee('tr-thomas', 'Thomas Mielke', 'Vater', 'p-vater', '+49 170 5556677'),
+  ];
+
+  // --- Nachlasshinweise von Nick (keine sensiblen Zugangsdaten) ---
+  const estateInfos: EstateInfo[] = [
+    {
+      id: 'est-nick',
+      family_id: DEMO_FAMILY_ID,
+      owner_user_id: DEMO_USER_ID,
+      has_will: true,
+      will_location: 'Beim Notar Dr. Berger hinterlegt',
+      has_patient_decree: true,
+      patient_decree_location: 'Ordner „Wichtiges" im Schlafzimmerschrank',
+      has_power_of_attorney: false,
+      power_of_attorney_location: null,
+      has_insurance: true,
+      insurance_location: 'Versicherungsordner im Wohnzimmer · Ansprechpartnerin: Sabine',
+      contact_person: 'Sabine Mielke',
+      contact_person_id: 'p-mutter',
+      personal_notes:
+        'Bitte kümmert euch zuerst um Oma Erika. Die Familienfotos sind mir am wichtigsten – sie sollen bei euch bleiben. 💛',
+      farewell_message:
+        'Wenn ihr das lest, denkt an die schönen Momente. Ich bin dankbar für jeden Tag mit euch.',
+      media_path: null,
+      release_audience: 'trustees',
+      recipient_person_ids: [],
+      required_confirmations: 2,
+      updated_at: daysFromNow(-10),
+    },
+  ];
+
+  // Demo-Freigabe: Todesfall gemeldet, 2 von 3 bestätigt → freigegeben.
+  const estateCases: EstateCase[] = [
+    {
+      id: 'case-demo', family_id: DEMO_FAMILY_ID, subject_user_id: DEMO_USER_ID, subject_person_id: 'p-nick',
+      reported_by_user_id: 'demo-user-max', reported_by_trustee_id: 'tr-max', reported_by_name: 'Max Mielke',
+      status: 'released', required_confirmations: 2, note: null,
+      created_at: daysFromNow(-1), updated_at: daysFromNow(-1), released_at: daysFromNow(-1),
+    },
+  ];
+  const estateConfirmations: EstateConfirmation[] = [
+    { id: 'conf-sabine', case_id: 'case-demo', trustee_id: 'tr-sabine', confirmer_name: 'Sabine Mielke', decision: 'confirm', note: null, created_at: daysFromNow(-1) },
+    { id: 'conf-thomas', case_id: 'case-demo', trustee_id: 'tr-thomas', confirmer_name: 'Thomas Mielke', decision: 'confirm', note: null, created_at: daysFromNow(-1) },
+  ];
+
+  // --- Family Vault · Dokumente, Vermächtnisse, Abschiedsnachrichten ---
+  const vaultEntries: VaultEntry[] = [
+    vault('v-test', 'testament', 'Testament', 'Notariell beglaubigtes Testament.', 'Beim Notar Dr. Berger hinterlegt', 'Notar Dr. Berger', 'trustees'),
+    vault('v-pv', 'patientenverfuegung', 'Patientenverfügung', 'Regelt medizinische Wünsche.', 'Ordner „Wichtiges" im Schlafzimmerschrank', 'Sabine Mielke', 'inner'),
+    vault('v-vers', 'versicherung', 'Versicherungsunterlagen', 'Lebens-, Haftpflicht- und Hausratversicherung.', 'Versicherungsordner im Wohnzimmer', 'Sabine Mielke', 'children'),
+    vault('v-immo', 'immobilie', 'Wohnungsunterlagen', 'Kaufvertrag & Grundbuchauszug der Wohnung.', 'Aktenschrank im Büro, Fach 2', null, 'trustees'),
+    vault('v-notar', 'notar', 'Notar-Kontakt', 'Zuständiger Notar für Testament & Vollmachten.', 'Kanzlei Berger, Hamburg', 'Dr. Berger · +49 40 998877', 'trustees'),
+    vault('v-kfz', 'fahrzeug', 'Fahrzeugunterlagen', 'Fahrzeugbrief & Versicherung VW Passat.', 'Handschuhfach / Ordner Auto', null, 'inner'),
+  ];
+
+  const legacyItems: LegacyItem[] = [
+    legacy('lg-wert', 'wert', 'Zusammenhalt', 'Familie ist wichtiger als alles andere. Haltet zusammen, besonders in schweren Zeiten.', 'children'),
+    legacy('lg-lektion', 'lektion', 'Ehrliche Arbeit', 'Opa Hans sagte immer: Ehrliche Arbeit bringt Zufriedenheit. Das hat mich mein Leben lang begleitet.', 'inner'),
+    legacy('lg-rezept', 'rezept', 'Omas Streuselkuchen', 'Das Geheimnis: doppelt so viele Streusel wie man denkt – und mit Liebe backen. 🥧', 'children'),
+    legacy('lg-ort', 'ort', 'Unser Ostsee-Strand', 'Der Strand bei Rostock, wo wir jeden Sommer waren. Geht dort hin, wenn ihr an mich denken wollt.', 'inner'),
+  ];
+
+  const farewellMessages: FarewellMessage[] = [
+    farewell('fw-fam', 'text', 'Für meine Familie', 'inner', 'Wenn ihr das lest: Ich bin dankbar für jeden Tag mit euch. Denkt an die schönen Momente.'),
+    farewell('fw-mia', 'audio', 'Für Mia', 'children', 'Eine kurze Sprachnachricht für dich, kleine Mia. 💛'),
+  ];
+
+  // --- Familienfilme (Storyboards aus echten Inhalten) ---
+  const filmYear = now.getFullYear();
+  const filmProjects: FilmProject[] = [
+    film('film-grill', 'event', 'Sommergrillen', 'Ein Tag voller Lachen, Grillduft und Familie', 'froehlich', 'none', { eventId: 'ev-grill' }, true),
+    film('film-oma', 'documentary', 'Die Geschichte von Oma Erika', 'Ein Leben in Rostock, Lübeck und der ganzen Familie', 'nostalgisch', 'none', { personId: 'p-oma' }, true),
+    film('film-year', 'year', `Familienjahr ${filmYear}`, 'Die schönsten Momente des Jahres', 'feierlich', 'none', { year: filmYear }, true),
+    film('film-legacy', 'legacy', 'Mein Vermächtnis', 'Für meine Familie – zu öffnen, wenn es soweit ist', 'emotional', 'death', { personId: 'p-nick' }, false),
+  ];
+
+  // --- Legacy AI · Lebensinterview Oma Erika ---
+  const lifeStories: LifeStory[] = [
+    life('ls-kindheit', 'p-oma', 'Wie war deine Kindheit?', 'audio', 'Ich bin in Rostock aufgewachsen, nach dem Krieg. Wir hatten wenig, aber viel Zusammenhalt.', false),
+    life('ls-hans', 'p-oma', 'Wie hast du Opa Hans kennengelernt?', 'text', 'Auf einem Tanzabend 1962 in Rostock. Er konnte überhaupt nicht tanzen – aber er hat mich zum Lachen gebracht.', false),
+    life('ls-enkel', 'p-oma', 'Was möchtest du deinen Enkeln mitgeben?', 'text', 'Haltet zusammen und seid dankbar für die kleinen Dinge. Familie ist wichtiger als Geld.', true),
+  ];
+
+  // --- Familienweisheiten (kurze gesammelte Aussagen) ---
+  const familyWisdoms: FamilyWisdom[] = [
+    { id: 'fw-1', family_id: DEMO_FAMILY_ID, text: 'Familie steht an erster Stelle.', author_person_id: 'p-oma', created_at: daysFromNow(-30) },
+    { id: 'fw-2', family_id: DEMO_FAMILY_ID, text: 'Gib niemals auf.', author_person_id: 'p-opa', created_at: daysFromNow(-22) },
+    { id: 'fw-3', family_id: DEMO_FAMILY_ID, text: 'Nutze jede Chance.', author_person_id: null, created_at: daysFromNow(-12) },
+  ];
+
+  // --- Familienmuseum · Artefakte ---
+  const artifacts: Artifact[] = [
+    artifact('art-album', 'fotoalbum', 'Das alte Familienalbum', 'Ledergebundenes Fotoalbum mit Aufnahmen ab 1955.', 'Begonnen von Uroma Anna, weitergegeben an Oma Erika.', 'p-oma', 'Wohnzimmerschrank, Rostock', 1955),
+    artifact('art-uhr', 'uhr', 'Opas Taschenuhr', 'Silberne Taschenuhr, ein Geschenk zur Hochzeit 1963.', 'Von Opa Hans an Nick vererbt.', 'p-opa', 'Vitrine', 1963),
+    artifact('art-haus', 'haus', 'Das Familienhaus in Rostock', 'Das Haus, in dem Oma und Opa viele Jahrzehnte lebten.', 'Mehrere Generationen sind hier aufgewachsen.', 'p-oma', 'Rostock', 1958),
+    artifact('art-firma', 'unternehmen', 'Krügers Handwerksbetrieb', 'Kleiner Handwerksbetrieb in Stettin.', 'Gegründet von Uropa Karl.', 'p-uropa', 'Stettin', 1938),
+  ];
+
+  // Eine Zeitkapsel „erst nach meinem Tod öffnen".
+  for (const c of capsules) if (c.id === 'tc4') c.open_on_death = true;
+
+  // --- Family Safety & Live Location ---
+  const minsFromNow = (m: number) => new Date(now.getTime() + m * 60000).toISOString();
+  const liveShares: LiveShare[] = [
+    {
+      id: 'ls-nick', family_id: DEMO_FAMILY_ID, user_id: DEMO_USER_ID, person_id: 'p-nick',
+      active: true, status: 'moving', status_label: null, place_label: 'Hamburg, Innenstadt',
+      latitude: 53.5511, longitude: 9.9937, battery: 72, audience: 'inner', recipient_person_ids: [],
+      duration: 'today', expires_at: minsFromNow(360), updated_at: minsFromNow(-4),
+    },
+    {
+      id: 'ls-oma', family_id: DEMO_FAMILY_ID, user_id: 'u-oma', person_id: 'p-oma',
+      active: true, status: 'doctor', status_label: null, place_label: 'Praxis Dr. Wagner, Lübeck',
+      latitude: 53.8655, longitude: 10.6866, battery: 45, audience: 'trusted', recipient_person_ids: [],
+      duration: '1h', expires_at: minsFromNow(40), updated_at: minsFromNow(-9),
+    },
+  ];
+
+  const safetyTrips: SafetyTrip[] = [
+    {
+      id: 'trip-sabine', family_id: DEMO_FAMILY_ID, user_id: 'u-sabine', person_id: 'p-mutter',
+      kind: 'heimweg', destination_label: 'Zuhause, Lübeck', eta: minsFromNow(18), status: 'active',
+      audience: 'inner', recipient_person_ids: [], battery: 63,
+      started_at: minsFromNow(-12), arrived_at: null, updated_at: minsFromNow(-2),
+    },
+    {
+      id: 'trip-oma', family_id: DEMO_FAMILY_ID, user_id: 'u-oma', person_id: 'p-oma',
+      kind: 'safe_arrival', destination_label: 'Praxis Dr. Wagner', eta: null, status: 'arrived',
+      audience: 'inner', recipient_person_ids: [], battery: 45,
+      started_at: minsFromNow(-50), arrived_at: minsFromNow(-8), updated_at: minsFromNow(-8),
+    },
+  ];
+
+  const safetyAlerts: SafetyAlert[] = [
+    {
+      id: 'sos-demo', family_id: DEMO_FAMILY_ID, user_id: 'u-opa', person_id: 'p-opa',
+      message: 'Mir ist schwindelig, bitte ruft mich an.', place_label: 'Zuhause, Rostock',
+      latitude: 54.0924, longitude: 12.0991, battery: 88, status: 'resolved',
+      created_at: daysFromNow(-2), resolved_at: daysFromNow(-2),
+    },
+  ];
+
   return {
     profile,
     family,
     members,
-    invitations: [],
+    invitations,
     persons,
     relationships,
     memories,
@@ -266,9 +684,140 @@ export function createSeedData(): DemoDataset {
     emergencyEvents,
     calendarEvents,
     documents,
+    bookProjects,
+    trustedContacts,
+    closenessRatings,
+    branches,
+    suggestions,
+    events,
+    eventParticipants,
+    moments,
+    momentComments,
+    trustees,
+    estateInfos,
+    estateCases,
+    estateConfirmations,
+    liveShares,
+    safetyTrips,
+    safetyAlerts,
+    vaultEntries,
+    legacyItems,
+    farewellMessages,
+    filmProjects,
+    lifeStories,
+    familyWisdoms,
+    artifacts,
+    feedback: [],
   };
 
   // --- Fabrik-Helfer ---
+  function artifact(
+    id: string,
+    category: Artifact['category'],
+    title: string,
+    description: string,
+    story: string,
+    ownerPersonId: string | null,
+    location: string,
+    year: number,
+  ): Artifact {
+    return {
+      id, family_id: DEMO_FAMILY_ID, category, title, description, story,
+      owner_person_id: ownerPersonId, location, year, photo_path: null,
+      created_by: DEMO_USER_ID, created_at: daysFromNow(-9),
+    };
+  }
+  function life(
+    id: string,
+    personId: string,
+    question: string,
+    kind: LifeStory['kind'],
+    content: string,
+    future: boolean,
+  ): LifeStory {
+    return {
+      id, family_id: DEMO_FAMILY_ID, person_id: personId, question, kind, content,
+      media_path: null, is_future_question: future, created_at: daysFromNow(-12),
+    };
+  }
+  function film(
+    id: string,
+    kind: FilmProject['kind'],
+    title: string,
+    subtitle: string,
+    music: FilmProject['music'],
+    lock: FilmProject['lock'],
+    options: FilmProject['options'],
+    auto: boolean,
+  ): FilmProject {
+    return {
+      id, family_id: DEMO_FAMILY_ID, owner_user_id: DEMO_USER_ID, kind, title, subtitle,
+      music, lock, open_at: null, visibility: 'family', options, hidden_chapters: [],
+      cover_path: null, auto, created_at: daysFromNow(-6), updated_at: daysFromNow(-6),
+    };
+  }
+  function vault(
+    id: string,
+    category: VaultEntry['category'],
+    title: string,
+    description: string | null,
+    location: string | null,
+    contact: string | null,
+    audience: VaultEntry['release_audience'],
+  ): VaultEntry {
+    return {
+      id, family_id: DEMO_FAMILY_ID, owner_user_id: DEMO_USER_ID, category, title,
+      description, location, contact_person: contact, contact_person_id: null,
+      has_document: false, release_audience: audience,
+      created_at: daysFromNow(-20), updated_at: daysFromNow(-10),
+    };
+  }
+  function legacy(
+    id: string,
+    kind: LegacyItem['kind'],
+    title: string,
+    content: string,
+    audience: LegacyItem['for_audience'],
+  ): LegacyItem {
+    return {
+      id, family_id: DEMO_FAMILY_ID, owner_user_id: DEMO_USER_ID, kind, title, content,
+      for_audience: audience, created_at: daysFromNow(-18), updated_at: daysFromNow(-18),
+    };
+  }
+  function farewell(
+    id: string,
+    kind: FarewellMessage['kind'],
+    title: string,
+    recipient: FarewellMessage['recipient'],
+    content: string,
+  ): FarewellMessage {
+    return {
+      id, family_id: DEMO_FAMILY_ID, owner_user_id: DEMO_USER_ID, kind, title, recipient,
+      content, media_path: null, created_at: daysFromNow(-15), updated_at: daysFromNow(-15),
+    };
+  }
+  function trustee(
+    id: string,
+    name: string,
+    relation: string,
+    personId: string | null,
+    phone: string | null,
+  ): Trustee {
+    return {
+      id,
+      family_id: DEMO_FAMILY_ID,
+      owner_user_id: DEMO_USER_ID,
+      person_id: personId,
+      name,
+      relation,
+      phone,
+      email: null,
+      role: relation,
+      can_confirm_death: true,
+      created_at: daysFromNow(-30),
+    };
+  }
+
   function person(
     id: string,
     first: string,
@@ -467,6 +1016,7 @@ export function createSeedData(): DemoDataset {
     title: string,
     body: string,
     offset: number,
+    data: Record<string, unknown> = {},
   ): AppNotification {
     return {
       id,
@@ -476,7 +1026,7 @@ export function createSeedData(): DemoDataset {
       category,
       title,
       body,
-      data: {},
+      data,
       is_read: false,
       created_at: daysFromNow(offset),
     };
@@ -555,6 +1105,110 @@ export function createSeedData(): DemoDataset {
       created_at: daysFromNow(-10),
       updated_at: daysFromNow(-10),
       participant_ids: participantIds,
+    };
+  }
+
+  function part(
+    id: string,
+    personId: string,
+    userId: string | null,
+    rsvp: EventParticipant['rsvp'],
+    comment: string | null,
+    bringing: string | null,
+  ): EventParticipant {
+    return {
+      id,
+      event_id: 'ev-grill',
+      person_id: personId,
+      user_id: userId,
+      rsvp,
+      comment,
+      bringing,
+      responded_at: rsvp ? daysFromNow(-5) : null,
+      created_at: daysFromNow(-18),
+    };
+  }
+
+  function moment(
+    id: string,
+    kind: Moment['kind'],
+    text: string | null,
+    storagePath: string | null,
+    authorUserId: string,
+    eventId: string | null,
+    offset: number,
+  ): Moment {
+    return {
+      id,
+      family_id: DEMO_FAMILY_ID,
+      author_user_id: authorUserId,
+      kind,
+      text,
+      storage_path: storagePath,
+      duration_seconds: kind === 'audio' ? 47 : null,
+      visibility: 'family',
+      event_id: eventId,
+      created_at: daysFromNow(offset),
+    };
+  }
+
+  function closeness(
+    id: string,
+    personId: string,
+    level: ClosenessLevel,
+  ): ClosenessRating {
+    return {
+      id,
+      family_id: DEMO_FAMILY_ID,
+      rater_user_id: DEMO_USER_ID,
+      person_id: personId,
+      level,
+      created_at: daysFromNow(-15),
+      updated_at: daysFromNow(-15),
+    };
+  }
+
+  function branch(
+    id: string,
+    name: string,
+    color: string,
+    memberIds: string[],
+  ): FamilyBranch {
+    return {
+      id,
+      family_id: DEMO_FAMILY_ID,
+      name,
+      color,
+      created_by: DEMO_USER_ID,
+      created_at: daysFromNow(-25),
+      member_ids: memberIds,
+    };
+  }
+
+  function trusted(
+    id: string,
+    personId: string,
+    name: string,
+    role: TrustedRole,
+    phone: string,
+    note: string,
+    isEmergency: boolean,
+  ): TrustedContact {
+    return {
+      id,
+      family_id: DEMO_FAMILY_ID,
+      person_id: personId,
+      name,
+      role,
+      phone,
+      email: null,
+      location: null,
+      note,
+      availability: null,
+      is_emergency: isEmergency,
+      created_by: DEMO_USER_ID,
+      created_at: daysFromNow(-20),
+      updated_at: daysFromNow(-20),
     };
   }
 

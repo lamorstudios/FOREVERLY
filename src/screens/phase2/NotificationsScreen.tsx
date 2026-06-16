@@ -21,6 +21,7 @@ import { useFamily } from '@/context/FamilyContext';
 import { friendlyError } from '@/lib/errors';
 import { formatRelative } from '@/lib/format';
 import { colors, spacing, radius } from '@/theme';
+import { NOTIFICATION_META, type NotificationData, type NotificationType } from '@/lib/notificationCenter';
 import type { HomeStackParamList } from '@/navigation/types';
 import type { AppNotification } from '@/types/models';
 
@@ -45,7 +46,16 @@ const CATEGORY_COLORS: Record<NotificationCategory, string> = {
   info: colors.textSecondary,
 };
 
-export function NotificationsScreen(_props: Props) {
+/** Icon/Farbe – bevorzugt aus dem (fachlichen) Benachrichtigungstyp. */
+function visuals(n: AppNotification): { icon: keyof typeof Ionicons.glyphMap; color: string } {
+  const type = (n.data as NotificationData | undefined)?.type as NotificationType | undefined;
+  if (type && NOTIFICATION_META[type]) {
+    return { icon: NOTIFICATION_META[type].icon, color: NOTIFICATION_META[type].color };
+  }
+  return { icon: CATEGORY_ICONS[n.category], color: CATEGORY_COLORS[n.category] };
+}
+
+export function NotificationsScreen({ navigation }: Props) {
   const { activeFamily } = useFamily();
   const familyId = activeFamily!.id;
   const queryClient = useQueryClient();
@@ -82,6 +92,18 @@ export function NotificationsScreen(_props: Props) {
   const notifications = data ?? [];
   const unread = unreadCount(notifications);
 
+  // Antippen: als gelesen markieren und zum passenden Ziel navigieren.
+  function open(n: AppNotification) {
+    if (!n.is_read) readMutation.mutate(n.id);
+    const target = n.data as NotificationData | undefined;
+    const nav = navigation as unknown as { navigate: (n: string, p?: object) => void; getParent: () => { navigate: (n: string, p?: object) => void } | undefined };
+    if (target?.tab && target.screen) {
+      nav.getParent()?.navigate(target.tab, { screen: target.screen, params: target.params });
+    } else if (target?.route) {
+      nav.navigate(target.route, target.params);
+    }
+  }
+
   return (
     <Screen refreshing={isRefetching} onRefresh={refetch}>
       <AppText variant="display" style={styles.title}>
@@ -110,11 +132,7 @@ export function NotificationsScreen(_props: Props) {
               <NotificationCard
                 key={notification.id}
                 notification={notification}
-                onPress={() => {
-                  if (!notification.is_read) {
-                    readMutation.mutate(notification.id);
-                  }
-                }}
+                onPress={() => open(notification)}
               />
             ))}
           </View>
@@ -131,8 +149,7 @@ function NotificationCard({
   notification: AppNotification;
   onPress: () => void;
 }) {
-  const icon = CATEGORY_ICONS[notification.category];
-  const accent = CATEGORY_COLORS[notification.category];
+  const { icon, color: accent } = visuals(notification);
   const unread = !notification.is_read;
 
   return (

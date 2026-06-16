@@ -7,11 +7,11 @@ import { colors, spacing, radius } from '@/theme';
 import { qk } from '@/api/queryKeys';
 import { getTimeline } from '@/api/historian';
 import { useFamily } from '@/context/FamilyContext';
-import type { HistorianStackParamList } from '@/navigation/types';
+import type { HomeStackParamList } from '@/navigation/types';
 import { SourceLine } from './_shared';
 
 export function TimelineScreen(
-  _props: NativeStackScreenProps<HistorianStackParamList, 'Timeline'>,
+  _props: NativeStackScreenProps<HomeStackParamList, 'Timeline'>,
 ) {
   const { activeFamily } = useFamily();
   const familyId = activeFamily!.id;

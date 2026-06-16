@@ -10,7 +10,7 @@ name: Deploy Web Preview (GitHub Pages)
 on:
   push:
     branches:
-      - claude/optimistic-curie-9fue6s
+      - 'claude/**'
       - main
       - master
   workflow_dispatch:
@@ -26,9 +26,13 @@ jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     env:
-      EXPO_PUBLIC_DEMO_MODE: 'true'
       # Unterpfad = Repository-Name (case-sensitive). Seite liegt unter /FOREVERLY/
       EXPO_BASE_URL: '/FOREVERLY'
+      EXPO_PUBLIC_INVITE_BASE_URL: 'https://lamorstudios.github.io/FOREVERLY/invite'
+      # Echte Nutzer NUR, wenn beide Supabase-Secrets gesetzt sind – sonst Demo.
+      # (Auth ist robust: 3-s-Timeout + forceReady → niemals weiße/Loading-Hänger.)
+      EXPO_PUBLIC_SUPABASE_URL: ${{ secrets.EXPO_PUBLIC_SUPABASE_URL }}
+      EXPO_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.EXPO_PUBLIC_SUPABASE_ANON_KEY }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -38,15 +42,36 @@ jobs:
         with:
           node-version: 20
 
+      - name: Modus bestimmen (Demo, außer Supabase-Secrets sind gesetzt)
+        run: |
+          if [ -n "${{ secrets.EXPO_PUBLIC_SUPABASE_URL }}" ] && [ -n "${{ secrets.EXPO_PUBLIC_SUPABASE_ANON_KEY }}" ]; then
+            echo "EXPO_PUBLIC_DEMO_MODE=false" >> "$GITHUB_ENV"
+            echo "Mode: REAL users (Supabase)"
+          else
+            echo "EXPO_PUBLIC_DEMO_MODE=true" >> "$GITHUB_ENV"
+            echo "Mode: DEMO (keine Supabase-Secrets gefunden)"
+          fi
+
       - name: Install dependencies
         run: npm install --no-audit --no-fund
+
+      - name: Build-Stempel setzen (sichtbar im Footer)
+        run: |
+          echo "EXPO_PUBLIC_BUILD_ID=${GITHUB_SHA::7}" >> "$GITHUB_ENV"
+          echo "EXPO_PUBLIC_BUILD_TIME=$(date -u '+%Y-%m-%d %H:%M UTC')" >> "$GITHUB_ENV"
 
       - name: Build web bundle
         run: npx expo export --platform web
 
-      - name: SPA-Fallback & Jekyll deaktivieren
+      - name: SPA-Fallback, No-Cache-HTML & Jekyll deaktivieren
         run: |
           touch dist/.nojekyll
+          # index.html NICHT cachen, damit Browser/CDN nie auf ein bereits
+          # ersetztes, gehashtes JS-Bundle zeigen (Ursache für weißen Screen).
+          sed -i 's#<head>#<head><meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" /><meta http-equiv="Pragma" content="no-cache" /><meta http-equiv="Expires" content="0" />#' dist/index.html
+          # Sichtbarer Fallback im Root: Falls das JS-Bundle (noch) nicht lädt,
+          # erscheint Text statt eines weißen Bildschirms. React ersetzt ihn beim Start.
+          sed -i 's|<div id="root"></div>|<div id="root"><div style="font-family:sans-serif;padding:48px 24px;text-align:center;color:#6F6253">Foreverly wird geladen \&hellip;<br/><br/>Falls dies länger dauert, bitte die Seite neu laden und ggf. den Browser-Cache leeren.</div></div>|' dist/index.html
           cp dist/index.html dist/404.html
 
       - name: Deploy to gh-pages branch
@@ -55,4 +80,8 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./dist
           publish_branch: gh-pages
-          force_orphan: true
+          # Alte (gehashte) Bundles BEHALTEN, statt den Branch zu verwaisen.
+          # Sonst zeigt eine vom Browser/CDN zwischengespeicherte index.html auf
+          # eine bereits gelöschte AppEntry-<hash>.js -> 404 -> weißer Bildschirm.
+          force_orphan: false
+          keep_files: true

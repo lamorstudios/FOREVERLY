@@ -40,7 +40,7 @@ export function MemoriesHubScreen({ navigation }: Props) {
   ];
 
   return (
-    <Screen contentStyle={styles.content}>
+    <Screen contentStyle={styles.content} tint={colors.tintMemories}>
       <AppText variant="display">{activeFamily?.name ?? 'Familie'}</AppText>
       <AppText variant="body" color={colors.textSecondary}>
         Was möchtest du festhalten?

@@ -1,4 +1,6 @@
 import type { NavigatorScreenParams } from '@react-navigation/native';
+import type { SafetyTripKind, FilmKind } from '@/types/models';
+import type { LegalDoc } from '@/lib/legalContent';
 
 export type AuthStackParamList = {
   Welcome: undefined;
@@ -6,6 +8,7 @@ export type AuthStackParamList = {
   Register: undefined;
   ForgotPassword: undefined;
   VerifyEmail: { email: string };
+  Legal: { doc: LegalDoc };
 };
 
 export type OnboardingStackParamList = {
@@ -25,6 +28,72 @@ export type HomeStackParamList = {
   EmergencyContactForm: undefined;
   Documents: undefined;
   DocumentForm: { documentId?: string } | undefined;
+  // Phase 4 · Familienbuch
+  BookHome: undefined;
+  BookCreate: undefined;
+  BookPreview: { projectId: string };
+  BookChapter: { projectId: string; chapterKey: string };
+  // Trusted Circle / Vertrauenskreis
+  TrustedCircle: { personId?: string } | undefined;
+  TrustedContactForm: { personId?: string } | undefined;
+  // Phase 4.5 · Familiennähe & Zweige
+  Closeness: undefined;
+  Branches: undefined;
+  // Phase 6 · Familienmomente & Events
+  MomentsHome: undefined;
+  Feed: undefined;
+  MomentCompose: { eventId?: string } | undefined;
+  MomentDetail: { momentId: string };
+  Events: undefined;
+  EventForm: undefined;
+  EventDetail: { eventId: string };
+  Chronik: undefined;
+  Challenges: undefined;
+  PhotoMemories: undefined;
+  // Familienhistoriker (im Start-Hub statt eigenem Tab → max. 5 Tabs)
+  HistorianHome: undefined;
+  HistorianAnswer: { query: string };
+  HistorianSearch: undefined;
+  Wisdoms: undefined;
+  Timeline: undefined;
+  ImportantPeople: undefined;
+  PersonInsight: { personId: string };
+  KnowledgeGaps: undefined;
+  // Phase 8 · KI-Familienhistoriker
+  FamilyKnowledge: undefined;
+  HistorianTopics: undefined;
+  OnThisDay: undefined;
+  // Phase 10 · Familienfilm
+  FilmGallery: undefined;
+  FilmCreate: { kind?: FilmKind } | undefined;
+  FilmPlayer: { projectId: string };
+  // Phase 11 · KI-Familienassistent
+  Assistant: undefined;
+  // Phase 15 · Globale Suche
+  GlobalSearch: undefined;
+  // Phase 12 · Legacy AI · Familienstimmen
+  LegacyHub: undefined;
+  LegacyPerson: { personId: string };
+  LifeInterview: { personId: string };
+  MemoryJourney: { query: string; title: string };
+  // Legacy Moments & Family Memories
+  FamilyYear: undefined;
+  FamilyWisdoms: undefined;
+  // Admin Dashboard (betreiberintern, nur über Startseiten-Button)
+  AdminDashboard: undefined;
+  // Phase 13 · Familienmuseum
+  MuseumHub: undefined;
+  Generations: undefined;
+  TimeTravel: undefined;
+  FamilyPlaces: undefined;
+  Artifacts: undefined;
+  ArtifactForm: { artifactId?: string } | undefined;
+  // Phase 6 · Family Safety & Live Location
+  LiveMap: undefined;
+  LocationSettings: undefined;
+  TripStart: { kind?: SafetyTripKind } | undefined;
+  TripDetail: { tripId: string };
+  Sos: undefined;
 };
 
 export type FamilyStackParamList = {
@@ -34,6 +103,10 @@ export type FamilyStackParamList = {
   AddRelationship: { personId: string };
   Members: undefined;
   Invite: undefined;
+  // Phase 5 · Smart Invites
+  SmartInvite: { personId?: string } | undefined;
+  InvitesList: undefined;
+  Suggestions: undefined;
 };
 
 export type MemoriesStackParamList = {
@@ -56,17 +129,30 @@ export type ProfileStackParamList = {
   Profile: undefined;
   EditProfile: undefined;
   FamilySettings: undefined;
-};
-
-export type HistorianStackParamList = {
-  HistorianHome: undefined;
-  HistorianAnswer: { query: string };
-  HistorianSearch: undefined;
-  Wisdoms: undefined;
-  Timeline: undefined;
-  ImportantPeople: undefined;
-  PersonInsight: { personId: string };
-  KnowledgeGaps: undefined;
+  // Phase 15 · Production
+  Settings: undefined;
+  Premium: undefined;
+  Roles: undefined;
+  NotificationSettings: undefined;
+  PrivacyData: undefined;
+  Feedback: undefined;
+  // Rechtliches
+  Legal: { doc: LegalDoc };
+  // Trustee & Nachlass-Freigabe
+  EstateHub: undefined;
+  Trustees: undefined;
+  TrusteeForm: { trusteeId?: string } | undefined;
+  EstateInfoForm: undefined;
+  EstateCase: { caseId: string };
+  // Phase 7 · Family Vault
+  VaultHub: undefined;
+  VaultEntries: undefined;
+  VaultEntryForm: { entryId?: string } | undefined;
+  Legacy: undefined;
+  LegacyForm: { itemId?: string } | undefined;
+  Farewell: undefined;
+  FarewellForm: { messageId?: string } | undefined;
+  Heirs: undefined;
 };
 
 export type MainTabParamList = {
@@ -74,6 +160,5 @@ export type MainTabParamList = {
   FamilyTab: NavigatorScreenParams<FamilyStackParamList>;
   MemoriesTab: NavigatorScreenParams<MemoriesStackParamList>;
   CapsulesTab: NavigatorScreenParams<CapsulesStackParamList>;
-  HistorianTab: NavigatorScreenParams<HistorianStackParamList>;
   ProfileTab: NavigatorScreenParams<ProfileStackParamList>;
 };
