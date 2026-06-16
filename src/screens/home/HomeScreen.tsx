@@ -799,7 +799,12 @@ const styles = StyleSheet.create({
   },
   bubbleName: { width: 76 },
   // Entdecken-Kacheln
-  quickGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
+  quickGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    rowGap: spacing.sm,
+  },
   quickTile: {
     backgroundColor: colors.surface,
     borderRadius: radius.lg,
