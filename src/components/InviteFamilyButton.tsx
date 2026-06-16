@@ -1,5 +1,17 @@
-import { useState } from 'react';
-import { View, Modal, Pressable, StyleSheet, ScrollView, Share, Platform, Alert } from 'react-native';
+import { useEffect, useRef, useState } from 'react';
+import {
+  View,
+  Modal,
+  Pressable,
+  StyleSheet,
+  ScrollView,
+  Share,
+  Platform,
+  Alert,
+  Animated,
+  Easing,
+  type LayoutChangeEvent,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
 import { AppText } from './AppText';
@@ -13,7 +25,7 @@ import { qk } from '@/api/queryKeys';
 import { useAuth } from '@/context/AuthContext';
 import { useFamily } from '@/context/FamilyContext';
 import { fullName } from '@/lib/format';
-import { colors, spacing, radius, shadow } from '@/theme';
+import { colors, spacing, radius, shadow, touch } from '@/theme';
 import type { RelationshipType, ClosenessLevel, Invitation } from '@/types/models';
 
 interface RelationOption { label: string; type: RelationshipType }
@@ -272,17 +284,96 @@ function InviteSheet({ visible, onClose }: SheetProps) {
 }
 
 /** Prominenter „Familie einladen"-Button mit 2-Schritt-Einladungsflow. */
-export function InviteFamilyButton({ variant = 'primary' }: { variant?: 'primary' | 'secondary' }) {
+export function InviteFamilyButton({ variant }: { variant?: 'primary' | 'secondary' }) {
+  void variant; // einheitlicher Premium-Stil
   const [open, setOpen] = useState(false);
+  const [width, setWidth] = useState(0);
+
+  const shine = useRef(new Animated.Value(0)).current;
+  const press = useRef(new Animated.Value(0)).current;
+
+  // Sehr dezenter Shiny-Effekt: ~1,3 s Lauf, dann ~6 s Pause (alle ~7 s).
+  useEffect(() => {
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.delay(6000),
+        Animated.timing(shine, { toValue: 1, duration: 1300, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+        Animated.timing(shine, { toValue: 0, duration: 0, useNativeDriver: true }),
+      ]),
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [shine]);
+
+  const animatePress = (to: number) =>
+    Animated.spring(press, { toValue: to, useNativeDriver: true, friction: 6, tension: 140 }).start();
+
+  const scale = press.interpolate({ inputRange: [0, 1], outputRange: [1, 0.98] });
+  const shineW = 110;
+  const translateX = shine.interpolate({ inputRange: [0, 1], outputRange: [-shineW, (width || 320) + shineW] });
+  const shineOpacity = shine.interpolate({ inputRange: [0, 0.15, 0.85, 1], outputRange: [0, 1, 1, 0] });
+
+  function onLayout(e: LayoutChangeEvent) {
+    setWidth(e.nativeEvent.layout.width);
+  }
+
   return (
     <>
-      <Button label="Familienmitglied einladen" icon="person-add-outline" variant={variant} onPress={() => setOpen(true)} />
+      <Animated.View style={[styles.glowWrap, { transform: [{ scale }] }]}>
+        <Pressable
+          onPress={() => setOpen(true)}
+          onPressIn={() => animatePress(1)}
+          onPressOut={() => animatePress(0)}
+          onHoverIn={() => animatePress(1)}
+          onHoverOut={() => animatePress(0)}
+          onLayout={onLayout}
+          accessibilityRole="button"
+          accessibilityLabel="Familienmitglied einladen"
+          style={styles.premiumBtn}
+        >
+          <Ionicons name="person-add-outline" size={20} color={colors.textOnAccent} style={styles.btnIcon} />
+          <AppText variant="button" color={colors.textOnAccent}>Familienmitglied einladen</AppText>
+
+          {/* Dezente Lichtreflexion (läuft langsam von links nach rechts) */}
+          <Animated.View pointerEvents="none" style={[styles.shine, { width: shineW, opacity: shineOpacity, transform: [{ translateX }, { skewX: '-18deg' }] }]} />
+        </Pressable>
+      </Animated.View>
       <InviteSheet visible={open} onClose={() => setOpen(false)} />
     </>
   );
 }
 
 const styles = StyleSheet.create({
+  // Premium-Trigger
+  glowWrap: {
+    borderRadius: radius.pill,
+    backgroundColor: colors.primary,
+    shadowColor: colors.gold,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 16,
+    elevation: 6,
+  },
+  premiumBtn: {
+    minHeight: touch.minHeight,
+    borderRadius: radius.pill,
+    borderWidth: 1,
+    borderColor: colors.goldSoft,
+    backgroundColor: colors.primary,
+    paddingHorizontal: spacing.lg,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  btnIcon: { marginRight: spacing.sm },
+  shine: {
+    position: 'absolute',
+    top: -20,
+    bottom: -20,
+    left: 0,
+    backgroundColor: 'rgba(255, 244, 222, 0.32)',
+  },
   backdrop: { flex: 1, backgroundColor: colors.overlay, justifyContent: 'flex-end' },
   sheet: {
     backgroundColor: colors.background,
