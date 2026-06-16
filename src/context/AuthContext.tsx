@@ -8,6 +8,8 @@ import {
   useCallback,
 } from 'react';
 import { Session } from '@supabase/supabase-js';
+import { Platform } from 'react-native';
+import * as Linking from 'expo-linking';
 import { supabase } from '@/lib/supabase';
 import { config, DEMO_MODE } from '@/lib/config';
 import { DEMO_USER_ID } from '@/demo/demoData';
@@ -38,6 +40,8 @@ interface AuthContextValue {
     fullName: string;
   }) => Promise<{ needsConfirmation: boolean }>;
   signIn: (email: string, password: string) => Promise<void>;
+  signInWithGoogle: () => Promise<void>;
+  signInWithApple: () => Promise<void>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
   resendConfirmation: (email: string) => Promise<void>;
@@ -53,15 +57,41 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (DEMO_MODE) return; // Im Demo-Modus keine echte Auth.
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session);
+
+    let done = false;
+    const finish = (next: Session | null) => {
+      if (done) return;
+      done = true;
+      setSession(next);
       setInitializing(false);
-    });
+    };
+
+    // Sicherheits-Timeout: Die App darf NIE dauerhaft im Loading hängen.
+    // Wenn getSession() hängt/fehlschlägt, nach 3 s ohne Sitzung fortfahren.
+    const timer = setTimeout(() => {
+      if (!done) {
+        // eslint-disable-next-line no-console
+        console.warn('[Auth] getSession Timeout – fahre ohne Sitzung fort.');
+        finish(null);
+      }
+    }, 3000);
+
+    supabase.auth
+      .getSession()
+      .then(({ data }) => finish(data.session))
+      .catch((e) => {
+        // eslint-disable-next-line no-console
+        console.warn('[Auth] getSession fehlgeschlagen:', e);
+        finish(null);
+      });
 
     const { data: sub } = supabase.auth.onAuthStateChange((_event, next) => {
       setSession(next);
     });
-    return () => sub.subscription.unsubscribe();
+    return () => {
+      clearTimeout(timer);
+      sub.subscription.unsubscribe();
+    };
   }, []);
 
   const signUp = useCallback<AuthContextValue['signUp']>(
@@ -99,6 +129,41 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     },
     [],
   );
+
+  const signInWithGoogle = useCallback(async () => {
+    if (DEMO_MODE) {
+      // Im Demo-Modus gibt es keine echte Auth – direkt die Demo-Sitzung nutzen.
+      setSession(demoSession);
+      return;
+    }
+    // Web: voller Seiten-Redirect zurück auf die App; die Sitzung wird über
+    // detectSessionInUrl automatisch erkannt. Nativ: über das App-Schema.
+    const redirectTo =
+      Platform.OS === 'web' && typeof window !== 'undefined'
+        ? window.location.origin + window.location.pathname
+        : Linking.createURL('/');
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo, queryParams: { prompt: 'select_account' } },
+    });
+    if (error) throw error;
+  }, []);
+
+  const signInWithApple = useCallback(async () => {
+    if (DEMO_MODE) {
+      setSession(demoSession);
+      return;
+    }
+    const redirectTo =
+      Platform.OS === 'web' && typeof window !== 'undefined'
+        ? window.location.origin + window.location.pathname
+        : Linking.createURL('/');
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'apple',
+      options: { redirectTo },
+    });
+    if (error) throw error;
+  }, []);
 
   const signOut = useCallback(async () => {
     if (DEMO_MODE) {
@@ -138,11 +203,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       initializing,
       signUp,
       signIn,
+      signInWithGoogle,
+      signInWithApple,
       signOut,
       resetPassword,
       resendConfirmation,
     }),
-    [session, initializing, signUp, signIn, signOut, resetPassword, resendConfirmation],
+    [session, initializing, signUp, signIn, signInWithGoogle, signInWithApple, signOut, resetPassword, resendConfirmation],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

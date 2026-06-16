@@ -25,8 +25,9 @@ import { qk } from '@/api/queryKeys';
 import { scheduleCapsuleReminder } from '@/lib/notifications';
 import { formatDuration, fullName } from '@/lib/format';
 import { friendlyError } from '@/lib/errors';
+import { VISIBILITY_LEVELS } from '@/constants/closeness';
 import { colors, spacing, radius } from '@/theme';
-import type { ContentType, FamilyMember, Person } from '@/types/models';
+import type { ContentType, FamilyMember, Person, VisibilityLevel } from '@/types/models';
 import type { SelectOption } from '@/components';
 import type { CapsulesStackParamList } from '@/navigation/types';
 
@@ -37,6 +38,10 @@ const CONTENT_TYPE_OPTIONS: SelectOption<ContentType>[] = [
   { value: 'photo', label: 'Foto' },
   { value: 'audio', label: 'Audio' },
 ];
+
+const VISIBILITY_OPTIONS: SelectOption<VisibilityLevel>[] = (
+  ['family', 'inner', 'sehr_nah', 'selected', 'private'] as VisibilityLevel[]
+).map((v) => ({ value: v, label: `${VISIBILITY_LEVELS[v].emoji} ${VISIBILITY_LEVELS[v].label}` }));
 
 export function CapsuleFormScreen({ navigation }: Props) {
   const { activeFamily } = useFamily();
@@ -54,6 +59,7 @@ export function CapsuleFormScreen({ navigation }: Props) {
   const [audioUri, setAudioUri] = useState<string | null>(null);
   const [audioDuration, setAudioDuration] = useState<number | null>(null);
   const [openDate, setOpenDate] = useState<string | null>(null);
+  const [visibility, setVisibility] = useState<VisibilityLevel>('selected');
   const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
   const [selectedPersons, setSelectedPersons] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -122,6 +128,7 @@ export function CapsuleFormScreen({ navigation }: Props) {
         textContent: contentType === 'text' ? textContent.trim() : null,
         mediaUri,
         openAt,
+        visibility,
         recipients,
       });
 
@@ -300,6 +307,13 @@ export function CapsuleFormScreen({ navigation }: Props) {
           label="Öffnungsdatum *"
           value={openDate}
           onChange={setOpenDate}
+        />
+
+        <SelectField
+          label="Freigeben für"
+          value={visibility}
+          options={VISIBILITY_OPTIONS}
+          onChange={setVisibility}
         />
 
         <View style={styles.recipientsBlock}>

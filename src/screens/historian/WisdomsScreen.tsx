@@ -8,7 +8,7 @@ import { colors, spacing } from '@/theme';
 import { qk } from '@/api/queryKeys';
 import { getWisdoms } from '@/api/historian';
 import { useFamily } from '@/context/FamilyContext';
-import type { HistorianStackParamList } from '@/navigation/types';
+import type { HomeStackParamList } from '@/navigation/types';
 import type { WisdomCategory } from '@/historian/engine';
 import {
   SourceLine,
@@ -19,7 +19,7 @@ import {
 type Filter = WisdomCategory | 'alle';
 
 export function WisdomsScreen(
-  _props: NativeStackScreenProps<HistorianStackParamList, 'Wisdoms'>,
+  _props: NativeStackScreenProps<HomeStackParamList, 'Wisdoms'>,
 ) {
   const { activeFamily } = useFamily();
   const familyId = activeFamily!.id;

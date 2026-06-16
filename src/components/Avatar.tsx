@@ -1,6 +1,6 @@
 import { View, Image, StyleSheet } from 'react-native';
 import { AppText } from './AppText';
-import { colors, radius } from '@/theme';
+import { colors, withAlpha } from '@/theme';
 
 interface AvatarProps {
   uri?: string | null;
@@ -8,7 +8,7 @@ interface AvatarProps {
   size?: number;
 }
 
-/** Rundes Profilbild; fällt auf Initialen zurück. */
+/** Rundes Profilbild mit hochwertigem Platzhalter (Initialen + weicher Tönung). */
 export function Avatar({ uri, name, size = 56 }: AvatarProps) {
   const dimension = { width: size, height: size, borderRadius: size / 2 };
   const initials = getInitials(name);
@@ -28,7 +28,7 @@ export function Avatar({ uri, name, size = 56 }: AvatarProps) {
       <AppText
         variant="subheading"
         color={colors.primaryDark}
-        style={{ fontSize: size * 0.4 }}
+        style={{ fontSize: size * 0.38, fontWeight: '700' }}
       >
         {initials}
       </AppText>
@@ -43,12 +43,16 @@ function getInitials(name?: string | null): string {
 }
 
 const styles = StyleSheet.create({
-  image: { backgroundColor: colors.surfaceAlt },
+  image: {
+    backgroundColor: colors.surfaceAlt,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
   fallback: {
-    backgroundColor: colors.primarySoft,
+    backgroundColor: withAlpha(colors.primary, 0.13),
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: colors.goldSoft,
   },
 });

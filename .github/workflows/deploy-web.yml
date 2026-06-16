@@ -10,7 +10,6 @@ name: Deploy Web Preview (GitHub Pages)
 on:
   push:
     branches:
-      - claude/optimistic-curie-9fue6s
       - main
       - master
   workflow_dispatch:
@@ -26,9 +25,13 @@ jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     env:
-      EXPO_PUBLIC_DEMO_MODE: 'true'
       # Unterpfad = Repository-Name (case-sensitive). Seite liegt unter /FOREVERLY/
       EXPO_BASE_URL: '/FOREVERLY'
+      EXPO_PUBLIC_INVITE_BASE_URL: 'https://lamorstudios.github.io/FOREVERLY/invite'
+      # Echte Nutzer NUR, wenn beide Supabase-Secrets gesetzt sind – sonst Demo.
+      # (Auth ist robust: 3-s-Timeout + forceReady → niemals weiße/Loading-Hänger.)
+      EXPO_PUBLIC_SUPABASE_URL: ${{ secrets.EXPO_PUBLIC_SUPABASE_URL }}
+      EXPO_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.EXPO_PUBLIC_SUPABASE_ANON_KEY }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -38,15 +41,39 @@ jobs:
         with:
           node-version: 20
 
+      - name: Modus bestimmen (Demo, außer Supabase-Secrets sind gesetzt)
+        run: |
+          if [ -n "${{ secrets.EXPO_PUBLIC_SUPABASE_URL }}" ] && [ -n "${{ secrets.EXPO_PUBLIC_SUPABASE_ANON_KEY }}" ]; then
+            echo "EXPO_PUBLIC_DEMO_MODE=false" >> "$GITHUB_ENV"
+            echo "Mode: REAL users (Supabase)"
+          else
+            echo "EXPO_PUBLIC_DEMO_MODE=true" >> "$GITHUB_ENV"
+            echo "Mode: DEMO (keine Supabase-Secrets gefunden)"
+          fi
+
       - name: Install dependencies
         run: npm install --no-audit --no-fund
+
+      - name: Build-Stempel setzen (sichtbar im Footer)
+        run: |
+          echo "EXPO_PUBLIC_BUILD_ID=${GITHUB_SHA::7}" >> "$GITHUB_ENV"
+          echo "EXPO_PUBLIC_BUILD_TIME=$(date -u '+%Y-%m-%d %H:%M UTC')" >> "$GITHUB_ENV"
 
       - name: Build web bundle
         run: npx expo export --platform web
 
-      - name: SPA-Fallback & Jekyll deaktivieren
+      - name: SPA-Fallback, No-Cache-HTML & Jekyll deaktivieren
         run: |
           touch dist/.nojekyll
+          # index.html NICHT cachen (verhindert veraltete Verweise auf Bundles).
+          sed -i 's#<head>#<head><meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" /><meta http-equiv="Pragma" content="no-cache" /><meta http-equiv="Expires" content="0" />#' dist/index.html
+          # Sichtbarer Start-Platzhalter (React ersetzt ihn beim Mounten).
+          sed -i 's|<div id="root"></div>|<div id="root"><div id="fv-fallback" style="font-family:sans-serif;padding:48px 24px;text-align:center;color:#6F6253">Foreverly wird gestartet \&hellip;<br/><br/><span style="font-size:13px">App-Code wird geladen \&hellip;</span></div></div>|' dist/index.html
+          # Fehler-Handler VOR dem App-Bundle definieren: greift nur, wenn das
+          # Bundle wirklich NICHT lädt (404/Netzwerk) – kein blinder Timer, der
+          # langsame Downloads abbricht. Reload einmalig mit Cache-Buster.
+          sed -i 's#<script src="/FOREVERLY/_expo#<script>window.__fvErr=function(){var f=document.getElementById("fv-fallback");if(sessionStorage.getItem("fv_e")){if(f)f.innerHTML="App-Code konnte nicht geladen werden (Netzwerk/404).<br/>Bitte Seite neu laden oder Cache leeren.";return;}sessionStorage.setItem("fv_e","1");location.replace(location.pathname+"?v="+Date.now());};</script><script src="/FOREVERLY/_expo#' dist/index.html
+          sed -i 's#\.js" defer></script>#.js" defer onerror="window.__fvErr()"></script>#' dist/index.html
           cp dist/index.html dist/404.html
 
       - name: Deploy to gh-pages branch
@@ -55,4 +82,8 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./dist
           publish_branch: gh-pages
-          force_orphan: true
+          # Alte (gehashte) Bundles BEHALTEN, statt den Branch zu verwaisen.
+          # Sonst zeigt eine vom Browser/CDN zwischengespeicherte index.html auf
+          # eine bereits gelöschte AppEntry-<hash>.js -> 404 -> weißer Bildschirm.
+          force_orphan: false
+          keep_files: true

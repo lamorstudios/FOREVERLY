@@ -24,6 +24,50 @@ import type {
   CalendarEventType,
   FamilyDocument,
   DocumentKind,
+  BookProject,
+  BookType,
+  BookOptions,
+  TrustedContact,
+  TrustedRole,
+  ClosenessRating,
+  ClosenessLevel,
+  FamilyBranch,
+  RelationshipSuggestion,
+  FamilyEvent,
+  FamilyEventType,
+  EventParticipant,
+  RsvpStatus,
+  Moment,
+  MomentKind,
+  MomentComment,
+  VisibilityLevel,
+  Trustee,
+  EstateInfo,
+  EstateAudience,
+  EstateCase,
+  EstateConfirmation,
+  LiveShare,
+  LiveStatus,
+  ShareDuration,
+  SafetyAudience,
+  SafetyTrip,
+  SafetyTripKind,
+  SafetyAlert,
+  VaultEntry,
+  LegacyItem,
+  FarewellMessage,
+  FilmProject,
+  FilmKind,
+  FilmMusicMood,
+  FilmLock,
+  FilmOptions,
+  LifeStory,
+  LifeStoryKind,
+  FamilyWisdom,
+  Artifact,
+  ArtifactCategory,
+  Feedback,
+  FeedbackKind,
 } from '@/types/models';
 import { createSeedData, DEMO_FAMILY_ID, DEMO_USER_ID } from './demoData';
 
@@ -200,6 +244,8 @@ export const demoStore = {
       content_type: ContentType;
       person_id?: string | null;
       occurred_on?: string | null;
+      visibility?: Memory['visibility'];
+      visibility_branch_id?: string | null;
     },
   ): Memory {
     const m: Memory = {
@@ -211,6 +257,8 @@ export const demoStore = {
       description: input.description ?? null,
       content_type: input.content_type,
       occurred_on: input.occurred_on ?? null,
+      visibility: input.visibility ?? 'family',
+      visibility_branch_id: input.visibility_branch_id ?? null,
       created_at: nowIso(),
       updated_at: nowIso(),
     };
@@ -334,6 +382,7 @@ export const demoStore = {
     textContent?: string | null;
     mediaUri?: string | null;
     openAt: string;
+    visibility?: TimeCapsule['visibility'];
     recipients: { personId?: string | null; userId?: string | null }[];
   }): TimeCapsule {
     const c: TimeCapsule = {
@@ -347,6 +396,8 @@ export const demoStore = {
       storage_path: input.mediaUri ?? null,
       open_at: input.openAt,
       is_opened: new Date(input.openAt).getTime() <= Date.now(),
+      visibility: input.visibility ?? 'selected',
+      visibility_branch_id: null,
       created_at: nowIso(),
       updated_at: nowIso(),
     };
@@ -470,6 +521,36 @@ export const demoStore = {
   },
   markAllNotificationsRead(): void {
     data.notifications.forEach((n) => (n.is_read = true));
+  },
+
+  /**
+   * Aggregierte Echt-Zahlen aus dem Demo-Datensatz (für das Admin-Dashboard).
+   * Keine erfundenen Werte – alles aus den tatsächlich vorhandenen Daten.
+   */
+  adminSnapshot() {
+    return {
+      familyName: data.family.name,
+      families: 1,
+      members: data.members.length,
+      persons: data.persons.length,
+      photos: data.photos.length,
+      videos: data.moments.filter((m) => m.kind === 'video').length,
+      audios: data.audios.length,
+      memories: data.memories.length,
+      capsules: data.capsules.length,
+      films: data.filmProjects.length,
+      events: data.events.length,
+      notifications: data.notifications.length,
+      notificationsRead: data.notifications.filter((n) => n.is_read).length,
+      invitesSent: data.invitations.length,
+      invitesAccepted: data.invitations.filter((i) => i.status === 'accepted').length,
+      reports: 0,
+      documents: data.vaultEntries.length,
+      trustees: data.trustees.length,
+      newWeek: 0,
+      newMonth: 0,
+      activeMonth: data.members.length,
+    };
   },
 
   // --- Phase 2: Notfallkontakte ---
@@ -644,4 +725,1099 @@ export const demoStore = {
   deleteDocument(id: string): void {
     data.documents = data.documents.filter((d) => d.id !== id);
   },
+
+  // --- Phase 4: Familienbuch ---
+  listBookProjects(): BookProject[] {
+    return [...data.bookProjects].sort((a, b) =>
+      b.created_at.localeCompare(a.created_at),
+    );
+  },
+  getBookProject(id: string): BookProject | null {
+    return data.bookProjects.find((b) => b.id === id) ?? null;
+  },
+  createBookProject(input: {
+    familyId: string;
+    type: BookType;
+    title: string;
+    subtitle: string | null;
+    coverPhotoPath: string | null;
+    options: BookOptions;
+    createdBy: string;
+  }): BookProject {
+    const project: BookProject = {
+      id: newId('book'),
+      family_id: input.familyId,
+      type: input.type,
+      title: input.title,
+      subtitle: input.subtitle,
+      cover_photo_path: input.coverPhotoPath,
+      hidden_chapters: [],
+      chapter_order: [],
+      options: input.options,
+      status: 'ready',
+      created_by: input.createdBy,
+      created_at: nowIso(),
+      updated_at: nowIso(),
+    };
+    data.bookProjects.unshift(project);
+    return project;
+  },
+  updateBookProject(id: string, patch: Partial<BookProject>): BookProject {
+    const idx = data.bookProjects.findIndex((b) => b.id === id);
+    data.bookProjects[idx] = {
+      ...data.bookProjects[idx]!,
+      ...patch,
+      updated_at: nowIso(),
+    };
+    return data.bookProjects[idx]!;
+  },
+  deleteBookProject(id: string): void {
+    data.bookProjects = data.bookProjects.filter((b) => b.id !== id);
+  },
+
+  // --- Trusted Circle / Vertrauenskreis ---
+  listTrustedContacts(personId?: string): TrustedContact[] {
+    let list = [...data.trustedContacts];
+    if (personId) list = list.filter((c) => c.person_id === personId);
+    return list
+      .map((c) => ({
+        ...c,
+        person: data.persons.find((p) => p.id === c.person_id),
+      }))
+      .sort((a, b) => Number(b.is_emergency) - Number(a.is_emergency));
+  },
+  createTrustedContact(input: {
+    familyId: string;
+    personId: string | null;
+    name: string;
+    role: TrustedRole;
+    phone?: string | null;
+    email?: string | null;
+    location?: string | null;
+    note?: string | null;
+    availability?: string | null;
+    isEmergency?: boolean;
+    createdBy: string;
+  }): TrustedContact {
+    const c: TrustedContact = {
+      id: newId('tc'),
+      family_id: input.familyId,
+      person_id: input.personId,
+      name: input.name,
+      role: input.role,
+      phone: input.phone ?? null,
+      email: input.email ?? null,
+      location: input.location ?? null,
+      note: input.note ?? null,
+      availability: input.availability ?? null,
+      is_emergency: input.isEmergency ?? false,
+      created_by: input.createdBy,
+      created_at: nowIso(),
+      updated_at: nowIso(),
+    };
+    data.trustedContacts.push(c);
+    return c;
+  },
+  updateTrustedContact(id: string, patch: Partial<TrustedContact>): TrustedContact {
+    const idx = data.trustedContacts.findIndex((c) => c.id === id);
+    data.trustedContacts[idx] = {
+      ...data.trustedContacts[idx]!,
+      ...patch,
+      updated_at: nowIso(),
+    };
+    return data.trustedContacts[idx]!;
+  },
+  deleteTrustedContact(id: string): void {
+    data.trustedContacts = data.trustedContacts.filter((c) => c.id !== id);
+  },
+
+  // --- Phase 4.5: Familiennähe ---
+  listCloseness(): ClosenessRating[] {
+    return [...data.closenessRatings];
+  },
+  setCloseness(familyId: string, raterUserId: string, personId: string, level: ClosenessLevel): ClosenessRating {
+    const existing = data.closenessRatings.find(
+      (c) => c.person_id === personId && c.rater_user_id === raterUserId,
+    );
+    if (existing) {
+      existing.level = level;
+      existing.updated_at = nowIso();
+      return existing;
+    }
+    const r: ClosenessRating = {
+      id: newId('cl'),
+      family_id: familyId,
+      rater_user_id: raterUserId,
+      person_id: personId,
+      level,
+      created_at: nowIso(),
+      updated_at: nowIso(),
+    };
+    data.closenessRatings.push(r);
+    return r;
+  },
+
+  // --- Phase 4.5: Familienzweige ---
+  listBranches(): FamilyBranch[] {
+    return [...data.branches];
+  },
+  createBranch(familyId: string, name: string, color: string | null, createdBy: string): FamilyBranch {
+    const b: FamilyBranch = {
+      id: newId('br'),
+      family_id: familyId,
+      name,
+      color,
+      created_by: createdBy,
+      created_at: nowIso(),
+      member_ids: [],
+    };
+    data.branches.push(b);
+    return b;
+  },
+  setBranchMembers(branchId: string, memberIds: string[]): FamilyBranch {
+    const b = data.branches.find((x) => x.id === branchId)!;
+    b.member_ids = memberIds;
+    return b;
+  },
+  deleteBranch(id: string): void {
+    data.branches = data.branches.filter((b) => b.id !== id);
+  },
+
+  // --- Phase 5: Smart Invites ---
+  createSmartInvite(input: {
+    familyId: string;
+    invitedBy: string;
+    role: MemberRole;
+    personId: string | null;
+    inviterPersonId: string | null;
+    relationshipType: RelationshipType | null;
+    suggestedCloseness: ClosenessLevel | null;
+    message: string | null;
+  }): Invitation {
+    const code = Array.from({ length: 8 }, () =>
+      'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'[Math.floor(Math.random() * 32)],
+    ).join('');
+    const inv: Invitation = {
+      id: newId('inv'),
+      family_id: input.familyId,
+      code,
+      role: input.role,
+      email: null,
+      status: 'pending',
+      invited_by: input.invitedBy,
+      accepted_by: null,
+      accepted_at: null,
+      expires_at: new Date(Date.now() + 30 * 864e5).toISOString(),
+      created_at: nowIso(),
+      person_id: input.personId,
+      inviter_person_id: input.inviterPersonId,
+      relationship_type: input.relationshipType,
+      suggested_closeness: input.suggestedCloseness,
+      message: input.message,
+    };
+    data.invitations.unshift(inv);
+    return inv;
+  },
+  /** Simuliert die Annahme einer Einladung (Vorschau ohne echte Registrierung). */
+  acceptSmartInviteDemo(code: string): Invitation | null {
+    const inv = data.invitations.find((i) => i.code === code.trim().toUpperCase());
+    if (!inv) return null;
+    const guestId = `demo-guest-${inv.id}`;
+    inv.status = 'accepted';
+    inv.accepted_by = guestId;
+    inv.accepted_at = nowIso();
+    // Profil mit „neuem Konto" verknüpfen
+    if (inv.person_id) {
+      const person = data.persons.find((p) => p.id === inv.person_id);
+      if (person && !person.user_id) person.user_id = guestId;
+      // Beziehung Einladender -> Person automatisch anlegen
+      if (inv.inviter_person_id && inv.relationship_type) {
+        const exists = data.relationships.some(
+          (r) => r.from_person_id === inv.inviter_person_id && r.to_person_id === inv.person_id && r.type === inv.relationship_type,
+        );
+        if (!exists) {
+          data.relationships.push({
+            id: newId('r'),
+            family_id: inv.family_id,
+            from_person_id: inv.inviter_person_id,
+            to_person_id: inv.person_id,
+            type: inv.relationship_type,
+            category: 'biological',
+            created_by: inv.invited_by,
+            created_at: nowIso(),
+          });
+        }
+      }
+      // Familiennähe des Einladenden anwenden (kein Vollzugriff automatisch)
+      if (inv.suggested_closeness && inv.person_id) {
+        this.setCloseness(inv.family_id, inv.invited_by, inv.person_id, inv.suggested_closeness);
+      }
+    }
+    return inv;
+  },
+
+  // --- Phase 5: Beziehungsvorschläge ---
+  listSuggestions(): RelationshipSuggestion[] {
+    return data.suggestions.filter((s) => s.status === 'pending');
+  },
+  addSuggestions(
+    candidates: {
+      family_id: string;
+      from_person_id: string;
+      to_person_id: string;
+      suggested_type: RelationshipType;
+      suggested_category: RelationshipCategory;
+      reason: string;
+      created_by: string;
+    }[],
+  ): RelationshipSuggestion[] {
+    const added: RelationshipSuggestion[] = [];
+    for (const c of candidates) {
+      const dup = data.suggestions.some(
+        (s) => s.from_person_id === c.from_person_id && s.to_person_id === c.to_person_id,
+      );
+      if (dup) continue;
+      const s: RelationshipSuggestion = {
+        id: newId('sug'),
+        family_id: c.family_id,
+        from_person_id: c.from_person_id,
+        to_person_id: c.to_person_id,
+        suggested_type: c.suggested_type,
+        suggested_category: c.suggested_category,
+        reason: c.reason,
+        status: 'pending',
+        created_by: c.created_by,
+        created_at: nowIso(),
+      };
+      data.suggestions.push(s);
+      added.push(s);
+    }
+    return added;
+  },
+  updateSuggestion(id: string, patch: Partial<RelationshipSuggestion>): RelationshipSuggestion {
+    const idx = data.suggestions.findIndex((s) => s.id === id);
+    data.suggestions[idx] = { ...data.suggestions[idx]!, ...patch };
+    return data.suggestions[idx]!;
+  },
+  confirmSuggestion(id: string): RelationshipSuggestion | null {
+    const s = data.suggestions.find((x) => x.id === id);
+    if (!s) return null;
+    s.status = 'confirmed';
+    this.createRelationship({
+      family_id: s.family_id,
+      from_person_id: s.from_person_id,
+      to_person_id: s.to_person_id,
+      type: s.suggested_type,
+      category: s.suggested_category,
+      created_by: s.created_by ?? '',
+    });
+    return s;
+  },
+
+  // --- Phase 6: Familienevents ---
+  listEvents(): FamilyEvent[] {
+    return [...data.events]
+      .map((e) => ({
+        ...e,
+        participant_count: data.eventParticipants.filter((p) => p.event_id === e.id).length,
+      }))
+      .sort((a, b) => b.event_date.localeCompare(a.event_date));
+  },
+  getEvent(id: string): FamilyEvent | null {
+    return data.events.find((e) => e.id === id) ?? null;
+  },
+  createEvent(input: {
+    familyId: string;
+    type: FamilyEventType;
+    title: string;
+    description?: string | null;
+    eventDate: string;
+    eventTime?: string | null;
+    location?: string | null;
+    visibility?: VisibilityLevel;
+    hostUserId: string;
+    hostPersonId?: string | null;
+    participantPersonIds?: string[];
+    createdBy: string;
+  }): FamilyEvent {
+    const e: FamilyEvent = {
+      id: newId('ev'),
+      family_id: input.familyId,
+      type: input.type,
+      title: input.title,
+      description: input.description ?? null,
+      event_date: input.eventDate,
+      event_time: input.eventTime ?? null,
+      location: input.location ?? null,
+      host_user_id: input.hostUserId,
+      host_person_id: input.hostPersonId ?? null,
+      visibility: input.visibility ?? 'family',
+      created_by: input.createdBy,
+      created_at: nowIso(),
+      updated_at: nowIso(),
+    };
+    data.events.unshift(e);
+    for (const pid of input.participantPersonIds ?? []) {
+      const person = data.persons.find((p) => p.id === pid);
+      data.eventParticipants.push({
+        id: newId('ep'),
+        event_id: e.id,
+        person_id: pid,
+        user_id: person?.user_id ?? null,
+        rsvp: null,
+        comment: null,
+        bringing: null,
+        responded_at: null,
+        created_at: nowIso(),
+      });
+    }
+    return e;
+  },
+  deleteEvent(id: string): void {
+    data.events = data.events.filter((e) => e.id !== id);
+    data.eventParticipants = data.eventParticipants.filter((p) => p.event_id !== id);
+    data.moments = data.moments.filter((m) => m.event_id !== id);
+  },
+  listParticipants(eventId: string): EventParticipant[] {
+    return data.eventParticipants
+      .filter((p) => p.event_id === eventId)
+      .map((p) => ({ ...p, person: data.persons.find((x) => x.id === p.person_id) }));
+  },
+  setRsvp(input: {
+    eventId: string;
+    personId: string;
+    userId: string;
+    rsvp: RsvpStatus;
+    comment?: string | null;
+    bringing?: string | null;
+  }): EventParticipant {
+    let p = data.eventParticipants.find(
+      (x) => x.event_id === input.eventId && x.person_id === input.personId,
+    );
+    if (!p) {
+      p = {
+        id: newId('ep'),
+        event_id: input.eventId,
+        person_id: input.personId,
+        user_id: input.userId,
+        rsvp: null,
+        comment: null,
+        bringing: null,
+        responded_at: null,
+        created_at: nowIso(),
+      };
+      data.eventParticipants.push(p);
+    }
+    p.rsvp = input.rsvp;
+    p.comment = input.comment ?? p.comment;
+    p.bringing = input.bringing ?? p.bringing;
+    p.responded_at = nowIso();
+    return p;
+  },
+
+  // --- Phase 6: Familienmomente (Feed + Album) ---
+  listMoments(opts?: { eventId?: string | null; feedOnly?: boolean }): Moment[] {
+    let list = [...data.moments];
+    if (opts?.eventId) list = list.filter((m) => m.event_id === opts.eventId);
+    else if (opts?.feedOnly) list = list.filter((m) => !m.event_id);
+    return list
+      .map((m) => ({
+        ...m,
+        author: resolveAuthor(m.author_user_id),
+        comment_count: data.momentComments.filter((c) => c.moment_id === m.id).length,
+      }))
+      .sort((a, b) => b.created_at.localeCompare(a.created_at));
+  },
+  getMoment(id: string): Moment | null {
+    const m = data.moments.find((x) => x.id === id);
+    return m ? { ...m, author: resolveAuthor(m.author_user_id) } : null;
+  },
+  createMoment(input: {
+    familyId: string;
+    authorUserId: string;
+    kind: MomentKind;
+    text?: string | null;
+    storagePath?: string | null;
+    durationSeconds?: number | null;
+    visibility?: VisibilityLevel;
+    eventId?: string | null;
+  }): Moment {
+    const m: Moment = {
+      id: newId('mo'),
+      family_id: input.familyId,
+      author_user_id: input.authorUserId,
+      kind: input.kind,
+      text: input.text ?? null,
+      storage_path: input.storagePath ?? null,
+      duration_seconds: input.durationSeconds ?? null,
+      visibility: input.visibility ?? 'family',
+      event_id: input.eventId ?? null,
+      created_at: nowIso(),
+    };
+    data.moments.unshift(m);
+    return { ...m, author: resolveAuthor(m.author_user_id) };
+  },
+  deleteMoment(id: string): void {
+    data.moments = data.moments.filter((m) => m.id !== id);
+    data.momentComments = data.momentComments.filter((c) => c.moment_id !== id);
+  },
+  listMomentComments(momentId: string): MomentComment[] {
+    return data.momentComments
+      .filter((c) => c.moment_id === momentId)
+      .map((c) => ({ ...c, author: resolveAuthor(c.author_user_id) }))
+      .sort((a, b) => a.created_at.localeCompare(b.created_at));
+  },
+  addMomentComment(momentId: string, authorUserId: string, text: string): MomentComment {
+    const c: MomentComment = {
+      id: newId('mc'),
+      moment_id: momentId,
+      author_user_id: authorUserId,
+      text,
+      created_at: nowIso(),
+    };
+    data.momentComments.push(c);
+    return { ...c, author: resolveAuthor(authorUserId) };
+  },
+
+  // ===================== Trustee & Nachlass-Freigabe =====================
+  listTrustees(ownerUserId: string): Trustee[] {
+    return data.trustees.filter((t) => t.owner_user_id === ownerUserId);
+  },
+  createTrustee(input: {
+    familyId: string;
+    ownerUserId: string;
+    personId: string | null;
+    name: string;
+    relation: string;
+    phone?: string | null;
+    email?: string | null;
+    role?: string | null;
+    canConfirmDeath?: boolean;
+  }): Trustee {
+    const t: Trustee = {
+      id: newId('tr'),
+      family_id: input.familyId,
+      owner_user_id: input.ownerUserId,
+      person_id: input.personId,
+      name: input.name,
+      relation: input.relation,
+      phone: input.phone ?? null,
+      email: input.email ?? null,
+      role: input.role ?? input.relation,
+      can_confirm_death: input.canConfirmDeath ?? true,
+      created_at: nowIso(),
+    };
+    data.trustees.push(t);
+    return t;
+  },
+  updateTrustee(id: string, patch: Partial<Trustee>): Trustee {
+    const t = data.trustees.find((x) => x.id === id);
+    if (!t) throw new Error('Trustee nicht gefunden');
+    Object.assign(t, patch);
+    return t;
+  },
+  deleteTrustee(id: string): void {
+    data.trustees = data.trustees.filter((x) => x.id !== id);
+  },
+
+  getEstateInfo(ownerUserId: string): EstateInfo | null {
+    return data.estateInfos.find((e) => e.owner_user_id === ownerUserId) ?? null;
+  },
+  upsertEstateInfo(ownerUserId: string, familyId: string, patch: Partial<EstateInfo>): EstateInfo {
+    let info = data.estateInfos.find((e) => e.owner_user_id === ownerUserId);
+    if (info) {
+      Object.assign(info, patch, { updated_at: nowIso() });
+    } else {
+      info = {
+        id: newId('est'),
+        family_id: familyId,
+        owner_user_id: ownerUserId,
+        has_will: false,
+        will_location: null,
+        has_patient_decree: false,
+        patient_decree_location: null,
+        has_power_of_attorney: false,
+        power_of_attorney_location: null,
+        has_insurance: false,
+        insurance_location: null,
+        contact_person: null,
+        contact_person_id: null,
+        personal_notes: null,
+        farewell_message: null,
+        media_path: null,
+        release_audience: 'trustees' as EstateAudience,
+        recipient_person_ids: [],
+        required_confirmations: 2,
+        updated_at: nowIso(),
+        ...patch,
+      };
+      data.estateInfos.push(info);
+    }
+    return info;
+  },
+
+  listEstateCases(familyId: string): EstateCase[] {
+    return data.estateCases
+      .filter((c) => c.family_id === familyId)
+      .map((c) => ({
+        ...c,
+        confirmations: data.estateConfirmations.filter((x) => x.case_id === c.id),
+      }))
+      .sort((a, b) => (a.created_at < b.created_at ? 1 : -1));
+  },
+  getEstateCase(id: string): EstateCase | null {
+    const c = data.estateCases.find((x) => x.id === id);
+    if (!c) return null;
+    return { ...c, confirmations: data.estateConfirmations.filter((x) => x.case_id === id) };
+  },
+  reportDeath(input: {
+    familyId: string;
+    subjectUserId: string;
+    subjectPersonId: string | null;
+    reportedByUserId: string | null;
+    reportedByTrusteeId: string | null;
+    reportedByName: string;
+    note?: string | null;
+  }): EstateCase {
+    const info = data.estateInfos.find((e) => e.owner_user_id === input.subjectUserId);
+    const required = info?.required_confirmations ?? 2;
+    const c: EstateCase = {
+      id: newId('case'),
+      family_id: input.familyId,
+      subject_user_id: input.subjectUserId,
+      subject_person_id: input.subjectPersonId,
+      reported_by_user_id: input.reportedByUserId,
+      reported_by_trustee_id: input.reportedByTrusteeId,
+      reported_by_name: input.reportedByName,
+      status: 'awaiting',
+      required_confirmations: required,
+      note: input.note ?? null,
+      created_at: nowIso(),
+      updated_at: nowIso(),
+      released_at: null,
+    };
+    data.estateCases.unshift(c);
+    // Benachrichtigung für die Familie (Missbrauchsschutz: Melder protokolliert)
+    data.notifications.unshift({
+      id: newId('nt'),
+      family_id: input.familyId,
+      recipient_user_id: null,
+      actor_user_id: input.reportedByUserId,
+      category: 'info',
+      title: 'Nachlass-Freigabe angestoßen',
+      body: `${input.reportedByName} hat eine Nachlass-Freigabe angestoßen. Vertrauenspersonen werden um Bestätigung gebeten.`,
+      data: { caseId: c.id },
+      is_read: false,
+      created_at: nowIso(),
+    });
+    return { ...c, confirmations: [] };
+  },
+  confirmEstateCase(input: {
+    caseId: string;
+    trusteeId: string | null;
+    confirmerName: string;
+    decision: 'confirm' | 'reject';
+    note?: string | null;
+  }): EstateCase {
+    const c = data.estateCases.find((x) => x.id === input.caseId);
+    if (!c) throw new Error('Fall nicht gefunden');
+    // Doppelte Bestätigung derselben Vertrauensperson verhindern.
+    const already = data.estateConfirmations.find(
+      (x) => x.case_id === c.id && x.trustee_id && x.trustee_id === input.trusteeId,
+    );
+    if (!already) {
+      data.estateConfirmations.push({
+        id: newId('conf'),
+        case_id: c.id,
+        trustee_id: input.trusteeId,
+        confirmer_name: input.confirmerName,
+        decision: input.decision,
+        note: input.note ?? null,
+        created_at: nowIso(),
+      });
+    }
+    const confirms = data.estateConfirmations.filter(
+      (x) => x.case_id === c.id && x.decision === 'confirm',
+    ).length;
+    const rejects = data.estateConfirmations.filter(
+      (x) => x.case_id === c.id && x.decision === 'reject',
+    ).length;
+    if (input.decision === 'reject' && rejects > 0) {
+      c.status = 'rejected';
+    } else if (confirms >= c.required_confirmations) {
+      c.status = 'released';
+      c.released_at = c.released_at ?? nowIso();
+    }
+    c.updated_at = nowIso();
+    return this.getEstateCase(c.id)!;
+  },
+  revokeEstateCase(caseId: string): EstateCase {
+    const c = data.estateCases.find((x) => x.id === caseId);
+    if (!c) throw new Error('Fall nicht gefunden');
+    c.status = 'rejected';
+    c.released_at = null;
+    c.updated_at = nowIso();
+    return this.getEstateCase(c.id)!;
+  },
+
+  // ===================== Family Safety & Live Location =====================
+  getMyLiveShare(userId: string): LiveShare | null {
+    return data.liveShares.find((s) => s.user_id === userId) ?? null;
+  },
+  listLiveShares(familyId: string): LiveShare[] {
+    return data.liveShares
+      .filter((s) => s.family_id === familyId && s.active)
+      .map((s) => ({ ...s, person: data.persons.find((p) => p.id === s.person_id) }));
+  },
+  setLiveShare(input: {
+    familyId: string;
+    userId: string;
+    personId: string | null;
+    status: LiveStatus;
+    statusLabel?: string | null;
+    placeLabel?: string | null;
+    battery?: number | null;
+    audience: SafetyAudience;
+    recipientPersonIds?: string[];
+    duration: ShareDuration;
+    expiresAt?: string | null;
+  }): LiveShare {
+    let s = data.liveShares.find((x) => x.user_id === input.userId);
+    const patch: Partial<LiveShare> = {
+      family_id: input.familyId,
+      person_id: input.personId,
+      active: input.duration !== 'off',
+      status: input.status,
+      status_label: input.statusLabel ?? null,
+      place_label: input.placeLabel ?? null,
+      battery: input.battery ?? null,
+      audience: input.audience,
+      recipient_person_ids: input.recipientPersonIds ?? [],
+      duration: input.duration,
+      expires_at: input.expiresAt ?? null,
+      updated_at: nowIso(),
+    };
+    if (s) {
+      Object.assign(s, patch);
+    } else {
+      s = { id: newId('ls'), user_id: input.userId, latitude: null, longitude: null, ...patch } as LiveShare;
+      data.liveShares.push(s);
+    }
+    return s;
+  },
+  stopLiveShare(userId: string): void {
+    const s = data.liveShares.find((x) => x.user_id === userId);
+    if (s) {
+      s.active = false;
+      s.duration = 'off';
+      s.updated_at = nowIso();
+    }
+  },
+
+  listSafetyTrips(familyId: string): SafetyTrip[] {
+    return data.safetyTrips
+      .filter((t) => t.family_id === familyId)
+      .map((t) => ({ ...t, person: data.persons.find((p) => p.id === t.person_id) }))
+      .sort((a, b) => (a.started_at < b.started_at ? 1 : -1));
+  },
+  getSafetyTrip(id: string): SafetyTrip | null {
+    const t = data.safetyTrips.find((x) => x.id === id);
+    if (!t) return null;
+    return { ...t, person: data.persons.find((p) => p.id === t.person_id) };
+  },
+  startTrip(input: {
+    familyId: string;
+    userId: string;
+    personId: string | null;
+    kind: SafetyTripKind;
+    destinationLabel: string;
+    eta?: string | null;
+    audience: SafetyAudience;
+    recipientPersonIds?: string[];
+    battery?: number | null;
+  }): SafetyTrip {
+    const t: SafetyTrip = {
+      id: newId('trip'),
+      family_id: input.familyId,
+      user_id: input.userId,
+      person_id: input.personId,
+      kind: input.kind,
+      destination_label: input.destinationLabel,
+      eta: input.eta ?? null,
+      status: 'active',
+      audience: input.audience,
+      recipient_person_ids: input.recipientPersonIds ?? [],
+      battery: input.battery ?? null,
+      started_at: nowIso(),
+      arrived_at: null,
+      updated_at: nowIso(),
+    };
+    data.safetyTrips.unshift(t);
+    return this.getSafetyTrip(t.id)!;
+  },
+  arriveTrip(id: string): SafetyTrip {
+    const t = data.safetyTrips.find((x) => x.id === id);
+    if (!t) throw new Error('Trip nicht gefunden');
+    t.status = 'arrived';
+    t.arrived_at = nowIso();
+    t.updated_at = nowIso();
+    const person = data.persons.find((p) => p.id === t.person_id);
+    const name = person ? [person.first_name, person.last_name].filter(Boolean).join(' ') : 'Familienmitglied';
+    data.notifications.unshift({
+      id: newId('nt'), family_id: t.family_id, recipient_user_id: null, actor_user_id: t.user_id,
+      category: 'info', title: 'Sicher angekommen',
+      body: `${name} ist sicher angekommen (${t.destination_label}).`,
+      data: { tripId: t.id }, is_read: false, created_at: nowIso(),
+    });
+    return this.getSafetyTrip(t.id)!;
+  },
+  cancelTrip(id: string): SafetyTrip {
+    const t = data.safetyTrips.find((x) => x.id === id);
+    if (!t) throw new Error('Trip nicht gefunden');
+    t.status = 'cancelled';
+    t.updated_at = nowIso();
+    return this.getSafetyTrip(t.id)!;
+  },
+
+  listSafetyAlerts(familyId: string): SafetyAlert[] {
+    return data.safetyAlerts
+      .filter((a) => a.family_id === familyId)
+      .map((a) => ({ ...a, person: data.persons.find((p) => p.id === a.person_id) }))
+      .sort((a, b) => (a.created_at < b.created_at ? 1 : -1));
+  },
+  triggerSos(input: {
+    familyId: string;
+    userId: string;
+    personId: string | null;
+    message?: string | null;
+    placeLabel?: string | null;
+    battery?: number | null;
+  }): SafetyAlert {
+    const a: SafetyAlert = {
+      id: newId('sos'),
+      family_id: input.familyId,
+      user_id: input.userId,
+      person_id: input.personId,
+      message: input.message ?? null,
+      place_label: input.placeLabel ?? null,
+      latitude: null,
+      longitude: null,
+      battery: input.battery ?? null,
+      status: 'active',
+      created_at: nowIso(),
+      resolved_at: null,
+    };
+    data.safetyAlerts.unshift(a);
+    data.notifications.unshift({
+      id: newId('nt'), family_id: input.familyId, recipient_user_id: null, actor_user_id: input.userId,
+      category: 'emergency', title: '🆘 SOS – Hilfe benötigt',
+      body: input.message ?? 'Ein Familienmitglied hat den SOS-Notfallknopf ausgelöst.',
+      data: { alertId: a.id }, is_read: false, created_at: nowIso(),
+    });
+    return { ...a, person: data.persons.find((p) => p.id === a.person_id) };
+  },
+  resolveSos(id: string): SafetyAlert {
+    const a = data.safetyAlerts.find((x) => x.id === id);
+    if (!a) throw new Error('Meldung nicht gefunden');
+    a.status = 'resolved';
+    a.resolved_at = nowIso();
+    return { ...a, person: data.persons.find((p) => p.id === a.person_id) };
+  },
+
+  // ===================== Family Vault =====================
+  listVaultEntries(ownerUserId: string): VaultEntry[] {
+    return data.vaultEntries.filter((v) => v.owner_user_id === ownerUserId);
+  },
+  saveVaultEntry(input: Partial<VaultEntry> & { id?: string; familyId: string; ownerUserId: string }): VaultEntry {
+    if (input.id) {
+      const e = data.vaultEntries.find((v) => v.id === input.id);
+      if (!e) throw new Error('Eintrag nicht gefunden');
+      Object.assign(e, input, { updated_at: nowIso() });
+      return e;
+    }
+    const e: VaultEntry = {
+      id: newId('v'),
+      family_id: input.familyId,
+      owner_user_id: input.ownerUserId,
+      category: input.category ?? 'sonstige',
+      title: input.title ?? 'Dokument',
+      description: input.description ?? null,
+      location: input.location ?? null,
+      contact_person: input.contact_person ?? null,
+      contact_person_id: input.contact_person_id ?? null,
+      has_document: input.has_document ?? false,
+      release_audience: input.release_audience ?? 'trustees',
+      created_at: nowIso(),
+      updated_at: nowIso(),
+    };
+    data.vaultEntries.push(e);
+    return e;
+  },
+  deleteVaultEntry(id: string): void {
+    data.vaultEntries = data.vaultEntries.filter((v) => v.id !== id);
+  },
+
+  listLegacyItems(ownerUserId: string): LegacyItem[] {
+    return data.legacyItems.filter((l) => l.owner_user_id === ownerUserId);
+  },
+  saveLegacyItem(input: Partial<LegacyItem> & { id?: string; familyId: string; ownerUserId: string }): LegacyItem {
+    if (input.id) {
+      const e = data.legacyItems.find((l) => l.id === input.id);
+      if (!e) throw new Error('Eintrag nicht gefunden');
+      Object.assign(e, input, { updated_at: nowIso() });
+      return e;
+    }
+    const e: LegacyItem = {
+      id: newId('lg'),
+      family_id: input.familyId,
+      owner_user_id: input.ownerUserId,
+      kind: input.kind ?? 'erinnerung',
+      title: input.title ?? '',
+      content: input.content ?? '',
+      for_audience: input.for_audience ?? 'inner',
+      created_at: nowIso(),
+      updated_at: nowIso(),
+    };
+    data.legacyItems.push(e);
+    return e;
+  },
+  deleteLegacyItem(id: string): void {
+    data.legacyItems = data.legacyItems.filter((l) => l.id !== id);
+  },
+
+  listFarewellMessages(ownerUserId: string): FarewellMessage[] {
+    return data.farewellMessages.filter((m) => m.owner_user_id === ownerUserId);
+  },
+  saveFarewellMessage(input: Partial<FarewellMessage> & { id?: string; familyId: string; ownerUserId: string }): FarewellMessage {
+    if (input.id) {
+      const e = data.farewellMessages.find((m) => m.id === input.id);
+      if (!e) throw new Error('Nachricht nicht gefunden');
+      Object.assign(e, input, { updated_at: nowIso() });
+      return e;
+    }
+    const e: FarewellMessage = {
+      id: newId('fw'),
+      family_id: input.familyId,
+      owner_user_id: input.ownerUserId,
+      kind: input.kind ?? 'text',
+      title: input.title ?? '',
+      recipient: input.recipient ?? 'inner',
+      content: input.content ?? null,
+      media_path: input.media_path ?? null,
+      created_at: nowIso(),
+      updated_at: nowIso(),
+    };
+    data.farewellMessages.push(e);
+    return e;
+  },
+  deleteFarewellMessage(id: string): void {
+    data.farewellMessages = data.farewellMessages.filter((m) => m.id !== id);
+  },
+
+  // ===================== Familienfilm =====================
+  listFilmProjects(familyId: string): FilmProject[] {
+    return data.filmProjects
+      .filter((f) => f.family_id === familyId)
+      .sort((a, b) => (a.created_at < b.created_at ? 1 : -1));
+  },
+  getFilmProject(id: string): FilmProject | null {
+    return data.filmProjects.find((f) => f.id === id) ?? null;
+  },
+  createFilmProject(input: {
+    familyId: string;
+    ownerUserId: string;
+    kind: FilmKind;
+    title: string;
+    subtitle?: string | null;
+    music?: FilmMusicMood;
+    lock?: FilmLock;
+    visibility?: VisibilityLevel;
+    options: FilmOptions;
+    auto?: boolean;
+  }): FilmProject {
+    const lock = input.lock ?? 'none';
+    const open = new Date();
+    let openAt: string | null = null;
+    if (lock === 'years5') { open.setFullYear(open.getFullYear() + 5); openAt = open.toISOString(); }
+    else if (lock === 'years10') { open.setFullYear(open.getFullYear() + 10); openAt = open.toISOString(); }
+    else if (lock === 'years20') { open.setFullYear(open.getFullYear() + 20); openAt = open.toISOString(); }
+    const f: FilmProject = {
+      id: newId('film'),
+      family_id: input.familyId,
+      owner_user_id: input.ownerUserId,
+      kind: input.kind,
+      title: input.title,
+      subtitle: input.subtitle ?? null,
+      music: input.music ?? 'emotional',
+      lock,
+      open_at: openAt,
+      visibility: input.visibility ?? 'family',
+      options: input.options,
+      hidden_chapters: [],
+      cover_path: null,
+      auto: input.auto ?? false,
+      created_at: nowIso(),
+      updated_at: nowIso(),
+    };
+    data.filmProjects.unshift(f);
+    return f;
+  },
+  updateFilmProject(id: string, patch: Partial<FilmProject>): FilmProject {
+    const f = data.filmProjects.find((x) => x.id === id);
+    if (!f) throw new Error('Film nicht gefunden');
+    Object.assign(f, patch, { updated_at: nowIso() });
+    return f;
+  },
+  deleteFilmProject(id: string): void {
+    data.filmProjects = data.filmProjects.filter((f) => f.id !== id);
+  },
+
+  // ===================== Legacy AI · Familienstimmen =====================
+  setPersonLegend(personId: string, value: boolean): void {
+    const p = data.persons.find((x) => x.id === personId);
+    if (p) p.is_legend = value;
+  },
+  listLifeStories(personId: string): LifeStory[] {
+    return data.lifeStories
+      .filter((s) => s.person_id === personId)
+      .sort((a, b) => (a.created_at < b.created_at ? 1 : -1));
+  },
+  addLifeStory(input: {
+    familyId: string;
+    personId: string;
+    question: string;
+    kind: LifeStoryKind;
+    content?: string | null;
+    isFutureQuestion?: boolean;
+  }): LifeStory {
+    const s: LifeStory = {
+      id: newId('ls'),
+      family_id: input.familyId,
+      person_id: input.personId,
+      question: input.question,
+      kind: input.kind,
+      content: input.content ?? null,
+      media_path: null,
+      is_future_question: input.isFutureQuestion ?? false,
+      created_at: nowIso(),
+    };
+    data.lifeStories.unshift(s);
+    return s;
+  },
+  listFamilyLifeStories(familyId: string): LifeStory[] {
+    return data.lifeStories
+      .filter((s) => s.family_id === familyId)
+      .sort((a, b) => (a.created_at < b.created_at ? 1 : -1));
+  },
+  listFamilyWisdoms(familyId: string): FamilyWisdom[] {
+    return data.familyWisdoms
+      .filter((w) => w.family_id === familyId)
+      .sort((a, b) => (a.created_at < b.created_at ? 1 : -1));
+  },
+  addFamilyWisdom(input: { familyId: string; text: string; authorPersonId?: string | null }): FamilyWisdom {
+    const w: FamilyWisdom = {
+      id: newId('fw'),
+      family_id: input.familyId,
+      text: input.text,
+      author_person_id: input.authorPersonId ?? null,
+      created_at: nowIso(),
+    };
+    data.familyWisdoms.unshift(w);
+    return w;
+  },
+
+  // ===================== Familienmuseum · Artefakte =====================
+  listArtifacts(familyId: string): Artifact[] {
+    return data.artifacts
+      .filter((a) => a.family_id === familyId)
+      .sort((a, b) => (a.created_at < b.created_at ? 1 : -1));
+  },
+  saveArtifact(input: {
+    id?: string;
+    familyId: string;
+    category: ArtifactCategory;
+    title: string;
+    description?: string | null;
+    story?: string | null;
+    ownerPersonId?: string | null;
+    location?: string | null;
+    year?: number | null;
+    createdBy: string;
+  }): Artifact {
+    if (input.id) {
+      const a = data.artifacts.find((x) => x.id === input.id);
+      if (!a) throw new Error('Artefakt nicht gefunden');
+      Object.assign(a, {
+        category: input.category, title: input.title, description: input.description ?? null,
+        story: input.story ?? null, owner_person_id: input.ownerPersonId ?? null,
+        location: input.location ?? null, year: input.year ?? null,
+      });
+      return a;
+    }
+    const a: Artifact = {
+      id: newId('art'),
+      family_id: input.familyId,
+      category: input.category,
+      title: input.title,
+      description: input.description ?? null,
+      story: input.story ?? null,
+      owner_person_id: input.ownerPersonId ?? null,
+      location: input.location ?? null,
+      year: input.year ?? null,
+      photo_path: null,
+      created_by: input.createdBy,
+      created_at: nowIso(),
+    };
+    data.artifacts.unshift(a);
+    return a;
+  },
+  deleteArtifact(id: string): void {
+    data.artifacts = data.artifacts.filter((a) => a.id !== id);
+  },
+
+  // ===================== Feedback =====================
+  createFeedback(input: { familyId: string; userId: string | null; kind: FeedbackKind; message: string }): Feedback {
+    const f: Feedback = {
+      id: newId('fb'),
+      family_id: input.familyId,
+      user_id: input.userId,
+      kind: input.kind,
+      message: input.message,
+      created_at: nowIso(),
+    };
+    data.feedback.unshift(f);
+    return f;
+  },
+
+  /** DSGVO: vollständiger Datenexport der Familie (Demo-Dump). */
+  exportData(): unknown {
+    return JSON.parse(JSON.stringify(data));
+  },
 };
+
+/** Ermittelt ein Profil zu einer Nutzer-ID (Demo). */
+function resolveAuthor(userId: string | null): Profile | undefined {
+  if (!userId) return undefined;
+  if (userId === data.profile.id) return data.profile;
+  const person = data.persons.find((p) => p.user_id === userId);
+  if (person) {
+    return {
+      id: userId,
+      email: null,
+      full_name: [person.first_name, person.last_name].filter(Boolean).join(' '),
+      avatar_url: person.avatar_url,
+      bio: null,
+      created_at: person.created_at,
+      updated_at: person.updated_at,
+    };
+  }
+  return {
+    id: userId,
+    email: null,
+    full_name: 'Familienmitglied',
+    avatar_url: null,
+    bio: null,
+    created_at: nowIso(),
+    updated_at: nowIso(),
+  };
+}

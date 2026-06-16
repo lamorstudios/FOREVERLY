@@ -66,6 +66,39 @@ select cron.schedule('release-capsules', '0 * * * *',
   $$ select public.release_due_time_capsules(); $$);
 ```
 
+## Echte Nutzer & Google-Login (Real Users Foundation)
+
+Migration `...000001_real_users.sql` macht die App produktiv nutzbar:
+
+- **Profil-Erstellung** (`handle_new_user`) liest jetzt auch Googles
+  `name`/`picture`, sodass Name & Profilbild automatisch übernommen werden.
+- **Familie erstellen** (`handle_new_family`) legt den Ersteller automatisch
+  als **Admin-Mitglied** UND als **erste Person im Familienbaum** an.
+- **Einladung einlösen** (`accept_invitation`) ist vereinheitlicht:
+  Mitgliedschaft + Personenprofil (falls nötig neu) + Beziehung zum
+  Einladenden + Beziehungsvorschlag. Die eingeladene Person erscheint dadurch
+  direkt korrekt im Familienbaum.
+
+### Google-Login aktivieren
+
+1. Supabase-Dashboard → **Authentication → Providers → Google** aktivieren,
+   Client-ID/Secret aus der Google Cloud Console eintragen.
+2. **Redirect URLs** hinterlegen (Authentication → URL Configuration):
+   - Web-Preview: `https://lamorstudios.github.io/FOREVERLY/`
+   - Lokal: `http://localhost:8081/`
+   - Nativ (Deep Link): `foreverly://`
+3. `.env` setzen und Demo-Modus ausschalten:
+
+```
+EXPO_PUBLIC_SUPABASE_URL=<projekt-url>
+EXPO_PUBLIC_SUPABASE_ANON_KEY=<anon key>
+EXPO_PUBLIC_DEMO_MODE=false
+```
+
+Ist `EXPO_PUBLIC_DEMO_MODE` nicht `false` (oder fehlen die Supabase-Werte),
+läuft die App im **Demo-Modus** mit Beispieldaten – vollständig getrennt von
+echten Nutzerdaten.
+
 ## Spätere Phasen
 
 Das Schema ist bewusst erweiterbar für: Familienhistoriker-KI, Familienbuch,
