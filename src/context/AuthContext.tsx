@@ -57,15 +57,42 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (DEMO_MODE) return; // Im Demo-Modus keine echte Auth.
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session);
+
+    let done = false;
+    const finish = (next: Session | null) => {
+      if (done) return;
+      done = true;
+      setSession(next);
       setInitializing(false);
-    });
+    };
+
+    // Sicherheits-Timeout: Die App darf NIE dauerhaft im Loading hängen.
+    // Wenn getSession() hängt/fehlschlägt (z. B. falsche/erreichbare Supabase-
+    // Konfiguration), nach 5 s ohne Sitzung fortfahren (→ Login-Screen).
+    const timer = setTimeout(() => {
+      if (!done) {
+        // eslint-disable-next-line no-console
+        console.warn('[Auth] getSession Timeout – fahre ohne Sitzung fort.');
+        finish(null);
+      }
+    }, 5000);
+
+    supabase.auth
+      .getSession()
+      .then(({ data }) => finish(data.session))
+      .catch((e) => {
+        // eslint-disable-next-line no-console
+        console.warn('[Auth] getSession fehlgeschlagen:', e);
+        finish(null);
+      });
 
     const { data: sub } = supabase.auth.onAuthStateChange((_event, next) => {
       setSession(next);
     });
-    return () => sub.subscription.unsubscribe();
+    return () => {
+      clearTimeout(timer);
+      sub.subscription.unsubscribe();
+    };
   }, []);
 
   const signUp = useCallback<AuthContextValue['signUp']>(

@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { View, StyleSheet } from 'react-native';
 import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
 import * as Linking from 'expo-linking';
@@ -8,7 +8,7 @@ import { useFamily } from '@/context/FamilyContext';
 import { useOnboarding } from '@/context/OnboardingContext';
 import { registerForNotifications } from '@/lib/notifications';
 import { parseInviteCode, setPendingInvite } from '@/lib/pendingInvite';
-import { DEMO_MODE } from '@/lib/config';
+import { DEMO_MODE, isSupabaseConfigured } from '@/lib/config';
 import { colors } from '@/theme';
 import { AuthNavigator } from './AuthNavigator';
 import { OnboardingNavigator } from './OnboardingNavigator';
@@ -50,6 +50,22 @@ export function RootNavigator() {
   const { families, loading } = useFamily();
   const { ready: introReady, welcomeDone, tourDone, completeWelcome, completeTour } = useOnboarding();
 
+  // Harte Sicherung: Egal was hängt – nach 8 s wird nicht mehr „geladen" gezeigt.
+  const [forceReady, setForceReady] = useState(false);
+  useEffect(() => {
+    const t = setTimeout(() => setForceReady(true), 8000);
+    return () => clearTimeout(t);
+  }, []);
+
+  // Temporäre Debug-Ausgabe zur Loading-/White-Screen-Diagnose.
+  useEffect(() => {
+    // eslint-disable-next-line no-console
+    console.log(
+      '[Foreverly] authInitializing=%s sessionExists=%s supabaseConfigured=%s demoMode=%s familyLoading=%s introReady=%s families=%d forceReady=%s',
+      initializing, !!session, isSupabaseConfigured, DEMO_MODE, loading, introReady, families.length, forceReady,
+    );
+  }, [initializing, session, loading, introReady, families.length, forceReady]);
+
   useEffect(() => {
     if (session && !DEMO_MODE) {
       registerForNotifications().catch(() => undefined);
@@ -69,7 +85,8 @@ export function RootNavigator() {
     return () => sub.remove();
   }, []);
 
-  const inFamily = session && !initializing && !loading && families.length > 0;
+  const stillLoading = (initializing || loading || !introReady) && !forceReady;
+  const inFamily = session && !stillLoading && families.length > 0;
   // Erststart-Einführung: Welcome-Flow, danach interaktive Tour.
   const showWelcome = inFamily && introReady && !welcomeDone;
   const showTour = inFamily && introReady && welcomeDone && !tourDone;
@@ -79,7 +96,7 @@ export function RootNavigator() {
       <NavigationContainer ref={navigationRef} theme={navTheme} linking={linking as never}>
         {!session ? (
           <AuthNavigator />
-        ) : initializing || loading || !introReady ? (
+        ) : stillLoading ? (
           <Loading message="Foreverly wird geladen …" />
         ) : families.length === 0 ? (
           <OnboardingNavigator />
