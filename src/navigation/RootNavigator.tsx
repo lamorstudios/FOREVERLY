@@ -50,10 +50,10 @@ export function RootNavigator() {
   const { families, loading } = useFamily();
   const { ready: introReady, welcomeDone, tourDone, completeWelcome, completeTour } = useOnboarding();
 
-  // Harte Sicherung: Egal was hängt – nach 8 s wird nicht mehr „geladen" gezeigt.
+  // Harte Sicherung: Egal was hängt – nach 3 s wird nicht mehr „geladen" gezeigt.
   const [forceReady, setForceReady] = useState(false);
   useEffect(() => {
-    const t = setTimeout(() => setForceReady(true), 8000);
+    const t = setTimeout(() => setForceReady(true), 3000);
     return () => clearTimeout(t);
   }, []);
 

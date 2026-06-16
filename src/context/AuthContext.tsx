@@ -67,15 +67,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
 
     // Sicherheits-Timeout: Die App darf NIE dauerhaft im Loading hängen.
-    // Wenn getSession() hängt/fehlschlägt (z. B. falsche/erreichbare Supabase-
-    // Konfiguration), nach 5 s ohne Sitzung fortfahren (→ Login-Screen).
+    // Wenn getSession() hängt/fehlschlägt, nach 3 s ohne Sitzung fortfahren.
     const timer = setTimeout(() => {
       if (!done) {
         // eslint-disable-next-line no-console
         console.warn('[Auth] getSession Timeout – fahre ohne Sitzung fort.');
         finish(null);
       }
-    }, 5000);
+    }, 3000);
 
     supabase.auth
       .getSession()
