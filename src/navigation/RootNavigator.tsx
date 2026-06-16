@@ -12,6 +12,7 @@ import { colors } from '@/theme';
 import { AuthNavigator } from './AuthNavigator';
 import { OnboardingNavigator } from './OnboardingNavigator';
 import { MainNavigator } from './MainNavigator';
+import { navigationRef } from './navigationRef';
 import { WelcomeFlowScreen } from '@/screens/onboarding/WelcomeFlowScreen';
 
 const navTheme = {
@@ -61,7 +62,7 @@ export function RootNavigator() {
 
   return (
     <View style={styles.root}>
-      <NavigationContainer theme={navTheme} linking={linking as never}>
+      <NavigationContainer ref={navigationRef} theme={navTheme} linking={linking as never}>
         {!session ? (
           <AuthNavigator />
         ) : initializing || loading || !introReady ? (
