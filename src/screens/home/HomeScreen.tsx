@@ -15,6 +15,7 @@ import {
   Loading,
 } from '@/components';
 import { useFamily } from '@/context/FamilyContext';
+import { useAuth } from '@/context/AuthContext';
 import { DemoBanner } from '@/demo/DemoBanner';
 import { listActivities } from '@/api/activities';
 import { listUpcomingForMe } from '@/api/timeCapsules';
@@ -23,6 +24,8 @@ import { listMoments } from '@/api/moments';
 import { listCalendarEvents } from '@/api/calendar';
 import { listEvents } from '@/api/familyEvents';
 import { listSafetyTrips, listSafetyAlerts, listLiveShares } from '@/api/safety';
+import { listVaultEntries } from '@/api/vault';
+import { listTrustees, getEstateInfo } from '@/api/estate';
 import { listNotifications, unreadCount } from '@/api/familyNotifications';
 import { qk } from '@/api/queryKeys';
 import { STATUS_LEVELS } from '@/constants/phase2';
@@ -100,6 +103,7 @@ function daysUntilAnnual(dateStr: string): number {
 
 export function HomeScreen({ navigation }: Props) {
   const { activeFamily } = useFamily();
+  const { userId } = useAuth();
   const familyId = activeFamily!.id;
   const { isTablet } = useResponsive();
   const tileBasis = isTablet ? '31%' : '47%';
@@ -145,10 +149,41 @@ export function HomeScreen({ navigation }: Props) {
     queryFn: () => listLiveShares(familyId),
   });
 
+  const vaultQuery = useQuery({
+    queryKey: qk.vaultEntries(userId ?? ''),
+    queryFn: () => listVaultEntries(userId!),
+    enabled: !!userId,
+  });
+  const trusteesQuery = useQuery({
+    queryKey: qk.trustees(userId ?? ''),
+    queryFn: () => listTrustees(userId!),
+    enabled: !!userId,
+  });
+  const estateQuery = useQuery({
+    queryKey: qk.estateInfo(userId ?? ''),
+    queryFn: () => getEstateInfo(userId!),
+    enabled: !!userId,
+  });
+
   const unread = unreadCount(notifications.data ?? []);
   const activeTrips = (safetyTripsQuery.data ?? []).filter((t) => t.status === 'active');
   const activeAlerts = (safetyAlertsQuery.data ?? []).filter((a) => a.status === 'active');
   const sharingCount = (liveSharesQuery.data ?? []).length;
+
+  // Vorsorge-Status (fehlende Dokumente, Vertrauenspersonen, Einstellungen)
+  const vaultEntries = vaultQuery.data ?? [];
+  const vorsorgeMissing: string[] = [];
+  if (!vaultEntries.some((e) => e.category === 'testament')) vorsorgeMissing.push('Testament-Hinweis');
+  if (!vaultEntries.some((e) => e.category === 'patientenverfuegung')) vorsorgeMissing.push('Patientenverfügung');
+  if ((trusteesQuery.data?.length ?? 0) < 2) vorsorgeMissing.push('Vertrauenspersonen');
+  if (!estateQuery.data) vorsorgeMissing.push('Nachlass-Einstellungen');
+  const vorsorgeUpdated = estateQuery.data?.updated_at ?? vaultEntries[0]?.updated_at ?? null;
+  const openVault = () => {
+    const parent = navigation.getParent() as
+      | { navigate: (name: string, params?: object) => void }
+      | undefined;
+    parent?.navigate('ProfileTab', { screen: 'VaultHub' });
+  };
 
   // „Heute in deiner Familie" – kuratierte, emotionale Zusammenfassung.
   const todayItems = useMemo<TodayItem[]>(() => {
@@ -375,6 +410,38 @@ export function HomeScreen({ navigation }: Props) {
               </View>
             </Card>
           ) : null}
+        </View>
+      </Appear>
+
+      {/* Vorsorge */}
+      <Appear delay={80}>
+        <View style={styles.section}>
+          <SectionHeader title="Vorsorge" actionLabel="Öffnen" onAction={openVault} />
+          <Card onPress={openVault}>
+            <View style={styles.row}>
+              <View style={[styles.iconCircle, { backgroundColor: withAlpha(colors.primary, 0.14) }]}>
+                <Ionicons name="file-tray-full-outline" size={22} color={colors.primary} />
+              </View>
+              <View style={styles.rowText}>
+                {vorsorgeMissing.length === 0 ? (
+                  <>
+                    <AppText variant="bodyStrong">Alles Wichtige hinterlegt 💛</AppText>
+                    <AppText variant="caption" color={colors.textSecondary} numberOfLines={1}>
+                      {vorsorgeUpdated ? `Zuletzt aktualisiert ${formatRelative(vorsorgeUpdated)}` : 'Dokumente & Nachlass'}
+                    </AppText>
+                  </>
+                ) : (
+                  <>
+                    <AppText variant="bodyStrong">Noch offen: {vorsorgeMissing.length}</AppText>
+                    <AppText variant="caption" color={colors.textSecondary} numberOfLines={1}>
+                      {vorsorgeMissing.join(' · ')}
+                    </AppText>
+                  </>
+                )}
+              </View>
+              <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
+            </View>
+          </Card>
         </View>
       </Appear>
 

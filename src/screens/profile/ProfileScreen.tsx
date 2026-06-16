@@ -123,13 +123,13 @@ export function ProfileScreen({ navigation }: Props) {
           </View>
         </Card>
 
-        <Card onPress={() => navigation.navigate('EstateHub')}>
+        <Card onPress={() => navigation.navigate('VaultHub')}>
           <View style={styles.row}>
-            <Ionicons name="leaf-outline" size={32} color={colors.primary} />
+            <Ionicons name="file-tray-full-outline" size={32} color={colors.primary} />
             <View style={styles.rowLabel}>
-              <AppText variant="bodyStrong">Nachlass & wichtige Hinweise</AppText>
+              <AppText variant="bodyStrong">Dokumente & Nachlass</AppText>
               <AppText variant="caption" color={colors.textSecondary}>
-                Vertrauenspersonen & Orientierung für den Ernstfall
+                Family Vault · Vermächtnisse · Vertrauenspersonen
               </AppText>
             </View>
             <Ionicons

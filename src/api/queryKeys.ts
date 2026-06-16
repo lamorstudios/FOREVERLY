@@ -76,4 +76,8 @@ export const qk = {
   safetyTrips: (familyId: string) => ['safetyTrips', familyId] as const,
   safetyTrip: (id: string) => ['safetyTrip', id] as const,
   safetyAlerts: (familyId: string) => ['safetyAlerts', familyId] as const,
+  // Family Vault · Dokumente & Vermächtnis
+  vaultEntries: (ownerUserId: string) => ['vaultEntries', ownerUserId] as const,
+  legacyItems: (ownerUserId: string) => ['legacyItems', ownerUserId] as const,
+  farewellMessages: (ownerUserId: string) => ['farewellMessages', ownerUserId] as const,
 };

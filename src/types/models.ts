@@ -276,6 +276,8 @@ export interface TimeCapsule {
   is_opened: boolean;
   visibility?: VisibilityLevel;
   visibility_branch_id?: string | null;
+  /** Phase 7: erst nach erfolgreicher Nachlassfreigabe öffnen. */
+  open_on_death?: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -667,5 +669,74 @@ export interface SafetyAlert {
   resolved_at: string | null;
   person?: Person;
 }
+
+// ===================== Family Vault · Dokumente & Vermächtnis =====================
+
+export type VaultCategory =
+  | 'testament'
+  | 'patientenverfuegung'
+  | 'vorsorgevollmacht'
+  | 'versicherung'
+  | 'immobilie'
+  | 'mietvertrag'
+  | 'fahrzeug'
+  | 'notar'
+  | 'sonstige';
+
+/** Eintrag im Family Vault – nur Hinweise/Orte, KEINE Zugangsdaten. */
+export interface VaultEntry {
+  id: string;
+  family_id: string;
+  owner_user_id: string;
+  category: VaultCategory;
+  title: string;
+  description: string | null;
+  location: string | null; // „Ordner befindet sich…"
+  contact_person: string | null; // „Kontaktperson ist…"
+  contact_person_id: string | null;
+  has_document: boolean; // optional späterer Upload, im MVP nur Hinweis
+  release_audience: EstateAudience;
+  created_at: string;
+  updated_at: string;
+}
+
+export type LegacyKind =
+  | 'wert' // Familienwerte
+  | 'lektion' // Lebenslektionen
+  | 'geschichte' // Familiengeschichten
+  | 'rezept' // Lieblingsrezepte
+  | 'ort' // Familienorte
+  | 'erinnerung'; // Erinnerungen
+
+/** „Was ich hinterlassen möchte" – fließt später in Buch/Historiker/Film ein. */
+export interface LegacyItem {
+  id: string;
+  family_id: string;
+  owner_user_id: string;
+  kind: LegacyKind;
+  title: string;
+  content: string;
+  for_audience: EstateAudience;
+  created_at: string;
+  updated_at: string;
+}
+
+export type FarewellKind = 'text' | 'audio' | 'video';
+export type FarewellRecipient = 'spouse' | 'children' | 'grandchildren' | 'inner' | 'selected';
+
+/** Abschiedsnachricht – erst nach erfolgreicher Nachlassfreigabe sichtbar. */
+export interface FarewellMessage {
+  id: string;
+  family_id: string;
+  owner_user_id: string;
+  kind: FarewellKind;
+  title: string;
+  recipient: FarewellRecipient;
+  content: string | null; // Text bzw. Beschreibung
+  media_path: string | null; // optionale Audio-/Video-Datei
+  created_at: string;
+  updated_at: string;
+}
+
 
 

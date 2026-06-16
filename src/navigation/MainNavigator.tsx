@@ -45,6 +45,15 @@ import { TrusteesScreen } from '@/screens/estate/TrusteesScreen';
 import { TrusteeFormScreen } from '@/screens/estate/TrusteeFormScreen';
 import { EstateInfoFormScreen } from '@/screens/estate/EstateInfoFormScreen';
 import { EstateCaseScreen } from '@/screens/estate/EstateCaseScreen';
+// Phase 7 · Family Vault
+import { VaultHubScreen } from '@/screens/vault/VaultHubScreen';
+import { VaultEntriesScreen } from '@/screens/vault/VaultEntriesScreen';
+import { VaultEntryFormScreen } from '@/screens/vault/VaultEntryFormScreen';
+import { LegacyScreen } from '@/screens/vault/LegacyScreen';
+import { LegacyFormScreen } from '@/screens/vault/LegacyFormScreen';
+import { FarewellScreen } from '@/screens/vault/FarewellScreen';
+import { FarewellFormScreen } from '@/screens/vault/FarewellFormScreen';
+import { HeirsScreen } from '@/screens/vault/HeirsScreen';
 // Phase 6 · Family Safety & Live Location
 import { LiveMapScreen } from '@/screens/safety/LiveMapScreen';
 import { LocationSettingsScreen } from '@/screens/safety/LocationSettingsScreen';
@@ -201,6 +210,14 @@ function ProfileStackNavigator() {
       <ProfileStack.Screen name="TrusteeForm" component={TrusteeFormScreen} options={{ title: 'Vertrauensperson' }} />
       <ProfileStack.Screen name="EstateInfoForm" component={EstateInfoFormScreen} options={{ title: 'Nachlasshinweise' }} />
       <ProfileStack.Screen name="EstateCase" component={EstateCaseScreen} options={{ title: 'Nachlass-Freigabe' }} />
+      <ProfileStack.Screen name="VaultHub" component={VaultHubScreen} options={{ title: 'Dokumente & Nachlass' }} />
+      <ProfileStack.Screen name="VaultEntries" component={VaultEntriesScreen} options={{ title: 'Dokumente' }} />
+      <ProfileStack.Screen name="VaultEntryForm" component={VaultEntryFormScreen} options={{ title: 'Dokument' }} />
+      <ProfileStack.Screen name="Legacy" component={LegacyScreen} options={{ title: 'Was ich hinterlasse' }} />
+      <ProfileStack.Screen name="LegacyForm" component={LegacyFormScreen} options={{ title: 'Vermächtnis' }} />
+      <ProfileStack.Screen name="Farewell" component={FarewellScreen} options={{ title: 'Abschiedsnachrichten' }} />
+      <ProfileStack.Screen name="FarewellForm" component={FarewellFormScreen} options={{ title: 'Abschiedsnachricht' }} />
+      <ProfileStack.Screen name="Heirs" component={HeirsScreen} options={{ title: 'Erben-Übersicht' }} />
     </ProfileStack.Navigator>
   );
 }

@@ -104,6 +104,15 @@ export type ProfileStackParamList = {
   TrusteeForm: { trusteeId?: string } | undefined;
   EstateInfoForm: undefined;
   EstateCase: { caseId: string };
+  // Phase 7 · Family Vault
+  VaultHub: undefined;
+  VaultEntries: undefined;
+  VaultEntryForm: { entryId?: string } | undefined;
+  Legacy: undefined;
+  LegacyForm: { itemId?: string } | undefined;
+  Farewell: undefined;
+  FarewellForm: { messageId?: string } | undefined;
+  Heirs: undefined;
 };
 
 export type MainTabParamList = {

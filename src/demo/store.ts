@@ -53,6 +53,9 @@ import type {
   SafetyTrip,
   SafetyTripKind,
   SafetyAlert,
+  VaultEntry,
+  LegacyItem,
+  FarewellMessage,
 } from '@/types/models';
 import { createSeedData, DEMO_FAMILY_ID, DEMO_USER_ID } from './demoData';
 
@@ -1477,6 +1480,96 @@ export const demoStore = {
     a.status = 'resolved';
     a.resolved_at = nowIso();
     return { ...a, person: data.persons.find((p) => p.id === a.person_id) };
+  },
+
+  // ===================== Family Vault =====================
+  listVaultEntries(ownerUserId: string): VaultEntry[] {
+    return data.vaultEntries.filter((v) => v.owner_user_id === ownerUserId);
+  },
+  saveVaultEntry(input: Partial<VaultEntry> & { id?: string; familyId: string; ownerUserId: string }): VaultEntry {
+    if (input.id) {
+      const e = data.vaultEntries.find((v) => v.id === input.id);
+      if (!e) throw new Error('Eintrag nicht gefunden');
+      Object.assign(e, input, { updated_at: nowIso() });
+      return e;
+    }
+    const e: VaultEntry = {
+      id: newId('v'),
+      family_id: input.familyId,
+      owner_user_id: input.ownerUserId,
+      category: input.category ?? 'sonstige',
+      title: input.title ?? 'Dokument',
+      description: input.description ?? null,
+      location: input.location ?? null,
+      contact_person: input.contact_person ?? null,
+      contact_person_id: input.contact_person_id ?? null,
+      has_document: input.has_document ?? false,
+      release_audience: input.release_audience ?? 'trustees',
+      created_at: nowIso(),
+      updated_at: nowIso(),
+    };
+    data.vaultEntries.push(e);
+    return e;
+  },
+  deleteVaultEntry(id: string): void {
+    data.vaultEntries = data.vaultEntries.filter((v) => v.id !== id);
+  },
+
+  listLegacyItems(ownerUserId: string): LegacyItem[] {
+    return data.legacyItems.filter((l) => l.owner_user_id === ownerUserId);
+  },
+  saveLegacyItem(input: Partial<LegacyItem> & { id?: string; familyId: string; ownerUserId: string }): LegacyItem {
+    if (input.id) {
+      const e = data.legacyItems.find((l) => l.id === input.id);
+      if (!e) throw new Error('Eintrag nicht gefunden');
+      Object.assign(e, input, { updated_at: nowIso() });
+      return e;
+    }
+    const e: LegacyItem = {
+      id: newId('lg'),
+      family_id: input.familyId,
+      owner_user_id: input.ownerUserId,
+      kind: input.kind ?? 'erinnerung',
+      title: input.title ?? '',
+      content: input.content ?? '',
+      for_audience: input.for_audience ?? 'inner',
+      created_at: nowIso(),
+      updated_at: nowIso(),
+    };
+    data.legacyItems.push(e);
+    return e;
+  },
+  deleteLegacyItem(id: string): void {
+    data.legacyItems = data.legacyItems.filter((l) => l.id !== id);
+  },
+
+  listFarewellMessages(ownerUserId: string): FarewellMessage[] {
+    return data.farewellMessages.filter((m) => m.owner_user_id === ownerUserId);
+  },
+  saveFarewellMessage(input: Partial<FarewellMessage> & { id?: string; familyId: string; ownerUserId: string }): FarewellMessage {
+    if (input.id) {
+      const e = data.farewellMessages.find((m) => m.id === input.id);
+      if (!e) throw new Error('Nachricht nicht gefunden');
+      Object.assign(e, input, { updated_at: nowIso() });
+      return e;
+    }
+    const e: FarewellMessage = {
+      id: newId('fw'),
+      family_id: input.familyId,
+      owner_user_id: input.ownerUserId,
+      kind: input.kind ?? 'text',
+      title: input.title ?? '',
+      recipient: input.recipient ?? 'inner',
+      content: input.content ?? null,
+      media_path: input.media_path ?? null,
+      created_at: nowIso(),
+      updated_at: nowIso(),
+    };
+    data.farewellMessages.push(e);
+    return e;
+  },
+  deleteFarewellMessage(id: string): void {
+    data.farewellMessages = data.farewellMessages.filter((m) => m.id !== id);
   },
 };
 

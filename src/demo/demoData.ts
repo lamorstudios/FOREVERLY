@@ -38,6 +38,9 @@ import type {
   LiveShare,
   SafetyTrip,
   SafetyAlert,
+  VaultEntry,
+  LegacyItem,
+  FarewellMessage,
 } from '@/types/models';
 import { coverImage, photoImage, portraitImage } from './images';
 
@@ -92,6 +95,10 @@ export interface DemoDataset {
   liveShares: LiveShare[];
   safetyTrips: SafetyTrip[];
   safetyAlerts: SafetyAlert[];
+  // Family Vault · Dokumente & Vermächtnis
+  vaultEntries: VaultEntry[];
+  legacyItems: LegacyItem[];
+  farewellMessages: FarewellMessage[];
 }
 
 /** Erzeugt einen frischen Demo-Datensatz (Familie Mielke). */
@@ -504,8 +511,44 @@ export function createSeedData(): DemoDataset {
     },
   ];
 
-  const estateCases: EstateCase[] = [];
-  const estateConfirmations: EstateConfirmation[] = [];
+  // Demo-Freigabe: Todesfall gemeldet, 2 von 3 bestätigt → freigegeben.
+  const estateCases: EstateCase[] = [
+    {
+      id: 'case-demo', family_id: DEMO_FAMILY_ID, subject_user_id: DEMO_USER_ID, subject_person_id: 'p-nick',
+      reported_by_user_id: 'demo-user-max', reported_by_trustee_id: 'tr-max', reported_by_name: 'Max Mielke',
+      status: 'released', required_confirmations: 2, note: null,
+      created_at: daysFromNow(-1), updated_at: daysFromNow(-1), released_at: daysFromNow(-1),
+    },
+  ];
+  const estateConfirmations: EstateConfirmation[] = [
+    { id: 'conf-sabine', case_id: 'case-demo', trustee_id: 'tr-sabine', confirmer_name: 'Sabine Mielke', decision: 'confirm', note: null, created_at: daysFromNow(-1) },
+    { id: 'conf-thomas', case_id: 'case-demo', trustee_id: 'tr-thomas', confirmer_name: 'Thomas Mielke', decision: 'confirm', note: null, created_at: daysFromNow(-1) },
+  ];
+
+  // --- Family Vault · Dokumente, Vermächtnisse, Abschiedsnachrichten ---
+  const vaultEntries: VaultEntry[] = [
+    vault('v-test', 'testament', 'Testament', 'Notariell beglaubigtes Testament.', 'Beim Notar Dr. Berger hinterlegt', 'Notar Dr. Berger', 'trustees'),
+    vault('v-pv', 'patientenverfuegung', 'Patientenverfügung', 'Regelt medizinische Wünsche.', 'Ordner „Wichtiges" im Schlafzimmerschrank', 'Sabine Mielke', 'inner'),
+    vault('v-vers', 'versicherung', 'Versicherungsunterlagen', 'Lebens-, Haftpflicht- und Hausratversicherung.', 'Versicherungsordner im Wohnzimmer', 'Sabine Mielke', 'children'),
+    vault('v-immo', 'immobilie', 'Wohnungsunterlagen', 'Kaufvertrag & Grundbuchauszug der Wohnung.', 'Aktenschrank im Büro, Fach 2', null, 'trustees'),
+    vault('v-notar', 'notar', 'Notar-Kontakt', 'Zuständiger Notar für Testament & Vollmachten.', 'Kanzlei Berger, Hamburg', 'Dr. Berger · +49 40 998877', 'trustees'),
+    vault('v-kfz', 'fahrzeug', 'Fahrzeugunterlagen', 'Fahrzeugbrief & Versicherung VW Passat.', 'Handschuhfach / Ordner Auto', null, 'inner'),
+  ];
+
+  const legacyItems: LegacyItem[] = [
+    legacy('lg-wert', 'wert', 'Zusammenhalt', 'Familie ist wichtiger als alles andere. Haltet zusammen, besonders in schweren Zeiten.', 'children'),
+    legacy('lg-lektion', 'lektion', 'Ehrliche Arbeit', 'Opa Hans sagte immer: Ehrliche Arbeit bringt Zufriedenheit. Das hat mich mein Leben lang begleitet.', 'inner'),
+    legacy('lg-rezept', 'rezept', 'Omas Streuselkuchen', 'Das Geheimnis: doppelt so viele Streusel wie man denkt – und mit Liebe backen. 🥧', 'children'),
+    legacy('lg-ort', 'ort', 'Unser Ostsee-Strand', 'Der Strand bei Rostock, wo wir jeden Sommer waren. Geht dort hin, wenn ihr an mich denken wollt.', 'inner'),
+  ];
+
+  const farewellMessages: FarewellMessage[] = [
+    farewell('fw-fam', 'text', 'Für meine Familie', 'inner', 'Wenn ihr das lest: Ich bin dankbar für jeden Tag mit euch. Denkt an die schönen Momente.'),
+    farewell('fw-mia', 'audio', 'Für Mia', 'children', 'Eine kurze Sprachnachricht für dich, kleine Mia. 💛'),
+  ];
+
+  // Eine Zeitkapsel „erst nach meinem Tod öffnen".
+  for (const c of capsules) if (c.id === 'tc4') c.open_on_death = true;
 
   // --- Family Safety & Live Location ---
   const minsFromNow = (m: number) => new Date(now.getTime() + m * 60000).toISOString();
@@ -583,9 +626,52 @@ export function createSeedData(): DemoDataset {
     liveShares,
     safetyTrips,
     safetyAlerts,
+    vaultEntries,
+    legacyItems,
+    farewellMessages,
   };
 
   // --- Fabrik-Helfer ---
+  function vault(
+    id: string,
+    category: VaultEntry['category'],
+    title: string,
+    description: string | null,
+    location: string | null,
+    contact: string | null,
+    audience: VaultEntry['release_audience'],
+  ): VaultEntry {
+    return {
+      id, family_id: DEMO_FAMILY_ID, owner_user_id: DEMO_USER_ID, category, title,
+      description, location, contact_person: contact, contact_person_id: null,
+      has_document: false, release_audience: audience,
+      created_at: daysFromNow(-20), updated_at: daysFromNow(-10),
+    };
+  }
+  function legacy(
+    id: string,
+    kind: LegacyItem['kind'],
+    title: string,
+    content: string,
+    audience: LegacyItem['for_audience'],
+  ): LegacyItem {
+    return {
+      id, family_id: DEMO_FAMILY_ID, owner_user_id: DEMO_USER_ID, kind, title, content,
+      for_audience: audience, created_at: daysFromNow(-18), updated_at: daysFromNow(-18),
+    };
+  }
+  function farewell(
+    id: string,
+    kind: FarewellMessage['kind'],
+    title: string,
+    recipient: FarewellMessage['recipient'],
+    content: string,
+  ): FarewellMessage {
+    return {
+      id, family_id: DEMO_FAMILY_ID, owner_user_id: DEMO_USER_ID, kind, title, recipient,
+      content, media_path: null, created_at: daysFromNow(-15), updated_at: daysFromNow(-15),
+    };
+  }
   function trustee(
     id: string,
     name: string,
