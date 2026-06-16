@@ -26,9 +26,13 @@ jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     env:
-      EXPO_PUBLIC_DEMO_MODE: 'true'
       # Unterpfad = Repository-Name (case-sensitive). Seite liegt unter /FOREVERLY/
       EXPO_BASE_URL: '/FOREVERLY'
+      # Echte Supabase-Anbindung NUR, wenn Repository-Secrets gesetzt sind –
+      # sonst leer => Demo-Modus (siehe Schritt „Modus bestimmen").
+      EXPO_PUBLIC_SUPABASE_URL: ${{ secrets.EXPO_PUBLIC_SUPABASE_URL }}
+      EXPO_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.EXPO_PUBLIC_SUPABASE_ANON_KEY }}
+      EXPO_PUBLIC_INVITE_BASE_URL: 'https://lamorstudios.github.io/FOREVERLY/invite'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -37,6 +41,16 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 20
+
+      - name: Modus bestimmen (Demo, außer Supabase-Secrets sind gesetzt)
+        run: |
+          if [ -n "${{ secrets.EXPO_PUBLIC_SUPABASE_URL }}" ] && [ -n "${{ secrets.EXPO_PUBLIC_SUPABASE_ANON_KEY }}" ]; then
+            echo "EXPO_PUBLIC_DEMO_MODE=false" >> "$GITHUB_ENV"
+            echo "Mode: REAL users (Supabase)"
+          else
+            echo "EXPO_PUBLIC_DEMO_MODE=true" >> "$GITHUB_ENV"
+            echo "Mode: DEMO (keine Supabase-Secrets gefunden)"
+          fi
 
       - name: Install dependencies
         run: npm install --no-audit --no-fund
