@@ -14,23 +14,23 @@ export const shadow = {
   soft: {
     shadowColor: colors.shadow,
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
+    shadowOpacity: 0.04,
+    shadowRadius: 12,
     elevation: 2,
   },
   card: {
     shadowColor: colors.shadow,
     shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.08,
-    shadowRadius: 24,
-    elevation: 5,
+    shadowOpacity: 0.06,
+    shadowRadius: 28,
+    elevation: 4,
   },
   floating: {
     shadowColor: colors.shadow,
     shadowOffset: { width: 0, height: 16 },
-    shadowOpacity: 0.12,
-    shadowRadius: 36,
-    elevation: 10,
+    shadowOpacity: 0.10,
+    shadowRadius: 40,
+    elevation: 9,
   },
 } as const;
 

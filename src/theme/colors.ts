@@ -6,14 +6,16 @@
  * im Geist moderner Premium-Apps (Apple, Headspace, Airbnb).
  */
 export const colors = {
-  // Hintergründe – heller, luftiger
-  background: '#FAF7F2', // warmes Cremeweiß
+  // Hintergründe – heller, luftiger, warm
+  background: '#FBF8F3', // warmes Cremeweiß
   surface: '#FFFFFF',
   surfaceAlt: '#F4EFE7', // sehr helles Sand
-  surfaceMuted: '#EFE8DC', // dezente Tönung für Chips/Felder
+  surfaceMuted: '#ECE5DA', // dezente Tönung für Chips/Felder
   warmWhite: '#FFFDF9',
-  sand: '#EDE5D7',
-  overlay: 'rgba(34, 28, 22, 0.42)',
+  sand: '#EAE1D2',
+  champagne: '#E9DCC4', // sanftes Champagner für dezente Akzente
+  taupe: '#8C7E69', // warmes Taupe
+  overlay: 'rgba(34, 28, 22, 0.40)',
 
   // Schrift – warmes Anthrazit statt Braun
   textPrimary: '#2B2620',
@@ -21,18 +23,18 @@ export const colors = {
   textMuted: '#A69C8C',
   textOnAccent: '#FFFFFF',
 
-  // Akzente – warmes Gold & Bronze
-  primary: '#BE8A4E', // warmes Bronze-Gold
-  primaryDark: '#9A6B38',
-  primarySoft: '#F1E6D4',
-  gold: '#D4A95C', // leuchtendes, dezentes Gold
-  goldSoft: '#F4E8CC',
-  bronze: '#A9763F',
+  // Akzente – sanfteres Champagner-Gold/Bronze (weniger kräftig)
+  primary: '#B6864E', // warmes Bronze-Gold
+  primaryDark: '#8E6536',
+  primarySoft: '#F1E7D6',
+  gold: '#CBA869', // dezentes Champagner-Gold (weicher)
+  goldSoft: '#F2E9D7',
+  bronze: '#A37C52',
 
   // Status
   success: '#5E9C7B', // ruhiges Salbeigrün
   error: '#C25B52',
-  warning: '#D6A24A',
+  warning: '#D2A458',
 
   // Beziehungs-Kategorien (farbliche Verbindungen im Stammbaum)
   relationBiological: '#5B8A5A', // Grün  – biologische Verwandtschaft
@@ -41,16 +43,16 @@ export const colors = {
   relationAdoption: '#8A6BB0', // Lila  – Adoption / Pflegefamilie
 
   // Sehr dezente Bereichs-Tönungen (Orientierung je App-Bereich, seniorengerecht)
-  tintHome: '#FAF7F2', // warmes Beige (Standard)
+  tintHome: '#FBF8F3', // warmes Beige (Standard)
   tintFamily: '#EEF3F8', // leichtes Blau – Familienwelt
-  tintMemories: '#FAF3E6', // warmes Gold – Erinnerungen
+  tintMemories: '#FAF4E9', // warmes Champagner – Erinnerungen
   tintCapsules: '#F4F0F8', // sanftes Violett – Zeitkapseln
   tintHistorian: '#EEF4EE', // dezentes Grün – Historiker
 
   // Linien & Ränder – weicher, kaum sichtbar
-  border: '#ECE4D6',
-  borderStrong: '#E0D6C4',
-  divider: '#F1EBE0',
+  border: '#EFE9DE',
+  borderStrong: '#E5DCCC',
+  divider: '#F4EEE4',
 
   // Schatten
   shadow: '#2B2620',

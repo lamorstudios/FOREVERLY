@@ -44,7 +44,7 @@ const styles = StyleSheet.create({
   card: {
     backgroundColor: colors.surface,
     borderRadius: radius.xl,
-    borderWidth: 1,
+    borderWidth: StyleSheet.hairlineWidth, // subtilerer Rahmen
     borderColor: colors.border,
     ...shadow.card,
   },
