@@ -16,21 +16,78 @@ import { fullName } from '@/lib/format';
 import { colors, spacing, radius, shadow } from '@/theme';
 import type { RelationshipType, ClosenessLevel, Invitation } from '@/types/models';
 
-const RELATIONS: { label: string; type: RelationshipType }[] = [
-  { label: 'Mutter', type: 'mutter' },
-  { label: 'Vater', type: 'vater' },
-  { label: 'Schwester', type: 'schwester' },
-  { label: 'Bruder', type: 'bruder' },
-  { label: 'Tochter', type: 'tochter' },
-  { label: 'Sohn', type: 'sohn' },
-  { label: 'Oma', type: 'oma' },
-  { label: 'Opa', type: 'opa' },
-  { label: 'Partner/in', type: 'ehepartner' },
-  { label: 'Stiefmutter', type: 'stiefmutter' },
-  { label: 'Stiefvater', type: 'stiefvater' },
-  { label: 'Halbschwester', type: 'schwester' },
-  { label: 'Halbbruder', type: 'bruder' },
-  { label: 'Sonstige', type: 'sonstige' },
+interface RelationOption { label: string; type: RelationshipType }
+interface RelationGroup { title: string; emoji: string; options: RelationOption[] }
+
+// Anzeigelabel + nächstliegender (gültiger) Beziehungstyp für die Verknüpfung.
+const RELATION_GROUPS: RelationGroup[] = [
+  {
+    title: 'Enge Familie',
+    emoji: '👨‍👩‍👧‍👦',
+    options: [
+      { label: 'Mutter', type: 'mutter' },
+      { label: 'Vater', type: 'vater' },
+      { label: 'Schwester', type: 'schwester' },
+      { label: 'Bruder', type: 'bruder' },
+      { label: 'Tochter', type: 'tochter' },
+      { label: 'Sohn', type: 'sohn' },
+      { label: 'Oma', type: 'oma' },
+      { label: 'Opa', type: 'opa' },
+    ],
+  },
+  {
+    title: 'Partner',
+    emoji: '❤️',
+    options: [
+      { label: 'Partner/in', type: 'lebenspartner' },
+      { label: 'Ehepartner/in', type: 'ehepartner' },
+    ],
+  },
+  {
+    title: 'Patchwork-Familie',
+    emoji: '🔄',
+    options: [
+      { label: 'Stiefmutter', type: 'stiefmutter' },
+      { label: 'Stiefvater', type: 'stiefvater' },
+      { label: 'Stiefschwester', type: 'schwester' },
+      { label: 'Stiefbruder', type: 'bruder' },
+      { label: 'Halbschwester', type: 'schwester' },
+      { label: 'Halbbruder', type: 'bruder' },
+    ],
+  },
+  {
+    title: 'Erweiterte Familie',
+    emoji: '🌳',
+    options: [
+      { label: 'Tante', type: 'tante' },
+      { label: 'Onkel', type: 'onkel' },
+      { label: 'Cousine', type: 'cousine' },
+      { label: 'Cousin', type: 'cousin' },
+      { label: 'Nichte', type: 'nichte' },
+      { label: 'Neffe', type: 'neffe' },
+      { label: 'Schwägerin', type: 'sonstige' },
+      { label: 'Schwager', type: 'sonstige' },
+      { label: 'Patentante', type: 'tante' },
+      { label: 'Patenonkel', type: 'onkel' },
+    ],
+  },
+  {
+    title: 'Adoption & Pflege',
+    emoji: '💜',
+    options: [
+      { label: 'Adoptivmutter', type: 'mutter' },
+      { label: 'Adoptivvater', type: 'vater' },
+      { label: 'Adoptivschwester', type: 'schwester' },
+      { label: 'Adoptivbruder', type: 'bruder' },
+      { label: 'Pflegeeltern', type: 'sonstige' },
+      { label: 'Pflegekind', type: 'pflegekind' },
+    ],
+  },
+  {
+    title: 'Sonstige',
+    emoji: '✨',
+    options: [{ label: 'Sonstige Person', type: 'sonstige' }],
+  },
 ];
 
 const CLOSENESS: { label: string; value: ClosenessLevel }[] = [
@@ -53,7 +110,8 @@ function InviteSheet({ visible, onClose }: SheetProps) {
   const personsQuery = useQuery({ queryKey: qk.persons(familyId), queryFn: () => listPersons(familyId), enabled: visible });
   const profileQuery = useQuery({ queryKey: qk.profile(userId!), queryFn: () => getProfile(userId!), enabled: visible });
 
-  const [relIndex, setRelIndex] = useState<number | null>(null);
+  const [selected, setSelected] = useState<RelationOption | null>(null);
+  const [openGroups, setOpenGroups] = useState<Record<string, boolean>>({ 'Enge Familie': true });
   const [closeness, setCloseness] = useState<ClosenessLevel>('familie');
   const [creating, setCreating] = useState(false);
   const [invite, setInvite] = useState<{ link: string; message: string; relLabel: string } | null>(null);
@@ -61,8 +119,12 @@ function InviteSheet({ visible, onClose }: SheetProps) {
   const inviterName = profileQuery.data?.full_name ?? 'Ein Familienmitglied';
   const inviterPersonId = personsQuery.data?.find((p) => p.user_id === userId)?.id ?? null;
 
+  function toggleGroup(title: string) {
+    setOpenGroups((g) => ({ ...g, [title]: !g[title] }));
+  }
   function reset() {
-    setRelIndex(null);
+    setSelected(null);
+    setOpenGroups({ 'Enge Familie': true });
     setCloseness('familie');
     setInvite(null);
   }
@@ -72,8 +134,8 @@ function InviteSheet({ visible, onClose }: SheetProps) {
   }
 
   async function createLink() {
-    if (relIndex === null) return;
-    const rel = RELATIONS[relIndex]!;
+    if (!selected) return;
+    const rel = selected;
     setCreating(true);
     try {
       const message = `${inviterName} lädt dich ein, Teil der Familiengeschichte auf Foreverly zu werden. Erstelle dein Profil und bewahrt eure Erinnerungen gemeinsam.`;
@@ -127,11 +189,34 @@ function InviteSheet({ visible, onClose }: SheetProps) {
                 </AppText>
 
                 <AppText variant="bodyStrong" style={styles.step}>1 · Wen lädst du ein?</AppText>
-                <View style={styles.chips}>
-                  {RELATIONS.map((r, i) => (
-                    <Chip key={r.label} label={r.label} selected={relIndex === i} onPress={() => setRelIndex(i)} />
-                  ))}
-                </View>
+                {selected ? (
+                  <AppText variant="caption" color={colors.primary}>Ausgewählt: {selected.label}</AppText>
+                ) : null}
+                {RELATION_GROUPS.map((group) => {
+                  const open = !!openGroups[group.title];
+                  return (
+                    <View key={group.title} style={styles.group}>
+                      <Pressable style={styles.groupHeader} onPress={() => toggleGroup(group.title)}>
+                        <AppText variant="bodyStrong" style={styles.flex}>
+                          {group.emoji}  {group.title}
+                        </AppText>
+                        <Ionicons name={open ? 'chevron-up' : 'chevron-down'} size={20} color={colors.textMuted} />
+                      </Pressable>
+                      {open ? (
+                        <View style={styles.chips}>
+                          {group.options.map((o) => (
+                            <Chip
+                              key={o.label}
+                              label={o.label}
+                              selected={selected?.label === o.label}
+                              onPress={() => setSelected(o)}
+                            />
+                          ))}
+                        </View>
+                      ) : null}
+                    </View>
+                  );
+                })}
 
                 <AppText variant="bodyStrong" style={styles.step}>2 · Familiennähe</AppText>
                 <AppText variant="caption" color={colors.textSecondary}>
@@ -147,7 +232,7 @@ function InviteSheet({ visible, onClose }: SheetProps) {
                   label="Einladungslink erstellen"
                   icon="link-outline"
                   loading={creating}
-                  disabled={relIndex === null}
+                  disabled={!selected}
                   onPress={createLink}
                   style={styles.cta}
                 />
@@ -212,7 +297,17 @@ const styles = StyleSheet.create({
   handle: { alignSelf: 'center', width: 44, height: 5, borderRadius: 3, backgroundColor: colors.border, marginBottom: spacing.md },
   intro: { marginBottom: spacing.md },
   step: { marginTop: spacing.md, marginBottom: spacing.xs },
-  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs },
+  group: {
+    marginTop: spacing.sm,
+    borderWidth: 1,
+    borderColor: colors.border,
+    borderRadius: radius.md,
+    backgroundColor: colors.surface,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
+  },
+  groupHeader: { flexDirection: 'row', alignItems: 'center', paddingVertical: spacing.xs },
+  chips: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs, paddingTop: spacing.xs },
   cta: { marginTop: spacing.md },
   preview: { backgroundColor: colors.surfaceAlt, gap: spacing.xs, marginVertical: spacing.md },
   linkBox: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, backgroundColor: colors.surfaceAlt, borderRadius: radius.md, padding: spacing.md, marginBottom: spacing.md },
