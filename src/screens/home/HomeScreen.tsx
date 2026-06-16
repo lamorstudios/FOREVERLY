@@ -128,7 +128,7 @@ function daysUntilAnnual(dateStr: string): number {
 }
 
 export function HomeScreen({ navigation }: Props) {
-  const { activeFamily } = useFamily();
+  const { activeFamily, isAdmin } = useFamily();
   const { userId } = useAuth();
   const familyId = activeFamily!.id;
   const { isTablet, width } = useResponsive();
@@ -246,13 +246,6 @@ export function HomeScreen({ navigation }: Props) {
       | { navigate: (name: string, params?: object) => void }
       | undefined;
     parent?.navigate('ProfileTab', { screen: 'VaultHub' });
-  };
-  // TEMPORÄR: Direkter Sprung ins Admin Dashboard (liegt im Profil-Stack).
-  const openAdmin = () => {
-    const parent = navigation.getParent() as
-      | { navigate: (name: string, params?: object) => void }
-      | undefined;
-    parent?.navigate('ProfileTab', { screen: 'AdminDashboard' });
   };
 
   // „Heute in deiner Familie" – kuratierte, emotionale Zusammenfassung.
@@ -413,24 +406,25 @@ export function HomeScreen({ navigation }: Props) {
         <InviteFamilyButton />
       </Appear>
 
-      {/* TEMPORÄR: Direkter Test-Einstieg zum Admin Dashboard.
-          Eigentlicher Einstieg: Profil → Einstellungen → Admin Dashboard. */}
-      <Appear delay={30}>
-        <Card onPress={openAdmin} style={styles.adminCard}>
-          <View style={styles.row}>
-            <View style={[styles.iconCircle, { backgroundColor: withAlpha(colors.bronze, 0.16) }]}>
-              <Ionicons name="stats-chart-outline" size={22} color={colors.bronze} />
+      {/* Admin Dashboard – nur für Admins, separater Einstieg (nicht im Profil-Tab) */}
+      {isAdmin ? (
+        <Appear delay={30}>
+          <Card onPress={() => navigation.navigate('AdminDashboard')} style={styles.adminCard}>
+            <View style={styles.row}>
+              <View style={[styles.iconCircle, { backgroundColor: withAlpha(colors.bronze, 0.16) }]}>
+                <Ionicons name="stats-chart-outline" size={22} color={colors.bronze} />
+              </View>
+              <View style={styles.rowText}>
+                <AppText variant="bodyStrong">Admin Dashboard</AppText>
+                <AppText variant="caption" color={colors.textSecondary}>
+                  Insights & Kennzahlen · nur für Admins
+                </AppText>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
             </View>
-            <View style={styles.rowText}>
-              <AppText variant="bodyStrong">Admin Dashboard</AppText>
-              <AppText variant="caption" color={colors.textSecondary}>
-                Temporärer Test-Einstieg · nur für Betreiber
-              </AppText>
-            </View>
-            <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
-          </View>
-        </Card>
-      </Appear>
+          </Card>
+        </Appear>
+      ) : null}
 
       {/* Heute in deiner Familie – emotionale Zusammenfassung */}
       {todayItems.length > 0 ? (

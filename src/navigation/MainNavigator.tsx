@@ -192,6 +192,7 @@ function HomeStackNavigator() {
       <HomeStack.Screen name="MemoryJourney" component={MemoryJourneyScreen} options={{ title: 'Erinnerungsreise' }} />
       <HomeStack.Screen name="FamilyYear" component={FamilyYearScreen} options={{ title: 'Euer Familienjahr' }} />
       <HomeStack.Screen name="FamilyWisdoms" component={FamilyWisdomsScreen} options={{ title: 'Familienweisheiten' }} />
+      <HomeStack.Screen name="AdminDashboard" component={AdminDashboardScreen} options={{ title: 'Admin Dashboard' }} />
       <HomeStack.Screen name="MuseumHub" component={MuseumHubScreen} options={{ title: 'Familienmuseum' }} />
       <HomeStack.Screen name="Generations" component={GenerationsScreen} options={{ title: 'Generationenarchiv' }} />
       <HomeStack.Screen name="TimeTravel" component={TimeTravelScreen} options={{ title: 'Zeitreise' }} />
@@ -268,7 +269,6 @@ function ProfileStackNavigator() {
       <ProfileStack.Screen name="NotificationSettings" component={NotificationSettingsScreen} options={{ title: 'Benachrichtigungen' }} />
       <ProfileStack.Screen name="PrivacyData" component={PrivacyDataScreen} options={{ title: 'Datenschutz & Daten' }} />
       <ProfileStack.Screen name="Feedback" component={FeedbackScreen} options={{ title: 'Feedback' }} />
-      <ProfileStack.Screen name="AdminDashboard" component={AdminDashboardScreen} options={{ title: 'Admin Dashboard' }} />
       <ProfileStack.Screen name="VaultHub" component={VaultHubScreen} options={{ title: 'Dokumente & Nachlass' }} />
       <ProfileStack.Screen name="VaultEntries" component={VaultEntriesScreen} options={{ title: 'Dokumente' }} />
       <ProfileStack.Screen name="VaultEntryForm" component={VaultEntryFormScreen} options={{ title: 'Dokument' }} />

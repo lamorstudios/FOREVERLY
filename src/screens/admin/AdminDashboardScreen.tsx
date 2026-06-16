@@ -9,9 +9,9 @@ import { useFamily } from '@/context/FamilyContext';
 import { formatEuroCents, LIMIT_WARN_RATIO } from '@/lib/billing';
 import { colors, spacing, radius } from '@/theme';
 import type { SeriesPoint } from '@/types/admin';
-import type { ProfileStackParamList } from '@/navigation/types';
+import type { HomeStackParamList } from '@/navigation/types';
 
-type Props = NativeStackScreenProps<ProfileStackParamList, 'AdminDashboard'>;
+type Props = NativeStackScreenProps<HomeStackParamList, 'AdminDashboard'>;
 
 const nf = new Intl.NumberFormat('de-DE');
 const fmt = (n: number) => nf.format(Math.round(n));

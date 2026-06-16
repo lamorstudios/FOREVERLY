@@ -77,6 +77,8 @@ export type HomeStackParamList = {
   // Legacy Moments & Family Memories
   FamilyYear: undefined;
   FamilyWisdoms: undefined;
+  // Admin Dashboard (betreiberintern, nur über Startseiten-Button)
+  AdminDashboard: undefined;
   // Phase 13 · Familienmuseum
   MuseumHub: undefined;
   Generations: undefined;
@@ -128,8 +130,6 @@ export type ProfileStackParamList = {
   // Phase 15 · Production
   Settings: undefined;
   Premium: undefined;
-  // Admin Dashboard (betreiberintern)
-  AdminDashboard: undefined;
   Roles: undefined;
   NotificationSettings: undefined;
   PrivacyData: undefined;
