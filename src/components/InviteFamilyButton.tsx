@@ -292,13 +292,14 @@ export function InviteFamilyButton({ variant }: { variant?: 'primary' | 'seconda
   const shine = useRef(new Animated.Value(0)).current;
   const press = useRef(new Animated.Value(0)).current;
 
-  // Sehr dezenter Shiny-Effekt: ~1,3 s Lauf, dann ~6 s Pause (alle ~7 s).
+  // Shiny-Effekt: ~1,2 s Lauf, dann Pause (alle ~5 s). JS-Driver, damit es
+  // auch im Web (react-native-web) zuverlässig sichtbar läuft.
   useEffect(() => {
     const loop = Animated.loop(
       Animated.sequence([
-        Animated.delay(6000),
-        Animated.timing(shine, { toValue: 1, duration: 1300, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
-        Animated.timing(shine, { toValue: 0, duration: 0, useNativeDriver: true }),
+        Animated.delay(3800),
+        Animated.timing(shine, { toValue: 1, duration: 1200, easing: Easing.inOut(Easing.ease), useNativeDriver: false }),
+        Animated.timing(shine, { toValue: 0, duration: 0, useNativeDriver: false }),
       ]),
     );
     loop.start();
@@ -306,12 +307,12 @@ export function InviteFamilyButton({ variant }: { variant?: 'primary' | 'seconda
   }, [shine]);
 
   const animatePress = (to: number) =>
-    Animated.spring(press, { toValue: to, useNativeDriver: true, friction: 6, tension: 140 }).start();
+    Animated.spring(press, { toValue: to, useNativeDriver: false, friction: 6, tension: 140 }).start();
 
   const scale = press.interpolate({ inputRange: [0, 1], outputRange: [1, 0.98] });
-  const shineW = 110;
+  const shineW = 90;
   const translateX = shine.interpolate({ inputRange: [0, 1], outputRange: [-shineW, (width || 320) + shineW] });
-  const shineOpacity = shine.interpolate({ inputRange: [0, 0.15, 0.85, 1], outputRange: [0, 1, 1, 0] });
+  const shineOpacity = shine.interpolate({ inputRange: [0, 0.1, 0.9, 1], outputRange: [0, 0.85, 0.85, 0] });
 
   function onLayout(e: LayoutChangeEvent) {
     setWidth(e.nativeEvent.layout.width);
@@ -331,6 +332,9 @@ export function InviteFamilyButton({ variant }: { variant?: 'primary' | 'seconda
           accessibilityLabel="Familienmitglied einladen"
           style={styles.premiumBtn}
         >
+          {/* statischer heller Gold-Schimmer oben – hebt den Button optisch ab */}
+          <View pointerEvents="none" style={styles.sheen} />
+
           <Ionicons name="person-add-outline" size={20} color={colors.textOnAccent} style={styles.btnIcon} />
           <AppText variant="button" color={colors.textOnAccent}>Familienmitglied einladen</AppText>
 
@@ -349,15 +353,15 @@ const styles = StyleSheet.create({
     borderRadius: radius.pill,
     backgroundColor: colors.primary,
     shadowColor: colors.gold,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4,
-    shadowRadius: 16,
-    elevation: 6,
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.55,
+    shadowRadius: 20,
+    elevation: 8,
   },
   premiumBtn: {
     minHeight: touch.minHeight,
     borderRadius: radius.pill,
-    borderWidth: 1,
+    borderWidth: 1.5,
     borderColor: colors.goldSoft,
     backgroundColor: colors.primary,
     paddingHorizontal: spacing.lg,
@@ -367,12 +371,21 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   btnIcon: { marginRight: spacing.sm },
+  // statischer, heller Gold-Schimmer oben (dezenter „Verlauf")
+  sheen: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    height: '55%',
+    backgroundColor: 'rgba(255, 255, 255, 0.12)',
+  },
   shine: {
     position: 'absolute',
-    top: -20,
-    bottom: -20,
+    top: -24,
+    bottom: -24,
     left: 0,
-    backgroundColor: 'rgba(255, 244, 222, 0.32)',
+    backgroundColor: 'rgba(255, 249, 234, 0.55)',
   },
   backdrop: { flex: 1, backgroundColor: colors.overlay, justifyContent: 'flex-end' },
   sheet: {
