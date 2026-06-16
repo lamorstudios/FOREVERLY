@@ -6,6 +6,7 @@ export { Card } from './Card';
 export { Chip } from './Chip';
 export { DateField } from './DateField';
 export { EmptyState } from './EmptyState';
+export { InviteFamilyButton } from './InviteFamilyButton';
 export { Loading } from './Loading';
 export { Screen } from './Screen';
 export { SectionHeader } from './SectionHeader';

@@ -10,6 +10,7 @@ import {
   Chip,
   Loading,
   SectionHeader,
+  InviteFamilyButton,
 } from '@/components';
 import { SignedImage } from '@/components/SignedImage';
 import { useQuery } from '@tanstack/react-query';
@@ -91,6 +92,8 @@ export function ProfileScreen({ navigation }: Props) {
       </View>
 
       <View style={styles.actions}>
+        <InviteFamilyButton />
+
         <Card onPress={() => navigation.navigate('EditProfile')}>
           <View style={styles.row}>
             <Ionicons

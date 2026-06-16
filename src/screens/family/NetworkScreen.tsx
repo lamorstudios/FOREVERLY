@@ -9,6 +9,7 @@ import {
   Avatar,
   EmptyState,
   Loading,
+  InviteFamilyButton,
 } from '@/components';
 import { SignedImage } from '@/components/SignedImage';
 import { useQuery } from '@tanstack/react-query';
@@ -121,6 +122,10 @@ export function NetworkScreen({ navigation }: Props) {
           {toggle}
         </View>
 
+        <View style={styles.inviteRow}>
+          <InviteFamilyButton />
+        </View>
+
         <View style={styles.legendChips}>
           {LEGEND.map((item) => (
             <View key={item.category} style={styles.legendChip}>
@@ -169,6 +174,10 @@ export function NetworkScreen({ navigation }: Props) {
           {activeFamily!.name}
         </AppText>
         {toggle}
+      </View>
+
+      <View style={styles.inviteRow}>
+        <InviteFamilyButton />
       </View>
 
       <View style={styles.headerButtons}>
@@ -283,6 +292,7 @@ const styles = StyleSheet.create({
   flexShrink: { flexShrink: 1 },
   treeContent: { flex: 1 },
   hint: { marginTop: 2 },
+  inviteRow: { marginVertical: spacing.xs },
   treeHeader: {
     flexDirection: 'row',
     alignItems: 'center',

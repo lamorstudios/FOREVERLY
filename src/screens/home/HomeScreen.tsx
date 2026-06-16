@@ -13,6 +13,7 @@ import {
   SectionHeader,
   EmptyState,
   Loading,
+  InviteFamilyButton,
 } from '@/components';
 import { useFamily } from '@/context/FamilyContext';
 import { useAuth } from '@/context/AuthContext';
@@ -353,6 +354,11 @@ export function HomeScreen({ navigation }: Props) {
             </AppText>
           </View>
         </View>
+      </Appear>
+
+      {/* Prominenter Einladungs-Button (Wachstum) */}
+      <Appear delay={20}>
+        <InviteFamilyButton />
       </Appear>
 
       {/* Heute in deiner Familie – emotionale Zusammenfassung */}
