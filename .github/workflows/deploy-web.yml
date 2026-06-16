@@ -69,4 +69,8 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_dir: ./dist
           publish_branch: gh-pages
-          force_orphan: true
+          # Alte (gehashte) Bundles BEHALTEN, statt den Branch zu verwaisen.
+          # Sonst zeigt eine vom Browser/CDN zwischengespeicherte index.html auf
+          # eine bereits gelöschte AppEntry-<hash>.js -> 404 -> weißer Bildschirm.
+          force_orphan: false
+          keep_files: true
