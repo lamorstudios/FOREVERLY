@@ -65,6 +65,8 @@ export type HomeStackParamList = {
   FilmGallery: undefined;
   FilmCreate: { kind?: FilmKind } | undefined;
   FilmPlayer: { projectId: string };
+  // Phase 11 · KI-Familienassistent
+  Assistant: undefined;
   // Phase 6 · Family Safety & Live Location
   LiveMap: undefined;
   LocationSettings: undefined;

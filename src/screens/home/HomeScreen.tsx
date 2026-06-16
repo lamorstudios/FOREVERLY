@@ -55,6 +55,7 @@ type QuickRoute =
   | 'Branches'
   | 'MomentsHome'
   | 'HistorianHome'
+  | 'Assistant'
   | 'FilmGallery'
   | 'LiveMap'
   | 'Sos'
@@ -68,6 +69,7 @@ interface QuickAction {
 }
 
 const QUICK_ACTIONS: QuickAction[] = [
+  { label: 'Familienassistent', icon: 'sparkles-outline', color: colors.primary, route: 'Assistant' },
   { label: 'Familienkarte', icon: 'location-outline', color: colors.relationMarried, route: 'LiveMap' },
   { label: 'SOS-Notruf', icon: 'warning-outline', color: colors.error, route: 'Sos' },
   { label: 'Familienmomente', icon: 'images-outline', color: colors.gold, route: 'MomentsHome' },

@@ -93,4 +93,7 @@ export const qk = {
   filmProject: (id: string) => ['filmProject', id] as const,
   generatedFilm: (id: string) => ['generatedFilm', id] as const,
   autoFilms: (familyId: string) => ['autoFilms', familyId] as const,
+  // KI-Familienassistent
+  assistantOverview: (familyId: string) => ['assistantOverview', familyId] as const,
+  assistantAsk: (familyId: string, query: string) => ['assistantAsk', familyId, query] as const,
 };
