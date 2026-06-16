@@ -61,6 +61,8 @@ import type {
   FilmMusicMood,
   FilmLock,
   FilmOptions,
+  LifeStory,
+  LifeStoryKind,
 } from '@/types/models';
 import { createSeedData, DEMO_FAMILY_ID, DEMO_USER_ID } from './demoData';
 
@@ -1633,6 +1635,39 @@ export const demoStore = {
   },
   deleteFilmProject(id: string): void {
     data.filmProjects = data.filmProjects.filter((f) => f.id !== id);
+  },
+
+  // ===================== Legacy AI · Familienstimmen =====================
+  setPersonLegend(personId: string, value: boolean): void {
+    const p = data.persons.find((x) => x.id === personId);
+    if (p) p.is_legend = value;
+  },
+  listLifeStories(personId: string): LifeStory[] {
+    return data.lifeStories
+      .filter((s) => s.person_id === personId)
+      .sort((a, b) => (a.created_at < b.created_at ? 1 : -1));
+  },
+  addLifeStory(input: {
+    familyId: string;
+    personId: string;
+    question: string;
+    kind: LifeStoryKind;
+    content?: string | null;
+    isFutureQuestion?: boolean;
+  }): LifeStory {
+    const s: LifeStory = {
+      id: newId('ls'),
+      family_id: input.familyId,
+      person_id: input.personId,
+      question: input.question,
+      kind: input.kind,
+      content: input.content ?? null,
+      media_path: null,
+      is_future_question: input.isFutureQuestion ?? false,
+      created_at: nowIso(),
+    };
+    data.lifeStories.unshift(s);
+    return s;
   },
 };
 

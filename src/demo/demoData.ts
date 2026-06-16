@@ -42,6 +42,7 @@ import type {
   LegacyItem,
   FarewellMessage,
   FilmProject,
+  LifeStory,
 } from '@/types/models';
 import { coverImage, photoImage, portraitImage } from './images';
 
@@ -102,6 +103,8 @@ export interface DemoDataset {
   farewellMessages: FarewellMessage[];
   // Familienfilm
   filmProjects: FilmProject[];
+  // Legacy AI · Familienstimmen
+  lifeStories: LifeStory[];
 }
 
 /** Erzeugt einen frischen Demo-Datensatz (Familie Mielke). */
@@ -175,6 +178,10 @@ export function createSeedData(): DemoDataset {
   };
   for (const person of persons) {
     if (biographies[person.id]) person.biography = biographies[person.id]!;
+  }
+  // Phase 12: Familienlegenden (eigene Legacy-Seite)
+  for (const person of persons) {
+    if (['p-oma', 'p-opa', 'p-uroma'].includes(person.id)) person.is_legend = true;
   }
 
   // --- Beziehungen (farblich codiert) ---
@@ -281,6 +288,7 @@ export function createSeedData(): DemoDataset {
     memory('m6', 'Oma Erikas 80. Geburtstag', 'Die ganze Familie feierte Erika zum 80. Geburtstag – mit Streuselkuchen, alten Fotos und vielen Geschichten aus Rostock.', 'photo', 'p-oma', '2022-11-30', -60),
     // „Heute in der Familiengeschichte": gleicher Tag/Monat, frühere Jahre
     memory('m7', 'Familienurlaub in Italien', 'Im Sommer waren wir gemeinsam am Gardasee – Eis, Sonne und lange Abende mit der ganzen Familie.', 'photo', 'p-nick', new Date(now.getFullYear() - 12, now.getMonth(), now.getDate()).toISOString().slice(0, 10), -90),
+    memory('m8', 'Oma Erikas Kindheit in Rostock', 'Erika wuchs nach dem Krieg in Rostock auf. Sie erzählte oft von der Schule, vom Garten ihrer Mutter und davon, wie wichtig Zusammenhalt in schweren Zeiten war.', 'audio', 'p-oma', '1955-04-10', -140),
   ];
 
   // Phase 4.5: Sichtbarkeit einzelner Erinnerungen (Demo)
@@ -311,6 +319,13 @@ export function createSeedData(): DemoDataset {
     audio('a3', 'Nicks Geburtstagsständchen', 'p-nick', null, 42, -3),
     audio('a4', 'Oma Erika erzählt von früher', 'p-oma', null, 132, -150),
   ];
+  // Phase 12: Transkripte (durchsuchbar, Originalstimmen für Filme/Legacy)
+  const transcripts: Record<string, string> = {
+    a4: 'Ich bin in Rostock aufgewachsen. Als Kind haben wir im Garten meiner Mutter gespielt. Familie war immer das Wichtigste – das möchte ich euch mitgeben.',
+    a1: 'Die Jahre nach dem Krieg waren hart, aber ehrliche Arbeit hat uns durchgebracht.',
+    a2: 'Mein Streuselkuchen-Rezept: viel Butter, viel Geduld und noch mehr Liebe.',
+  };
+  for (const a of audios) if (transcripts[a.id]) a.transcript = transcripts[a.id]!;
   // Phase 8: automatische Transkriptionen (durchsuchbar für den Historiker)
   const audioTranscripts: Record<string, string> = {
     a1: 'Ich war Tischler und liebte die Seefahrt. Ehrliche Arbeit bringt Zufriedenheit.',
@@ -570,6 +585,13 @@ export function createSeedData(): DemoDataset {
     film('film-legacy', 'legacy', 'Mein Vermächtnis', 'Für meine Familie – zu öffnen, wenn es soweit ist', 'emotional', 'death', { personId: 'p-nick' }, false),
   ];
 
+  // --- Legacy AI · Lebensinterview Oma Erika ---
+  const lifeStories: LifeStory[] = [
+    life('ls-kindheit', 'p-oma', 'Wie war deine Kindheit?', 'audio', 'Ich bin in Rostock aufgewachsen, nach dem Krieg. Wir hatten wenig, aber viel Zusammenhalt.', false),
+    life('ls-hans', 'p-oma', 'Wie hast du Opa Hans kennengelernt?', 'text', 'Auf einem Tanzabend 1962 in Rostock. Er konnte überhaupt nicht tanzen – aber er hat mich zum Lachen gebracht.', false),
+    life('ls-enkel', 'p-oma', 'Was möchtest du deinen Enkeln mitgeben?', 'text', 'Haltet zusammen und seid dankbar für die kleinen Dinge. Familie ist wichtiger als Geld.', true),
+  ];
+
   // Eine Zeitkapsel „erst nach meinem Tod öffnen".
   for (const c of capsules) if (c.id === 'tc4') c.open_on_death = true;
 
@@ -653,9 +675,23 @@ export function createSeedData(): DemoDataset {
     legacyItems,
     farewellMessages,
     filmProjects,
+    lifeStories,
   };
 
   // --- Fabrik-Helfer ---
+  function life(
+    id: string,
+    personId: string,
+    question: string,
+    kind: LifeStory['kind'],
+    content: string,
+    future: boolean,
+  ): LifeStory {
+    return {
+      id, family_id: DEMO_FAMILY_ID, person_id: personId, question, kind, content,
+      media_path: null, is_future_question: future, created_at: daysFromNow(-12),
+    };
+  }
   function film(
     id: string,
     kind: FilmProject['kind'],

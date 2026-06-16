@@ -679,6 +679,40 @@ export function onThisDay(kb: KnowledgeBase, ref: Date = new Date()): OnThisDayI
   return items.sort((a, b) => a.yearsAgo - b.yearsAgo);
 }
 
+/** Themen, die mit einer bestimmten Person verbunden sind. */
+export function personTopics(kb: KnowledgeBase, personId: string): TopicGroup[] {
+  const docs = kb.docs.filter((d) => d.personId === personId && d.kind !== 'person');
+  const groups = TOPIC_KEYWORDS.map((t) => ({ ...t, count: 0, sources: [] as HistorianSource[] }));
+  for (const doc of docs) {
+    const folded = fold(doc.text);
+    for (const g of groups) {
+      if (g.words.some((w) => folded.includes(fold(w)))) {
+        g.count += 1;
+        if (g.sources.length < 6) g.sources.push(doc.source);
+      }
+    }
+  }
+  return groups.filter((g) => g.count > 0).map(({ topic, label, count, sources }) => ({ topic, label, count, sources })).sort((a, b) => b.count - a.count);
+}
+
+export interface MemoryJourney {
+  query: string;
+  total: number;
+  photos: KnowledgeDoc[];
+  audios: KnowledgeDoc[];
+  stories: KnowledgeDoc[]; // Erinnerungen + Zeitkapseln
+  sources: HistorianSource[];
+}
+
+/** „Erinnerungsreise" zu einem Thema – gruppierte, quellengebundene Inhalte. */
+export function memoryJourney(kb: KnowledgeBase, query: string): MemoryJourney {
+  const docs = retrieve(kb, query, 40).map((r) => r.doc);
+  const photos = docs.filter((d) => d.kind === 'photo');
+  const audios = docs.filter((d) => d.kind === 'audio');
+  const stories = docs.filter((d) => d.kind === 'memory' || d.kind === 'time_capsule');
+  return { query, total: docs.length, photos, audios, stories, sources: docs.map((d) => d.source) };
+}
+
 export function detectGaps(kb: KnowledgeBase): KnowledgeGap[] {
   const gaps: KnowledgeGap[] = [];
   for (const person of kb.data.persons) {

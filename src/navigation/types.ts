@@ -67,6 +67,11 @@ export type HomeStackParamList = {
   FilmPlayer: { projectId: string };
   // Phase 11 · KI-Familienassistent
   Assistant: undefined;
+  // Phase 12 · Legacy AI · Familienstimmen
+  LegacyHub: undefined;
+  LegacyPerson: { personId: string };
+  LifeInterview: { personId: string };
+  MemoryJourney: { query: string; title: string };
   // Phase 6 · Family Safety & Live Location
   LiveMap: undefined;
   LocationSettings: undefined;

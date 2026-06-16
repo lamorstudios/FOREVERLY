@@ -96,4 +96,9 @@ export const qk = {
   // KI-Familienassistent
   assistantOverview: (familyId: string) => ['assistantOverview', familyId] as const,
   assistantAsk: (familyId: string, query: string) => ['assistantAsk', familyId, query] as const,
+  // Legacy AI · Familienstimmen
+  legends: (familyId: string) => ['legends', familyId] as const,
+  personStory: (familyId: string, personId: string) => ['personStory', familyId, personId] as const,
+  lifeStories: (personId: string) => ['lifeStories', personId] as const,
+  memoryJourney: (familyId: string, query: string) => ['memoryJourney', familyId, query] as const,
 };

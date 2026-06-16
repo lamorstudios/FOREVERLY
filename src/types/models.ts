@@ -212,6 +212,8 @@ export interface Person {
   created_by: string;
   created_at: string;
   updated_at: string;
+  /** Phase 12: als „Familienlegende" markiert (eigene Legacy-Seite). */
+  is_legend?: boolean;
 }
 
 export interface Relationship {
@@ -799,6 +801,23 @@ export interface GeneratedFilm {
   sceneCount: number;
   durationSec: number;
   hasOriginalVoices: boolean;
+}
+
+// ===================== Legacy AI · Familienstimmen =====================
+
+export type LifeStoryKind = 'text' | 'audio' | 'video';
+
+/** Antwort auf ein Lebensinterview / eine Zukunftsfrage (echte Inhalte). */
+export interface LifeStory {
+  id: string;
+  family_id: string;
+  person_id: string;
+  question: string;
+  kind: LifeStoryKind;
+  content: string | null; // Text bzw. Begleittext
+  media_path: string | null; // Audio/Video (optional)
+  is_future_question: boolean; // Zeitkapsel-Frage für die Zukunft
+  created_at: string;
 }
 
 

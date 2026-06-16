@@ -88,6 +88,11 @@ import { FilmCreateScreen } from '@/screens/film/FilmCreateScreen';
 import { FilmPlayerScreen } from '@/screens/film/FilmPlayerScreen';
 // Phase 11 · KI-Familienassistent
 import { AssistantScreen } from '@/screens/assistant/AssistantScreen';
+// Phase 12 · Legacy AI · Familienstimmen
+import { LegacyHubScreen } from '@/screens/legacy/LegacyHubScreen';
+import { LegacyPersonScreen } from '@/screens/legacy/LegacyPersonScreen';
+import { LifeInterviewScreen } from '@/screens/legacy/LifeInterviewScreen';
+import { MemoryJourneyScreen } from '@/screens/legacy/MemoryJourneyScreen';
 // Phase 4 · Familienbuch
 import { BookHomeScreen } from '@/screens/book/BookHomeScreen';
 import { BookCreateScreen } from '@/screens/book/BookCreateScreen';
@@ -162,6 +167,10 @@ function HomeStackNavigator() {
       <HomeStack.Screen name="FilmCreate" component={FilmCreateScreen} options={{ title: 'Film erstellen' }} />
       <HomeStack.Screen name="FilmPlayer" component={FilmPlayerScreen} options={{ title: 'Familienfilm' }} />
       <HomeStack.Screen name="Assistant" component={AssistantScreen} options={{ title: 'Familienassistent' }} />
+      <HomeStack.Screen name="LegacyHub" component={LegacyHubScreen} options={{ title: 'Familienstimmen' }} />
+      <HomeStack.Screen name="LegacyPerson" component={LegacyPersonScreen} options={{ title: 'Lebensgeschichte' }} />
+      <HomeStack.Screen name="LifeInterview" component={LifeInterviewScreen} options={{ title: 'Erzähl deine Geschichte' }} />
+      <HomeStack.Screen name="MemoryJourney" component={MemoryJourneyScreen} options={{ title: 'Erinnerungsreise' }} />
       <HomeStack.Screen name="LiveMap" component={LiveMapScreen} options={{ title: 'Familienkarte' }} />
       <HomeStack.Screen name="LocationSettings" component={LocationSettingsScreen} options={{ title: 'Standort teilen' }} />
       <HomeStack.Screen name="TripStart" component={TripStartScreen} options={{ title: 'Unterwegs' }} />
