@@ -64,6 +64,9 @@ jobs:
           # index.html NICHT cachen, damit Browser/CDN nie auf ein bereits
           # ersetztes, gehashtes JS-Bundle zeigen (Ursache für weißen Screen).
           sed -i 's#<head>#<head><meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" /><meta http-equiv="Pragma" content="no-cache" /><meta http-equiv="Expires" content="0" />#' dist/index.html
+          # Sichtbarer Fallback im Root: Falls das JS-Bundle (noch) nicht lädt,
+          # erscheint Text statt eines weißen Bildschirms. React ersetzt ihn beim Start.
+          sed -i 's|<div id="root"></div>|<div id="root"><div style="font-family:sans-serif;padding:48px 24px;text-align:center;color:#6F6253">Foreverly wird geladen \&hellip;<br/><br/>Falls dies länger dauert, bitte die Seite neu laden und ggf. den Browser-Cache leeren.</div></div>|' dist/index.html
           cp dist/index.html dist/404.html
 
       - name: Deploy to gh-pages branch
