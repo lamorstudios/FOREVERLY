@@ -1,4 +1,5 @@
 import * as Notifications from 'expo-notifications';
+import Constants from 'expo-constants';
 import { Platform } from 'react-native';
 
 const NOTIFICATIONS_SUPPORTED = Platform.OS !== 'web';
@@ -31,6 +32,28 @@ export async function registerForNotifications(): Promise<boolean> {
     granted = req.granted;
   }
   return granted;
+}
+
+/**
+ * Technische Grundlage für Push-Benachrichtigungen: liefert den Expo-Push-Token
+ * des Geräts (z. B. um ihn später serverseitig zu speichern). Gibt `null`,
+ * solange das EAS-Projekt noch nicht initialisiert ist oder im Web/Simulator.
+ */
+export async function registerPushToken(): Promise<string | null> {
+  if (!NOTIFICATIONS_SUPPORTED) return null;
+  const granted = await registerForNotifications();
+  if (!granted) return null;
+  const extra = (Constants.expoConfig?.extra ?? {}) as { eas?: { projectId?: string } };
+  const projectId =
+    extra.eas?.projectId ??
+    (Constants as unknown as { easConfig?: { projectId?: string } }).easConfig?.projectId;
+  if (!projectId) return null; // EAS-Projekt noch nicht eingerichtet (eas init)
+  try {
+    const token = await Notifications.getExpoPushTokenAsync({ projectId });
+    return token.data;
+  } catch {
+    return null;
+  }
 }
 
 /**
