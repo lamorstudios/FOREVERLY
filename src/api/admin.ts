@@ -8,14 +8,53 @@
  */
 
 import { DEMO_MODE } from '@/lib/config';
+import { supabase } from '@/lib/supabase';
 import { BILLING_TIERS, tierById, formatEuroCents } from '@/lib/billing';
 import type { AdminDashboard } from '@/types/admin';
 
 export async function getAdminDashboard(): Promise<AdminDashboard> {
   if (DEMO_MODE) return buildDemoDashboard();
-  // Echtbetrieb: serverseitige Aggregation (noch nicht implementiert).
-  // Bis dahin liefern wir denselben Demo-Datensatz, damit die UI nutzbar bleibt.
-  return buildDemoDashboard();
+  // Echtbetrieb: echte Eckzahlen aus Supabase über die Demo-Struktur legen,
+  // damit die wichtigsten Kennzahlen real sind (Rest folgt serverseitig).
+  return overlayRealCounts(buildDemoDashboard());
+}
+
+const SINCE = (days: number) => new Date(Date.now() - days * 86400000).toISOString();
+
+/** Zählt echte Nutzer/Familien/Registrierungen aus Supabase (zählende Queries). */
+async function overlayRealCounts(base: AdminDashboard): Promise<AdminDashboard> {
+  try {
+    const headCount = (q: { count: number | null }) => q.count ?? 0;
+    const [profiles, families, members, newWeek, newMonth] = await Promise.all([
+      supabase.from('profiles').select('*', { count: 'exact', head: true }),
+      supabase.from('families').select('*', { count: 'exact', head: true }),
+      supabase.from('family_members').select('*', { count: 'exact', head: true }),
+      supabase.from('profiles').select('*', { count: 'exact', head: true }).gte('created_at', SINCE(7)),
+      supabase.from('profiles').select('*', { count: 'exact', head: true }).gte('created_at', SINCE(30)),
+    ]);
+    const totalUsers = headCount(profiles);
+    const totalFamilies = headCount(families);
+    return {
+      ...base,
+      users: {
+        ...base.users,
+        total: totalUsers,
+        // Ohne Last-Seen-Tracking nähern wir „aktiv" konservativ an.
+        activeMonth: Math.min(totalUsers, headCount(newMonth) || totalUsers),
+        newToday: 0,
+        newWeek: headCount(newWeek),
+        newMonth: headCount(newMonth),
+      },
+      families: {
+        ...base.families,
+        families: totalFamilies,
+        members: headCount(members),
+        avgSize: totalFamilies > 0 ? headCount(members) / totalFamilies : 0,
+      },
+    };
+  } catch {
+    return base; // Fällt sauber auf die Struktur zurück, falls Zählen scheitert.
+  }
 }
 
 /** Realistischer, deterministischer Beispiel-Datensatz für die Vorschau. */

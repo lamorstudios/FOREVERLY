@@ -41,6 +41,7 @@ interface AuthContextValue {
   }) => Promise<{ needsConfirmation: boolean }>;
   signIn: (email: string, password: string) => Promise<void>;
   signInWithGoogle: () => Promise<void>;
+  signInWithApple: () => Promise<void>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
   resendConfirmation: (email: string) => Promise<void>;
@@ -122,6 +123,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (error) throw error;
   }, []);
 
+  const signInWithApple = useCallback(async () => {
+    if (DEMO_MODE) {
+      setSession(demoSession);
+      return;
+    }
+    const redirectTo =
+      Platform.OS === 'web' && typeof window !== 'undefined'
+        ? window.location.origin + window.location.pathname
+        : Linking.createURL('/');
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'apple',
+      options: { redirectTo },
+    });
+    if (error) throw error;
+  }, []);
+
   const signOut = useCallback(async () => {
     if (DEMO_MODE) {
       setSession(null);
@@ -161,11 +178,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       signUp,
       signIn,
       signInWithGoogle,
+      signInWithApple,
       signOut,
       resetPassword,
       resendConfirmation,
     }),
-    [session, initializing, signUp, signIn, signInWithGoogle, signOut, resetPassword, resendConfirmation],
+    [session, initializing, signUp, signIn, signInWithGoogle, signInWithApple, signOut, resetPassword, resendConfirmation],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

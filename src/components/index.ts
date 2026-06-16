@@ -8,7 +8,7 @@ export { Chip } from './Chip';
 export { DateField } from './DateField';
 export { Disclaimer } from './Disclaimer';
 export { EmptyState } from './EmptyState';
-export { GoogleSignInButton } from './GoogleSignInButton';
+export { GoogleSignInButton, AppleSignInButton } from './GoogleSignInButton';
 export { InviteFamilyButton } from './InviteFamilyButton';
 export { Loading } from './Loading';
 export { Screen } from './Screen';
