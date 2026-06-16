@@ -125,6 +125,8 @@ export type ProfileStackParamList = {
   // Phase 15 · Production
   Settings: undefined;
   Premium: undefined;
+  // Admin Dashboard (betreiberintern)
+  AdminDashboard: undefined;
   Roles: undefined;
   NotificationSettings: undefined;
   PrivacyData: undefined;

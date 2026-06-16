@@ -4,15 +4,17 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import Constants from 'expo-constants';
 import { Screen, AppText, Card, Chip } from '@/components';
 import { usePremium } from '@/context/PremiumContext';
+import { useFamily } from '@/context/FamilyContext';
 import { colors, spacing } from '@/theme';
 import type { ProfileStackParamList } from '@/navigation/types';
 
 type Props = NativeStackScreenProps<ProfileStackParamList, 'Settings'>;
 type IoniconName = keyof typeof Ionicons.glyphMap;
-type Target = 'Premium' | 'Roles' | 'NotificationSettings' | 'PrivacyData' | 'Feedback';
+type Target = 'Premium' | 'Roles' | 'NotificationSettings' | 'PrivacyData' | 'Feedback' | 'AdminDashboard';
 
 export function SettingsScreen({ navigation }: Props) {
   const { isPremium } = usePremium();
+  const { isAdmin } = useFamily();
 
   const rows: { icon: IoniconName; title: string; subtitle: string; target: Target; color?: string }[] = [
     { icon: 'star-outline', title: 'Foreverly Premium', subtitle: isPremium ? 'Aktiv – Family Premium' : 'Familienfilme, Historiker, PDF-Buch & mehr', target: 'Premium', color: colors.gold },
@@ -20,6 +22,10 @@ export function SettingsScreen({ navigation }: Props) {
     { icon: 'notifications-outline', title: 'Benachrichtigungen', subtitle: 'Push & Hinweise je Kategorie', target: 'NotificationSettings' },
     { icon: 'shield-checkmark-outline', title: 'Datenschutz & Daten', subtitle: 'Export, Löschung, Einwilligungen (DSGVO)', target: 'PrivacyData' },
     { icon: 'chatbox-ellipses-outline', title: 'Feedback senden', subtitle: 'Fehler melden, Wünsche & Ideen', target: 'Feedback' },
+    // Nur für den App-Betreiber (Admin-Rolle) sichtbar.
+    ...(isAdmin
+      ? [{ icon: 'stats-chart-outline' as IoniconName, title: 'Admin Dashboard', subtitle: 'Wachstum, Nutzung & Monetarisierung', target: 'AdminDashboard' as Target, color: colors.bronze }]
+      : []),
   ];
 
   return (

@@ -107,4 +107,6 @@ export const qk = {
   museumTimeTravel: (familyId: string, year: number) => ['museumTimeTravel', familyId, year] as const,
   museumPlaces: (familyId: string) => ['museumPlaces', familyId] as const,
   artifacts: (familyId: string) => ['artifacts', familyId] as const,
+  // Admin-Dashboard (betreiberintern)
+  adminDashboard: () => ['adminDashboard'] as const,
 };
