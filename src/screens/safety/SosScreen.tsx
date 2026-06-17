@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { View, StyleSheet, Pressable } from 'react-native';
+import { View, StyleSheet, Pressable, Modal } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -53,7 +53,6 @@ export function SosScreen({ navigation }: Props) {
   const myPersonId = personsQuery.data?.find((p) => p.user_id === userId)?.id ?? null;
   const myActive = (alertsQuery.data ?? []).find((a) => a.status === 'active' && a.user_id === userId);
 
-  // Tatsächliche Empfänger: Notfallkontakte + Vertrauenspersonen (Trusted Circle).
   const recipients: Recipient[] = [
     ...(emergencyQuery.data ?? []).map((c) => ({ name: c.name, detail: c.relation ?? 'Notfallkontakt' })),
     ...(trustedQuery.data ?? [])
@@ -61,7 +60,6 @@ export function SosScreen({ navigation }: Props) {
       .map((t) => ({ name: t.name, detail: 'Vertrauensperson' })),
   ];
 
-  // Standortstatus (kein echtes GPS in der Demo → letzter bekannter / nicht verfügbar).
   const placeLabel = myShareQuery.data?.place_label ?? null;
   const locationStatus = placeLabel ? `Letzter bekannter Standort: ${placeLabel}` : 'Standort nicht verfügbar';
 
@@ -90,6 +88,11 @@ export function SosScreen({ navigation }: Props) {
 
   useEffect(() => clearTimer, []);
 
+  function openConfirm() {
+    setSent(null);
+    setPhase('confirm');
+  }
+
   function startCountdown() {
     setCountdown(COUNTDOWN_SECONDS);
     setPhase('counting');
@@ -117,7 +120,6 @@ export function SosScreen({ navigation }: Props) {
       setMessage('');
       setPhase('sent');
       await alertsQuery.refetch();
-      // Notification Center aktualisieren (Sender- & Empfänger-Hinweis wurden erzeugt).
       queryClient.invalidateQueries({ queryKey: qk.notifications(familyId) });
     } catch {
       setPhase('idle');
@@ -142,7 +144,6 @@ export function SosScreen({ navigation }: Props) {
   }
 
   const recent = (alertsQuery.data ?? []).slice(0, 5);
-  const showSuccess = phase === 'sent' || (!!myActive && phase === 'idle');
 
   return (
     <Screen>
@@ -151,143 +152,66 @@ export function SosScreen({ navigation }: Props) {
         und die Uhrzeit gesendet.
       </AppText>
 
-      {/* Sicherheitsabfrage (In-Screen, funktioniert auch im Web) */}
-      {phase === 'confirm' ? (
-        <Card style={styles.dialogCard}>
-          <View style={styles.dialogHead}>
-            <Ionicons name="warning" size={24} color={colors.error} />
-            <AppText variant="subheading" color={colors.error}>SOS senden?</AppText>
-          </View>
-          <AppText variant="body" color={colors.textSecondary}>
-            Deine Vertrauenspersonen werden benachrichtigt. Dein aktueller oder letzter
-            bekannter Standort, Uhrzeit und optionale Nachricht werden mitgesendet.
-          </AppText>
-          <Button label="SOS senden" icon="send" onPress={startCountdown} />
-          <Button label="Abbrechen" variant="secondary" icon="close-outline" onPress={cancel} />
-        </Card>
-      ) : null}
+      {/* Großer, immer sichtbarer SOS-Auslöser */}
+      <Pressable
+        onPress={openConfirm}
+        accessibilityRole="button"
+        accessibilityLabel="SOS auslösen"
+        hitSlop={12}
+        style={({ pressed }) => [styles.sosButton, pressed && styles.sosButtonPressed]}
+      >
+        <Ionicons name="warning" size={56} color={colors.textOnAccent} />
+        <AppText variant="display" color={colors.textOnAccent}>SOS</AppText>
+        <AppText variant="caption" color={colors.textOnAccent}>Antippen, um Hilfe zu rufen</AppText>
+      </Pressable>
+      <AppText variant="caption" center color={colors.textMuted} style={styles.version}>
+        Notruf v2 · sofortige Bestätigung beim Antippen
+      </AppText>
 
-      {/* Countdown */}
-      {phase === 'counting' ? (
-        <Card style={styles.dialogCard}>
-          <AppText variant="bodyStrong" color={colors.error}>SOS wird gesendet …</AppText>
-          <View style={styles.countCircle}>
-            <AppText variant="display" color={colors.error} style={styles.countNum}>{countdown}</AppText>
-          </View>
-          <AppText variant="body" center color={colors.textSecondary}>
-            SOS wird in {countdown} Sekunde{countdown === 1 ? '' : 'n'} gesendet.
-          </AppText>
-          <Button label="Abbrechen" icon="close-circle-outline" variant="secondary" onPress={cancel} />
-          <Button label="Jetzt sofort senden" icon="send-outline" onPress={() => void sendNow()} />
-        </Card>
-      ) : null}
-
-      {/* Erfolgsmeldung */}
-      {phase !== 'counting' && phase !== 'confirm' && showSuccess ? (
-        <Card style={styles.successCard}>
-          <View style={styles.dialogHead}>
-            <Ionicons name="checkmark-circle" size={26} color={colors.success} />
-            <AppText variant="subheading" color={colors.error}>SOS wurde gesendet.</AppText>
-          </View>
-          <AppText variant="body">Deine Vertrauenspersonen wurden benachrichtigt.</AppText>
-
-          <View style={styles.infoRow}>
-            <Ionicons name="time-outline" size={18} color={colors.textSecondary} />
-            <AppText variant="body" color={colors.textSecondary}>
-              {formatDateTime(sent?.time ?? myActive?.created_at ?? new Date().toISOString())}
-            </AppText>
-          </View>
-          <View style={styles.infoRow}>
-            <Ionicons name="location-outline" size={18} color={colors.textSecondary} />
-            <AppText variant="body" color={colors.textSecondary} style={styles.flex}>
-              {sent?.locationStatus ?? locationStatus}
-            </AppText>
-          </View>
-
-          <View style={styles.notifiedBox}>
-            <AppText variant="bodyStrong">
-              Benachrichtigte Kontakte ({(sent?.recipients ?? recipients).length})
-            </AppText>
-            {(sent?.recipients ?? recipients).length > 0 ? (
-              (sent?.recipients ?? recipients).map((r, i) => (
-                <View key={`${r.name}-${i}`} style={styles.infoRow}>
-                  <Ionicons name="person-circle-outline" size={18} color={colors.primary} />
-                  <AppText variant="body">{r.name}</AppText>
-                  <AppText variant="caption" color={colors.textMuted}>· {r.detail}</AppText>
-                </View>
-              ))
-            ) : (
-              <AppText variant="caption" color={colors.textMuted}>
-                Noch keine Notfallkontakte hinterlegt – die Familie wurde im
-                Benachrichtigungscenter informiert.
-              </AppText>
-            )}
-          </View>
-
-          {myActive ? (
-            <Button label="Entwarnung geben" icon="checkmark-outline" variant="secondary" onPress={() => onResolve(myActive.id)} />
-          ) : null}
-          <Pressable onPress={() => navigation.navigate('Notifications')} style={styles.link}>
-            <AppText variant="caption" center color={colors.primary}>Im Benachrichtigungscenter ansehen</AppText>
-          </Pressable>
-        </Card>
-      ) : null}
-
-      {/* Auslöser */}
       {phase === 'idle' && !myActive ? (
-        <>
-          <Pressable
-            onPress={() => setPhase('confirm')}
-            accessibilityRole="button"
-            accessibilityLabel="SOS auslösen"
-            style={({ pressed }) => [styles.sosButton, pressed && styles.sosButtonPressed]}
-          >
-            <Ionicons name="warning" size={56} color={colors.textOnAccent} />
-            <AppText variant="display" color={colors.textOnAccent}>SOS</AppText>
-            <AppText variant="caption" color={colors.textOnAccent}>Antippen, um Hilfe zu rufen</AppText>
-          </Pressable>
-
-          <TextField
-            label="Kurze Nachricht (optional)"
-            value={message}
-            onChangeText={setMessage}
-            placeholder="z.B. Mir ist schwindelig"
-          />
-        </>
+        <TextField
+          label="Kurze Nachricht (optional)"
+          value={message}
+          onChangeText={setMessage}
+          placeholder="z.B. Mir ist schwindelig"
+        />
       ) : null}
 
-      {/* Wer wird benachrichtigt? (vorab) */}
-      {phase === 'idle' ? (
-        <Card>
-          <AppText variant="bodyStrong">Wer wird benachrichtigt?</AppText>
-          {recipients.length > 0 ? (
-            recipients.map((r, i) => (
-              <View key={`rec-${r.name}-${i}`} style={styles.infoRow}>
-                <Ionicons name="person-circle-outline" size={20} color={colors.primary} />
-                <AppText variant="body" color={colors.textSecondary}>{r.name} · {r.detail}</AppText>
-              </View>
-            ))
-          ) : (
-            <>
-              <View style={styles.infoRow}>
-                <Ionicons name="heart-circle-outline" size={20} color={colors.error} />
-                <AppText variant="body" color={colors.textSecondary}>Inner Circle</AppText>
-              </View>
-              <View style={styles.infoRow}>
-                <Ionicons name="shield-checkmark-outline" size={20} color={colors.primary} />
-                <AppText variant="body" color={colors.textSecondary}>Trusted Circle (Nachbarn, Pflege, Freunde)</AppText>
-              </View>
-              <View style={styles.infoRow}>
-                <Ionicons name="call-outline" size={20} color={colors.warning} />
-                <AppText variant="body" color={colors.textSecondary}>Notfallkontakte</AppText>
-              </View>
-              <Pressable onPress={() => navigation.navigate('Emergency')} style={styles.link}>
-                <AppText variant="caption" color={colors.primary}>+ Notfallkontakte hinterlegen</AppText>
-              </Pressable>
-            </>
-          )}
+      {/* Aktiver SOS (Banner) */}
+      {myActive ? (
+        <Card style={styles.activeBanner}>
+          <View style={styles.headRow}>
+            <Ionicons name="alert-circle" size={22} color={colors.error} />
+            <AppText variant="bodyStrong" color={colors.error}>Dein SOS ist aktiv</AppText>
+          </View>
+          <AppText variant="caption" color={colors.textSecondary}>
+            Ausgelöst {formatDateTime(myActive.created_at)} · deine Familie wurde informiert.
+          </AppText>
+          <Button label="Entwarnung geben" icon="checkmark-outline" variant="secondary" onPress={() => onResolve(myActive.id)} />
         </Card>
       ) : null}
+
+      {/* Wer wird benachrichtigt? */}
+      <Card>
+        <AppText variant="bodyStrong">Wer wird benachrichtigt?</AppText>
+        {recipients.length > 0 ? (
+          recipients.map((r, i) => (
+            <View key={`rec-${r.name}-${i}`} style={styles.infoRow}>
+              <Ionicons name="person-circle-outline" size={20} color={colors.primary} />
+              <AppText variant="body" color={colors.textSecondary}>{r.name} · {r.detail}</AppText>
+            </View>
+          ))
+        ) : (
+          <>
+            <View style={styles.infoRow}><Ionicons name="heart-circle-outline" size={20} color={colors.error} /><AppText variant="body" color={colors.textSecondary}>Inner Circle</AppText></View>
+            <View style={styles.infoRow}><Ionicons name="shield-checkmark-outline" size={20} color={colors.primary} /><AppText variant="body" color={colors.textSecondary}>Trusted Circle (Nachbarn, Pflege, Freunde)</AppText></View>
+            <View style={styles.infoRow}><Ionicons name="call-outline" size={20} color={colors.warning} /><AppText variant="body" color={colors.textSecondary}>Notfallkontakte</AppText></View>
+            <Pressable onPress={() => navigation.navigate('Emergency')} style={styles.link}>
+              <AppText variant="caption" color={colors.primary}>+ Notfallkontakte hinterlegen</AppText>
+            </Pressable>
+          </>
+        )}
+      </Card>
 
       {recent.length > 0 ? (
         <View style={styles.section}>
@@ -295,11 +219,7 @@ export function SosScreen({ navigation }: Props) {
           {recent.map((a) => (
             <Card key={a.id}>
               <View style={styles.row}>
-                <Ionicons
-                  name={a.status === 'active' ? 'alert-circle' : 'checkmark-circle'}
-                  size={22}
-                  color={a.status === 'active' ? colors.error : colors.success}
-                />
+                <Ionicons name={a.status === 'active' ? 'alert-circle' : 'checkmark-circle'} size={22} color={a.status === 'active' ? colors.error : colors.success} />
                 <View style={styles.rowText}>
                   <AppText variant="bodyStrong" numberOfLines={1}>
                     {fullName(a.person?.first_name, a.person?.last_name) || 'Familienmitglied'}
@@ -319,10 +239,82 @@ export function SosScreen({ navigation }: Props) {
       ) : null}
 
       <Pressable onPress={() => navigation.navigate('Emergency')} style={styles.link}>
-        <AppText variant="caption" center color={colors.primary}>
-          Notfallkontakte verwalten
-        </AppText>
+        <AppText variant="caption" center color={colors.primary}>Notfallkontakte verwalten</AppText>
       </Pressable>
+
+      {/* Overlay-Dialog (garantiert sichtbar, zentriert, web-tauglich) */}
+      <Modal visible={phase !== 'idle'} transparent animationType="fade" onRequestClose={cancel}>
+        <View style={styles.backdrop}>
+          <View style={styles.modalCard}>
+            {phase === 'confirm' ? (
+              <>
+                <View style={styles.headRow}>
+                  <Ionicons name="warning" size={26} color={colors.error} />
+                  <AppText variant="subheading" color={colors.error}>SOS senden?</AppText>
+                </View>
+                <AppText variant="body" color={colors.textSecondary}>
+                  Deine Vertrauenspersonen werden benachrichtigt. Dein aktueller oder letzter
+                  bekannter Standort, Uhrzeit und optionale Nachricht werden mitgesendet.
+                </AppText>
+                <Button label="SOS senden" icon="send" onPress={startCountdown} />
+                <Button label="Abbrechen" variant="secondary" icon="close-outline" onPress={cancel} />
+              </>
+            ) : null}
+
+            {phase === 'counting' ? (
+              <>
+                <AppText variant="subheading" color={colors.error} center>SOS wird gesendet …</AppText>
+                <View style={styles.countCircle}>
+                  <AppText variant="display" color={colors.error} style={styles.countNum}>{countdown}</AppText>
+                </View>
+                <AppText variant="body" center color={colors.textSecondary}>
+                  SOS wird in {countdown} Sekunde{countdown === 1 ? '' : 'n'} gesendet.
+                </AppText>
+                <Button label="Abbrechen" icon="close-circle-outline" variant="secondary" onPress={cancel} />
+                <Button label="Jetzt sofort senden" icon="send-outline" onPress={() => void sendNow()} />
+              </>
+            ) : null}
+
+            {phase === 'sent' ? (
+              <>
+                <View style={styles.headRow}>
+                  <Ionicons name="checkmark-circle" size={28} color={colors.success} />
+                  <AppText variant="subheading" color={colors.error}>SOS wurde gesendet</AppText>
+                </View>
+                <AppText variant="body">Deine Vertrauenspersonen wurden benachrichtigt.</AppText>
+                <View style={styles.infoRow}>
+                  <Ionicons name="time-outline" size={18} color={colors.textSecondary} />
+                  <AppText variant="body" color={colors.textSecondary}>{formatDateTime(sent?.time ?? new Date().toISOString())}</AppText>
+                </View>
+                <View style={styles.infoRow}>
+                  <Ionicons name="location-outline" size={18} color={colors.textSecondary} />
+                  <AppText variant="body" color={colors.textSecondary} style={styles.flex}>{sent?.locationStatus ?? locationStatus}</AppText>
+                </View>
+                <AppText variant="bodyStrong" style={styles.notifiedTitle}>
+                  Benachrichtigte Kontakte ({(sent?.recipients ?? []).length})
+                </AppText>
+                {(sent?.recipients ?? []).length > 0 ? (
+                  (sent?.recipients ?? []).map((r, i) => (
+                    <View key={`${r.name}-${i}`} style={styles.infoRow}>
+                      <Ionicons name="person-circle-outline" size={18} color={colors.primary} />
+                      <AppText variant="body">{r.name}</AppText>
+                      <AppText variant="caption" color={colors.textMuted}>· {r.detail}</AppText>
+                    </View>
+                  ))
+                ) : (
+                  <AppText variant="caption" color={colors.textMuted}>
+                    Die Familie wurde im Benachrichtigungscenter informiert.
+                  </AppText>
+                )}
+                <Button label="Schließen" icon="checkmark-outline" onPress={() => setPhase('idle')} />
+                <Pressable onPress={() => { setPhase('idle'); navigation.navigate('Notifications'); }} style={styles.link}>
+                  <AppText variant="caption" center color={colors.primary}>Im Benachrichtigungscenter ansehen</AppText>
+                </Pressable>
+              </>
+            ) : null}
+          </View>
+        </View>
+      </Modal>
     </Screen>
   );
 }
@@ -330,29 +322,42 @@ export function SosScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   intro: { marginBottom: spacing.md },
   flex: { flex: 1, minWidth: 0 },
-  dialogCard: { borderColor: colors.error, borderWidth: 1.5, gap: spacing.md, marginBottom: spacing.md, alignItems: 'stretch' },
-  dialogHead: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
-  successCard: { borderColor: colors.success, borderWidth: 1.5, gap: spacing.sm, marginBottom: spacing.md },
-  countCircle: {
-    width: 120, height: 120, borderRadius: 60,
-    borderWidth: 4, borderColor: colors.error,
-    alignItems: 'center', justifyContent: 'center', alignSelf: 'center',
-  },
-  countNum: { fontVariant: ['tabular-nums'] },
-  infoRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, marginTop: spacing.xs },
-  notifiedBox: { gap: 2, marginTop: spacing.sm },
   sosButton: {
     backgroundColor: colors.error,
     borderRadius: radius.xl,
     paddingVertical: spacing.xl,
     alignItems: 'center',
     gap: spacing.xs,
-    marginBottom: spacing.md,
     ...shadow.card,
   },
   sosButtonPressed: { opacity: 0.8, transform: [{ scale: 0.97 }] },
+  version: { marginTop: spacing.xs, marginBottom: spacing.md },
+  activeBanner: { borderColor: colors.error, borderWidth: 1.5, gap: spacing.sm, marginBottom: spacing.md },
+  headRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  infoRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, marginTop: spacing.xs },
+  notifiedTitle: { marginTop: spacing.sm },
   section: { marginTop: spacing.md, gap: spacing.sm },
   row: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   rowText: { flex: 1, gap: 2 },
   link: { marginTop: spacing.sm, padding: spacing.sm },
+  // Modal
+  backdrop: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.45)',
+    justifyContent: 'center',
+    padding: spacing.lg,
+  },
+  modalCard: {
+    backgroundColor: colors.surface,
+    borderRadius: radius.lg,
+    padding: spacing.lg,
+    gap: spacing.sm,
+    ...shadow.card,
+  },
+  countCircle: {
+    width: 120, height: 120, borderRadius: 60,
+    borderWidth: 4, borderColor: colors.error,
+    alignItems: 'center', justifyContent: 'center', alignSelf: 'center',
+  },
+  countNum: { fontVariant: ['tabular-nums'] },
 });
