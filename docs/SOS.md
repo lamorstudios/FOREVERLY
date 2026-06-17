@@ -40,7 +40,53 @@ Es gibt zwei SOS-Oberflächen:
   Supabase Edge Function) – `expo-notifications` ist installiert, wird aber nur
   für Zeitkapsel-Erinnerungen genutzt, nicht für SOS.
 
-## Umgesetzte minimale funktionierende Version (`SosScreen`)
+## Bugfix: „Button reagiert nicht" (Web)
+
+**Ursache:** Der Bestätigungsdialog war ein natives `Alert.alert(...)` mit zwei
+Buttons. Im Web (GitHub-Pages-Demo) löst React Native Web bei mehrstufigen
+Alerts den `onPress` der Buttons **nicht** aus – beim Tippen passierte daher
+„nichts". 
+
+**Lösung:** Bestätigung, Countdown und Erfolgsmeldung sind jetzt **In-Screen-UI**
+(echte Buttons im Bildschirm) statt nativer Alerts – funktioniert zuverlässig
+auf Web, iOS und Android. Betrifft `SosScreen` **und** den großen SOS-Knopf in
+`EmergencyScreen` (dort ebenfalls auf In-Screen-Bestätigung umgestellt).
+
+## Was jetzt funktioniert
+
+- **SOS-Button** reagiert mit sichtbarem Druck-Feedback (kein toter Button).
+- **Sicherheitsabfrage** „SOS senden?" als In-Screen-Dialog (Abbrechen / SOS senden).
+- **10-Sekunden-Countdown** mit Zähler + „Abbrechen" + „Jetzt sofort senden".
+- **Abbrechen** funktioniert in jeder Phase.
+- **SOS-Ereignis** wird gespeichert (`safety_alerts` / Demo): auslösender Nutzer,
+  Zeitpunkt, optionale Nachricht, Standortstatus (place_label), Status (aktiv/gesendet).
+- **Erfolgsmeldung** „SOS wurde gesendet." + „Deine Vertrauenspersonen wurden
+  benachrichtigt." inkl. **Uhrzeit**, **Standortstatus** (letzter bekannter
+  Standort / nicht verfügbar) und **benachrichtigte Kontakte** (namentlich).
+- **Notification Center**: Es werden zwei In-App-Benachrichtigungen erzeugt:
+  - Für den Sender: **„🚨 Dein SOS wurde gesendet."** → Antippen öffnet die
+    SOS-Ansicht (`data.route = 'Sos'`).
+  - Für die Familie/Vertrauenspersonen: **„🚨 SOS von [Name]. Standort und
+    Uhrzeit sind verfügbar."**
+
+## Was nur simuliert ist (Demo)
+
+- **Standort**: kein echtes GPS – es wird der letzte bekannte Ortsname bzw.
+  „Standort nicht verfügbar" angezeigt.
+- **Zustellung**: In-App-Benachrichtigungen im Notification Center (kein echtes
+  Push aufs Gerät). Empfänger werden namentlich aus Notfallkontakten +
+  Vertrauenspersonen aufgelistet.
+- **Akkustand**: simulierter Wert.
+
+## Was für echte Push-Notifications noch fehlt
+
+- Echtes GPS via `expo-location` (Berechtigungen, native Build).
+- Server-Push pro Empfänger (Expo Push → FCM/APNs, z. B. via Supabase Edge
+  Function), inkl. Speicherung der Geräte-Push-Tokens.
+
+---
+
+## Frühere minimale Version (Verlauf)
 
 Ablauf jetzt:
 

@@ -1566,11 +1566,25 @@ export const demoStore = {
       resolved_at: null,
     };
     data.safetyAlerts.unshift(a);
+    const senderPerson = data.persons.find((p) => p.id === input.personId);
+    const senderName = senderPerson
+      ? [senderPerson.first_name, senderPerson.last_name].filter(Boolean).join(' ')
+      : this.displayNameForUser(input.userId);
+    // Benachrichtigung an Vertrauenspersonen / Familie (Inner & Trusted Circle, Notfallkontakte).
     data.notifications.unshift({
       id: newId('nt'), family_id: input.familyId, recipient_user_id: null, actor_user_id: input.userId,
-      category: 'emergency', title: '🆘 SOS – Hilfe benötigt',
-      body: input.message ?? 'Ein Familienmitglied hat den SOS-Notfallknopf ausgelöst.',
-      data: { alertId: a.id }, is_read: false, created_at: nowIso(),
+      category: 'emergency', title: `🚨 SOS von ${senderName}`,
+      body: input.message
+        ? `${input.message} · Standort und Uhrzeit sind verfügbar.`
+        : 'Standort und Uhrzeit sind verfügbar.',
+      data: { type: 'sos', route: 'Sos', alertId: a.id }, is_read: false, created_at: nowIso(),
+    });
+    // Bestätigung für den auslösenden Nutzer.
+    data.notifications.unshift({
+      id: newId('nt'), family_id: input.familyId, recipient_user_id: input.userId, actor_user_id: input.userId,
+      category: 'emergency', title: '🚨 Dein SOS wurde gesendet.',
+      body: 'Deine Vertrauenspersonen wurden benachrichtigt. Tippe für Details.',
+      data: { type: 'sos', route: 'Sos', alertId: a.id }, is_read: false, created_at: nowIso(),
     });
     return { ...a, person: data.persons.find((p) => p.id === a.person_id) };
   },

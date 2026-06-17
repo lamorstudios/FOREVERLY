@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { View, Pressable, StyleSheet, Alert, Linking } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -50,6 +51,7 @@ export function EmergencyScreen({
   const { activeFamily } = useFamily();
   const familyId = activeFamily!.id;
   const queryClient = useQueryClient();
+  const [confirming, setConfirming] = useState(false);
 
   const contactsQuery = useQuery({
     queryKey: qk.emergencyContacts(familyId),
@@ -108,12 +110,9 @@ export function EmergencyScreen({
         message: 'SOS über FAMII ausgelöst',
       }),
     onSuccess: () => {
+      setConfirming(false);
       queryClient.invalidateQueries({ queryKey: qk.emergencyEvents(familyId) });
       queryClient.invalidateQueries({ queryKey: qk.notifications(familyId) });
-      Alert.alert(
-        'Notfall ausgelöst',
-        'Deine Notfallkontakte wurden benachrichtigt (simuliert). Der Notfall erscheint jetzt für deine Familie.',
-      );
     },
     onError: (e) => {
       Alert.alert('Fehler', friendlyError(e));
@@ -157,32 +156,12 @@ export function EmergencyScreen({
   }
 
   function handleSos() {
-    Alert.alert(
-      'Notfall auslösen?',
-      'Deine Notfallkontakte werden benachrichtigt und dein Standort vorbereitet.',
-      [
-        { text: 'Abbrechen', style: 'cancel' },
-        {
-          text: 'Notfall auslösen',
-          style: 'destructive',
-          onPress: () => triggerMutation.mutate(),
-        },
-      ],
-    );
+    setConfirming(true);
   }
 
   function confirmResolve(event: EmergencyEvent) {
-    Alert.alert(
-      'Notfall als gelöst markieren?',
-      'Die Familie wird sehen, dass dieser Notfall beendet ist.',
-      [
-        { text: 'Abbrechen', style: 'cancel' },
-        {
-          text: 'Als gelöst markieren',
-          onPress: () => resolveMutation.mutate(event.id),
-        },
-      ],
-    );
+    // Positiver Schritt – direkt ausführen (zuverlässig auch im Web, ohne Alert).
+    resolveMutation.mutate(event.id);
   }
 
   function confirmDeleteContact(contact: EmergencyContact) {
@@ -259,6 +238,29 @@ export function EmergencyScreen({
           </AppText>
         </Pressable>
       </View>
+
+      {/* Sicherheitsabfrage (In-Screen, funktioniert auch im Web) */}
+      {confirming ? (
+        <Card style={styles.confirmCard}>
+          <AppText variant="subheading" color={colors.error}>Notfall auslösen?</AppText>
+          <AppText variant="body" color={colors.textSecondary}>
+            Deine Notfallkontakte werden benachrichtigt und dein Standort wird
+            mitgesendet. Der Notfall erscheint danach für deine Familie.
+          </AppText>
+          <Button
+            label="Notfall auslösen"
+            icon="warning-outline"
+            loading={triggerMutation.isPending}
+            onPress={() => triggerMutation.mutate()}
+          />
+          <Button
+            label="Abbrechen"
+            icon="close-outline"
+            variant="secondary"
+            onPress={() => setConfirming(false)}
+          />
+        </Card>
+      ) : null}
 
       {/* Aktive Notfälle */}
       {activeEvents.length > 0 ? (
@@ -482,6 +484,7 @@ const styles = StyleSheet.create({
     ...shadow.card,
   },
   sosButtonPressed: { opacity: 0.85, transform: [{ scale: 0.97 }] },
+  confirmCard: { borderColor: colors.error, borderWidth: 1.5, gap: spacing.sm, marginBottom: spacing.xl },
   sosButtonDisabled: { opacity: 0.6 },
   sosLabel: { letterSpacing: 2 },
   section: { marginBottom: spacing.xl },
