@@ -1,16 +1,9 @@
 -- =====================================================================
 -- FAMII · Kombinierte Staging-Migration (alle Tabellen, Beziehungen, RLS)
 -- =====================================================================
--- Zweck: EINMALIGES Einfügen im Supabase SQL Editor auf eine LEERE
---        Staging-Datenbank. Erstellt das komplette Schema inkl. Row
---        Level Security und Storage-Buckets.
---
--- WICHTIG:
---  * Nur auf eine FRISCHE/leere DB anwenden (nicht mehrfach ausführen).
---  * Keine Auswirkung auf die Live-App oder den Demo-Modus.
---  * Reihenfolge entspricht den Originalmigrationen (Abhängigkeiten!).
---
--- Enthaltene Migrationen (in dieser Reihenfolge): 13
+-- Zweck: EINMALIGES Einfügen im Supabase SQL Editor auf eine LEERE Staging-DB.
+-- WICHTIG: nur auf eine FRISCHE/leere DB anwenden. Keine Auswirkung auf Live/Demo.
+-- Enthaltene Migrationen (14):
 --   - 20260615000001_initial_schema.sql
 --   - 20260615000002_functions_and_triggers.sql
 --   - 20260615000003_rls_policies.sql
@@ -24,12 +17,13 @@
 --   - 20260615000011_phase6.sql
 --   - 20260617000001_phase6_memorial.sql
 --   - 20260617000002_phase6_safety_alerts.sql
+--   - 20260617000003_phase6_accept_invitation_link.sql
 -- =====================================================================
 
 
--- ─────────────────────────────────────────────────────────────────────
+-- ─────────────────────────────────────────────
 -- BEGIN 20260615000001_initial_schema.sql
--- ─────────────────────────────────────────────────────────────────────
+-- ─────────────────────────────────────────────
 -- =====================================================================
 -- Foreverly · Phase 1 MVP · Initiales Datenbankschema
 -- =====================================================================
@@ -308,9 +302,9 @@ comment on table public.activities is 'Chronologischer Aktivitäts-Feed je Famil
 create index activities_family_created_idx on public.activities (family_id, created_at desc);
 -- END 20260615000001_initial_schema.sql
 
--- ─────────────────────────────────────────────────────────────────────
+-- ─────────────────────────────────────────────
 -- BEGIN 20260615000002_functions_and_triggers.sql
--- ─────────────────────────────────────────────────────────────────────
+-- ─────────────────────────────────────────────
 -- =====================================================================
 -- Foreverly · Funktionen & Trigger
 -- =====================================================================
@@ -499,9 +493,9 @@ end;
 $$;
 -- END 20260615000002_functions_and_triggers.sql
 
--- ─────────────────────────────────────────────────────────────────────
+-- ─────────────────────────────────────────────
 -- BEGIN 20260615000003_rls_policies.sql
--- ─────────────────────────────────────────────────────────────────────
+-- ─────────────────────────────────────────────
 -- =====================================================================
 -- Foreverly · Row Level Security (RLS)
 -- =====================================================================
@@ -809,9 +803,9 @@ create policy "Aktivität erstellen (Mitglied)"
   with check (public.is_family_member(family_id) and actor_id = auth.uid());
 -- END 20260615000003_rls_policies.sql
 
--- ─────────────────────────────────────────────────────────────────────
+-- ─────────────────────────────────────────────
 -- BEGIN 20260615000004_storage.sql
--- ─────────────────────────────────────────────────────────────────────
+-- ─────────────────────────────────────────────
 -- =====================================================================
 -- Foreverly · Storage Buckets & Policies
 -- =====================================================================
@@ -927,9 +921,9 @@ create policy "Audio-Datei löschen (Eigentümer oder Admin)"
   );
 -- END 20260615000004_storage.sql
 
--- ─────────────────────────────────────────────────────────────────────
+-- ─────────────────────────────────────────────
 -- BEGIN 20260615000005_phase2.sql
--- ─────────────────────────────────────────────────────────────────────
+-- ─────────────────────────────────────────────
 -- =====================================================================
 -- Foreverly · Phase 2 · Schemaerweiterung
 -- =====================================================================
@@ -1180,9 +1174,9 @@ create policy "Dokument löschen (Mitglied)" on public.family_documents for dele
   using (public.is_family_member(family_id));
 -- END 20260615000005_phase2.sql
 
--- ─────────────────────────────────────────────────────────────────────
+-- ─────────────────────────────────────────────
 -- BEGIN 20260615000006_phase3.sql
--- ─────────────────────────────────────────────────────────────────────
+-- ─────────────────────────────────────────────
 -- =====================================================================
 -- Foreverly · Phase 3 · Familienhistoriker (RAG-Vorbereitung)
 -- =====================================================================
@@ -1258,9 +1252,9 @@ create policy "Lebensweisheiten schreiben (Mitglied)" on public.life_wisdoms for
   using (public.is_family_member(family_id)) with check (public.is_family_member(family_id));
 -- END 20260615000006_phase3.sql
 
--- ─────────────────────────────────────────────────────────────────────
+-- ─────────────────────────────────────────────
 -- BEGIN 20260615000007_phase4.sql
--- ─────────────────────────────────────────────────────────────────────
+-- ─────────────────────────────────────────────
 -- =====================================================================
 -- Foreverly · Phase 4 · Familienbuch
 -- =====================================================================
@@ -1361,9 +1355,9 @@ create policy "Buch-Exporte schreiben (Mitglied)" on public.book_exports for all
   with check (exists (select 1 from public.book_projects p where p.id = project_id and public.is_family_member(p.family_id)));
 -- END 20260615000007_phase4.sql
 
--- ─────────────────────────────────────────────────────────────────────
+-- ─────────────────────────────────────────────
 -- BEGIN 20260615000008_trusted_circle.sql
--- ─────────────────────────────────────────────────────────────────────
+-- ─────────────────────────────────────────────
 -- =====================================================================
 -- Foreverly · Ergänzung · Trusted Circle / Vertrauenskreis
 -- =====================================================================
@@ -1410,9 +1404,9 @@ create policy "Vertrauensperson löschen (Mitglied)" on public.trusted_contacts 
   using (public.is_family_member(family_id));
 -- END 20260615000008_trusted_circle.sql
 
--- ─────────────────────────────────────────────────────────────────────
+-- ─────────────────────────────────────────────
 -- BEGIN 20260615000009_phase4_5.sql
--- ─────────────────────────────────────────────────────────────────────
+-- ─────────────────────────────────────────────
 -- =====================================================================
 -- Foreverly · Phase 4.5 · Inner Circle & Familiennähe
 -- =====================================================================
@@ -1518,9 +1512,9 @@ create policy "Zweig-Mitglieder verwalten (Mitglied)" on public.branch_members f
   with check (exists (select 1 from public.family_branches b where b.id = branch_id and public.is_family_member(b.family_id)));
 -- END 20260615000009_phase4_5.sql
 
--- ─────────────────────────────────────────────────────────────────────
+-- ─────────────────────────────────────────────
 -- BEGIN 20260615000010_phase5.sql
--- ─────────────────────────────────────────────────────────────────────
+-- ─────────────────────────────────────────────
 -- =====================================================================
 -- Foreverly · Phase 5 · Smart Family Invites
 -- =====================================================================
@@ -1624,9 +1618,9 @@ end;
 $$;
 -- END 20260615000010_phase5.sql
 
--- ─────────────────────────────────────────────────────────────────────
+-- ─────────────────────────────────────────────
 -- BEGIN 20260615000011_phase6.sql
--- ─────────────────────────────────────────────────────────────────────
+-- ─────────────────────────────────────────────
 -- =====================================================================
 -- Foreverly · Phase 6 · Familienmomente & Familienevents
 -- =====================================================================
@@ -1781,9 +1775,9 @@ create policy "Challenges lesen (Mitglied)" on public.memory_challenges for sele
 create policy "Challenges verwalten (Mitglied)" on public.memory_challenges for all using (public.is_family_member(family_id)) with check (public.is_family_member(family_id));
 -- END 20260615000011_phase6.sql
 
--- ─────────────────────────────────────────────────────────────────────
+-- ─────────────────────────────────────────────
 -- BEGIN 20260617000001_phase6_memorial.sql
--- ─────────────────────────────────────────────────────────────────────
+-- ─────────────────────────────────────────────
 -- =====================================================================
 -- FAMII · Phase 6 · Ehrenmitglieder & Familienerbe (ADDITIV)
 -- =====================================================================
@@ -1881,9 +1875,9 @@ create policy "Erinnerung löschen (Autor oder Admin)"
   using (author_user_id = auth.uid() or public.is_family_admin(family_id));
 -- END 20260617000001_phase6_memorial.sql
 
--- ─────────────────────────────────────────────────────────────────────
+-- ─────────────────────────────────────────────
 -- BEGIN 20260617000002_phase6_safety_alerts.sql
--- ─────────────────────────────────────────────────────────────────────
+-- ─────────────────────────────────────────────
 -- =====================================================================
 -- FAMII · Phase 6 · SOS-Ereignisse (safety_alerts) (ADDITIV)
 -- =====================================================================
@@ -1942,3 +1936,94 @@ create policy "SOS löschen (Auslöser oder Admin)"
   on public.safety_alerts for delete
   using (user_id = auth.uid() or public.is_family_admin(family_id));
 -- END 20260617000002_phase6_safety_alerts.sql
+
+-- ─────────────────────────────────────────────
+-- BEGIN 20260617000003_phase6_accept_invitation_link.sql
+-- ─────────────────────────────────────────────
+-- =====================================================================
+-- Phase 6 · Einladung: angenommene Person mit Konto verknüpfen (Familienbaum)
+-- =====================================================================
+-- Erweitert accept_invitation: Wird per Smart-Invite eine bereits angelegte
+-- Person eingeladen (invitations.person_id gesetzt), so wird diese Person beim
+-- Annehmen mit dem neuen Konto verknüpft und – falls Beziehungsdaten vorhanden
+-- sind – die Beziehung zum Einladenden angelegt. Dadurch erscheint das neue
+-- Mitglied SICHTBAR im Familienbaum (nicht nur in der Mitgliederliste).
+--
+-- Rein additiv (CREATE OR REPLACE FUNCTION). Keine Datenänderung, keine
+-- Tabellenänderung. Auf die Staging-DB anwenden (einmal im SQL Editor).
+-- =====================================================================
+
+create or replace function public.accept_invitation(p_code text)
+returns uuid
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  v_invitation public.invitations%rowtype;
+  v_uid uuid := auth.uid();
+begin
+  if v_uid is null then
+    raise exception 'Nicht angemeldet.';
+  end if;
+
+  select * into v_invitation
+  from public.invitations
+  where code = upper(trim(p_code))
+  for update;
+
+  if not found then
+    raise exception 'Einladungscode ungültig.';
+  end if;
+
+  if v_invitation.status <> 'pending' then
+    raise exception 'Einladung ist nicht mehr gültig.';
+  end if;
+
+  if v_invitation.expires_at < now() then
+    update public.invitations set status = 'expired' where id = v_invitation.id;
+    raise exception 'Einladung ist abgelaufen.';
+  end if;
+
+  insert into public.family_members (family_id, user_id, role)
+  values (v_invitation.family_id, v_uid, v_invitation.role)
+  on conflict (family_id, user_id) do nothing;
+
+  -- Smart-Invite: vorhandene Person mit dem neuen Konto verknüpfen.
+  if v_invitation.person_id is not null then
+    update public.persons
+       set user_id = v_uid
+     where id = v_invitation.person_id
+       and family_id = v_invitation.family_id
+       and user_id is null;
+
+    -- Beziehung Einladender -> Person automatisch anlegen (für den Familienbaum).
+    if v_invitation.inviter_person_id is not null
+       and v_invitation.relationship_type is not null
+       and v_invitation.inviter_person_id <> v_invitation.person_id then
+      insert into public.relationships
+        (family_id, from_person_id, to_person_id, type, category, created_by)
+      select
+        v_invitation.family_id,
+        v_invitation.inviter_person_id,
+        v_invitation.person_id,
+        v_invitation.relationship_type,
+        'biological'::relationship_category,
+        v_invitation.invited_by
+      where not exists (
+        select 1 from public.relationships r
+        where r.from_person_id = v_invitation.inviter_person_id
+          and r.to_person_id   = v_invitation.person_id
+          and r.type           = v_invitation.relationship_type
+      );
+    end if;
+  end if;
+
+  update public.invitations
+     set status = 'accepted', accepted_by = v_uid, accepted_at = now()
+   where id = v_invitation.id;
+
+  return v_invitation.family_id;
+end;
+$$;
+-- END 20260617000003_phase6_accept_invitation_link.sql
