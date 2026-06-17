@@ -111,6 +111,21 @@ function loadPersisted(): DemoDataset | null {
 }
 
 let data: DemoDataset = loadPersisted() ?? createSeedData();
+
+// Sicherheitsnetz: Ein leerer Familien-Stammbaum ist im Demo-Modus nie gewollt.
+// Falls ein älterer/teilweiser localStorage-Stand keine Personen (mehr) enthält,
+// stellen wir die Platzhalter-Personen samt ihrer Beziehungen wieder her – ohne
+// andere persistierte Inhalte (Erinnerungen, Vault, …) zu verlieren. So ist der
+// Stammbaum nach einem Reload garantiert wieder sichtbar.
+if (!Array.isArray(data.persons) || data.persons.length === 0) {
+  const seed = createSeedData();
+  data.persons = seed.persons;
+  data.relationships = seed.relationships;
+  if (!data.family) data.family = seed.family;
+  if (!data.profile) data.profile = seed.profile;
+  if (!Array.isArray(data.members) || data.members.length === 0) data.members = seed.members;
+}
+
 let counter = 1000;
 const newId = (prefix: string) => `${prefix}-${counter++}`;
 const nowIso = () => new Date().toISOString();
