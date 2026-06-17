@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { View, StyleSheet, Alert, Share, Platform } from 'react-native';
+import { View, StyleSheet, Alert } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Ionicons } from '@expo/vector-icons';
@@ -21,6 +21,8 @@ import {
   acceptSmartInviteDemo,
 } from '@/api/smartInvites';
 import { generateSuggestions } from '@/api/suggestions';
+import { openWhatsApp, openEmail, copyText, shareText } from '@/lib/share';
+import { notify } from '@/lib/confirm';
 import { qk } from '@/api/queryKeys';
 import {
   RELATIONSHIP_LABELS,
@@ -144,18 +146,16 @@ export function SmartInviteScreen({ navigation, route }: Props) {
     onError: (e) => Alert.alert('Fehler', friendlyError(e)),
   });
 
-  async function shareLink(inv: Invitation) {
+  function inviteText(inv: Invitation): string {
     const link = buildSmartInviteLink(inv.code);
-    const text = `${inv.message ?? 'Du bist eingeladen!'}\n\n${link}`;
-    try {
-      if (Platform.OS === 'web' && !navigator.share) {
-        Alert.alert('Einladungslink', link);
-      } else {
-        await Share.share({ message: text });
-      }
-    } catch {
-      Alert.alert('Einladungslink', link);
-    }
+    return `${inv.message ?? 'Du bist eingeladen, Teil unserer Familie auf FAMII zu werden.'}\n\n${link}`;
+  }
+  function shareLink(inv: Invitation) {
+    void shareText(inviteText(inv));
+  }
+  async function copyLink(inv: Invitation) {
+    const ok = await copyText(buildSmartInviteLink(inv.code));
+    notify('Einladungslink', ok ? 'Link in die Zwischenablage kopiert.' : buildSmartInviteLink(inv.code));
   }
 
   // Ergebnis-Ansicht
@@ -184,6 +184,17 @@ export function SmartInviteScreen({ navigation, route }: Props) {
           </View>
         </Card>
 
+        <View style={styles.shareRow}>
+          <View style={styles.shareCell}>
+            <Button label="WhatsApp" icon="logo-whatsapp" variant="secondary" onPress={() => openWhatsApp(inviteText(result))} />
+          </View>
+          <View style={styles.shareCell}>
+            <Button label="E-Mail" icon="mail-outline" variant="secondary" onPress={() => openEmail('Einladung zu FAMII', inviteText(result))} />
+          </View>
+          <View style={styles.shareCell}>
+            <Button label="Link kopieren" icon="copy-outline" variant="secondary" onPress={() => copyLink(result)} />
+          </View>
+        </View>
         <Button label="Einladung teilen" icon="share-social-outline" onPress={() => shareLink(result)} />
         <Button
           label="Einladung annehmen (Vorschau)"
@@ -257,6 +268,8 @@ export function SmartInviteScreen({ navigation, route }: Props) {
 
 const styles = StyleSheet.create({
   content: { gap: spacing.md, paddingTop: spacing.md },
+  shareRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm },
+  shareCell: { flexGrow: 1, flexBasis: '30%' },
   invite: { alignItems: 'center', gap: spacing.sm, backgroundColor: colors.surfaceAlt },
   linkBox: {
     alignSelf: 'stretch',

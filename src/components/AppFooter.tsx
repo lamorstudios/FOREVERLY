@@ -25,7 +25,7 @@ export function AppFooter({ onOpenLegal }: { onOpenLegal: (doc: LegalDoc) => voi
         </View>
       </View>
       <AppText variant="caption" center color={colors.textMuted}>
-        Einige Funktionen befinden sich noch in Entwicklung.
+        FAMII befindet sich aktuell in der privaten Beta. Vielen Dank für euer Feedback.
       </AppText>
 
       <View style={styles.links}>
