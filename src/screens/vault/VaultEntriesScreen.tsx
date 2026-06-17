@@ -6,7 +6,7 @@ import { Screen, AppText, Card, Button, Chip, EmptyState, Loading } from '@/comp
 import { listVaultEntries } from '@/api/vault';
 import { qk } from '@/api/queryKeys';
 import { useAuth } from '@/context/AuthContext';
-import { colors, spacing, useResponsive } from '@/theme';
+import { colors, spacing } from '@/theme';
 import type { ProfileStackParamList } from '@/navigation/types';
 import { VAULT_CATEGORY_META, AUDIENCE_META } from './vaultMeta';
 
@@ -14,7 +14,6 @@ type Props = NativeStackScreenProps<ProfileStackParamList, 'VaultEntries'>;
 
 export function VaultEntriesScreen({ navigation }: Props) {
   const { userId } = useAuth();
-  const { isSmall } = useResponsive();
   const entriesQuery = useQuery({ queryKey: qk.vaultEntries(userId!), queryFn: () => listVaultEntries(userId!) });
   const entries = entriesQuery.data ?? [];
 
@@ -46,22 +45,18 @@ export function VaultEntriesScreen({ navigation }: Props) {
             const meta = VAULT_CATEGORY_META[e.category];
             return (
               <Card key={e.id} onPress={() => navigation.navigate('VaultEntryForm', { entryId: e.id })}>
-                <View style={[styles.header, isSmall && styles.headerColumn]}>
-                  <View style={[styles.titleRow, !isSmall && styles.flex]}>
-                    <View style={styles.iconCircle}>
-                      <Ionicons name={meta.icon} size={22} color={colors.primary} />
-                    </View>
-                    <View style={styles.rowText}>
-                      <AppText variant="bodyStrong" numberOfLines={2}>{e.title}</AppText>
-                      <AppText variant="caption" color={colors.textSecondary}>{meta.label}</AppText>
-                    </View>
+                <View style={styles.titleRow}>
+                  <View style={styles.iconCircle}>
+                    <Ionicons name={meta.icon} size={22} color={colors.primary} />
                   </View>
-                  <View style={[styles.badgeWrap, isSmall && styles.badgeWrapSmall]}>
-                    <Chip label={AUDIENCE_META[e.release_audience]} color={colors.gold} />
-                  </View>
+                  <AppText variant="bodyStrong" numberOfLines={2} style={styles.title}>{e.title}</AppText>
                 </View>
+                <View style={styles.badgeRow}>
+                  <Chip label={AUDIENCE_META[e.release_audience]} color={colors.gold} />
+                </View>
+                <AppText variant="caption" color={colors.textSecondary}>{meta.label}</AppText>
                 {e.location ? (
-                  <AppText variant="caption" color={colors.textSecondary} style={styles.detail}>
+                  <AppText variant="caption" color={colors.textSecondary}>
                     📁 {e.location}
                   </AppText>
                 ) : null}
@@ -82,13 +77,8 @@ export function VaultEntriesScreen({ navigation }: Props) {
 
 const styles = StyleSheet.create({
   intro: { marginBottom: spacing.sm },
-  header: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
-  headerColumn: { flexDirection: 'column', alignItems: 'stretch', gap: spacing.sm },
   titleRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
-  flex: { flex: 1 },
   iconCircle: { width: 44, height: 44, borderRadius: 22, backgroundColor: colors.surfaceAlt, alignItems: 'center', justifyContent: 'center' },
-  rowText: { flex: 1, gap: 2 },
-  badgeWrap: { flexShrink: 0 },
-  badgeWrapSmall: { flexDirection: 'row', marginLeft: 44 + spacing.md },
-  detail: { marginTop: spacing.xs },
+  title: { flex: 1 },
+  badgeRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs },
 });

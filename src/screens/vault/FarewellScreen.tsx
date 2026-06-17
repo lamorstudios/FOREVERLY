@@ -6,7 +6,7 @@ import { Screen, AppText, Card, Button, Chip, EmptyState, Loading } from '@/comp
 import { listFarewellMessages } from '@/api/vault';
 import { qk } from '@/api/queryKeys';
 import { useAuth } from '@/context/AuthContext';
-import { colors, spacing, useResponsive } from '@/theme';
+import { colors, spacing } from '@/theme';
 import type { ProfileStackParamList } from '@/navigation/types';
 import { FAREWELL_KIND_META, FAREWELL_RECIPIENT_META } from './vaultMeta';
 
@@ -14,7 +14,6 @@ type Props = NativeStackScreenProps<ProfileStackParamList, 'Farewell'>;
 
 export function FarewellScreen({ navigation }: Props) {
   const { userId } = useAuth();
-  const { isSmall } = useResponsive();
   const query = useQuery({ queryKey: qk.farewellMessages(userId!), queryFn: () => listFarewellMessages(userId!) });
   const messages = query.data ?? [];
 
@@ -47,22 +46,18 @@ export function FarewellScreen({ navigation }: Props) {
             const meta = FAREWELL_KIND_META[m.kind];
             return (
               <Card key={m.id} onPress={() => navigation.navigate('FarewellForm', { messageId: m.id })}>
-                <View style={[styles.header, isSmall && styles.headerColumn]}>
-                  <View style={[styles.titleRow, !isSmall && styles.flex]}>
-                    <Ionicons name={meta.icon} size={24} color={colors.error} />
-                    <View style={styles.rowText}>
-                      <AppText variant="bodyStrong" numberOfLines={2}>{m.title}</AppText>
-                      <AppText variant="caption" color={colors.textSecondary}>
-                        {meta.label} · für {FAREWELL_RECIPIENT_META[m.recipient]}
-                      </AppText>
-                    </View>
-                  </View>
-                  <View style={[styles.badgeWrap, isSmall && styles.badgeWrapSmall]}>
-                    <Chip label="Nach Freigabe" color={colors.gold} />
-                  </View>
+                <View style={styles.titleRow}>
+                  <Ionicons name={meta.icon} size={24} color={colors.error} />
+                  <AppText variant="bodyStrong" numberOfLines={2} style={styles.title}>{m.title}</AppText>
                 </View>
+                <View style={styles.badgeRow}>
+                  <Chip label="Nach Freigabe" color={colors.gold} />
+                </View>
+                <AppText variant="caption" color={colors.textSecondary}>
+                  {meta.label} · für {FAREWELL_RECIPIENT_META[m.recipient]}
+                </AppText>
                 {m.content ? (
-                  <AppText variant="body" numberOfLines={2} style={styles.preview}>{m.content}</AppText>
+                  <AppText variant="body" numberOfLines={2}>{m.content}</AppText>
                 ) : null}
               </Card>
             );
@@ -76,12 +71,7 @@ export function FarewellScreen({ navigation }: Props) {
 
 const styles = StyleSheet.create({
   intro: { marginBottom: spacing.sm },
-  header: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
-  headerColumn: { flexDirection: 'column', alignItems: 'stretch', gap: spacing.sm },
   titleRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
-  flex: { flex: 1 },
-  rowText: { flex: 1, gap: 2 },
-  badgeWrap: { flexShrink: 0 },
-  badgeWrapSmall: { flexDirection: 'row', marginLeft: 24 + spacing.md },
-  preview: { marginTop: spacing.xs },
+  title: { flex: 1 },
+  badgeRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs },
 });

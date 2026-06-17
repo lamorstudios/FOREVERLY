@@ -15,14 +15,13 @@ import {
 import { listTrustees, deleteTrustee } from '@/api/estate';
 import { qk } from '@/api/queryKeys';
 import { useAuth } from '@/context/AuthContext';
-import { colors, spacing, useResponsive } from '@/theme';
+import { colors, spacing } from '@/theme';
 import type { ProfileStackParamList } from '@/navigation/types';
 
 type Props = NativeStackScreenProps<ProfileStackParamList, 'Trustees'>;
 
 export function TrusteesScreen({ navigation }: Props) {
   const { userId } = useAuth();
-  const { isSmall } = useResponsive();
   const trusteesQuery = useQuery({ queryKey: qk.trustees(userId!), queryFn: () => listTrustees(userId!) });
   const trustees = trusteesQuery.data ?? [];
 
@@ -70,27 +69,23 @@ export function TrusteesScreen({ navigation }: Props) {
         <>
           {trustees.map((t) => (
             <Card key={t.id} onPress={() => navigation.navigate('TrusteeForm', { trusteeId: t.id })}>
-              <View style={[styles.header, isSmall && styles.headerColumn]}>
-                <View style={[styles.row, !isSmall && styles.flex]}>
-                  <Avatar name={t.name} size={48} />
-                  <View style={styles.rowText}>
-                    <AppText variant="bodyStrong" numberOfLines={2}>
-                      {t.name}
-                    </AppText>
-                    <AppText variant="caption" color={colors.textSecondary} numberOfLines={2}>
-                      {t.relation}
-                      {t.phone ? ` · ${t.phone}` : ''}
-                    </AppText>
-                  </View>
-                </View>
-                <View style={[styles.badgeWrap, isSmall && styles.badgeWrapSmall]}>
-                  {t.can_confirm_death ? (
-                    <Chip label="Darf bestätigen" selected color={colors.success} />
-                  ) : (
-                    <Chip label="Nur Hinweis" color={colors.textMuted} />
-                  )}
-                </View>
+              <View style={styles.titleRow}>
+                <Avatar name={t.name} size={48} />
+                <AppText variant="bodyStrong" numberOfLines={2} style={styles.title}>
+                  {t.name}
+                </AppText>
               </View>
+              <View style={styles.badgeRow}>
+                {t.can_confirm_death ? (
+                  <Chip label="Darf bestätigen" selected color={colors.success} />
+                ) : (
+                  <Chip label="Nur Hinweis" color={colors.textMuted} />
+                )}
+              </View>
+              <AppText variant="caption" color={colors.textSecondary}>
+                {t.relation}
+                {t.phone ? ` · ${t.phone}` : ''}
+              </AppText>
               <View style={styles.cardActions}>
                 <Button
                   label="Entfernen"
@@ -115,12 +110,8 @@ export function TrusteesScreen({ navigation }: Props) {
 
 const styles = StyleSheet.create({
   intro: { marginBottom: spacing.sm },
-  header: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
-  headerColumn: { flexDirection: 'column', alignItems: 'stretch', gap: spacing.sm },
-  row: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
-  flex: { flex: 1 },
-  rowText: { flex: 1, gap: 2 },
-  badgeWrap: { flexShrink: 0 },
-  badgeWrapSmall: { flexDirection: 'row', marginLeft: 48 + spacing.md },
+  titleRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+  title: { flex: 1 },
+  badgeRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs },
   cardActions: { flexDirection: 'row', justifyContent: 'flex-end', marginTop: spacing.xs },
 });
