@@ -7,6 +7,19 @@ import { notify } from './confirm';
  * (Linking/Clipboard) und nativ.
  */
 
+/** Kurzer, persönlicher Einladungstext (kein Entwickler-Jargon, Link am Ende). */
+export function inviteMessage(link: string, inviterFirstName?: string | null): string {
+  const opener = inviterFirstName
+    ? `${inviterFirstName} lädt dich zu FAMII ein ❤️`
+    : 'Du bist zu FAMII eingeladen ❤️';
+  return (
+    `${opener}\n\n` +
+    'Eure Familie kann hier Erinnerungen, Fotos und Geschichten gemeinsam bewahren.\n\n' +
+    'Einladung öffnen:\n' +
+    link
+  );
+}
+
 export async function openWhatsApp(text: string): Promise<void> {
   const url = `https://wa.me/?text=${encodeURIComponent(text)}`;
   try {

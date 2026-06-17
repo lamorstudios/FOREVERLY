@@ -21,7 +21,7 @@ import {
   acceptSmartInviteDemo,
 } from '@/api/smartInvites';
 import { generateSuggestions } from '@/api/suggestions';
-import { openWhatsApp, openEmail, copyText, shareText } from '@/lib/share';
+import { openWhatsApp, openEmail, copyText, shareText, inviteMessage } from '@/lib/share';
 import { notify } from '@/lib/confirm';
 import { qk } from '@/api/queryKeys';
 import {
@@ -147,13 +147,7 @@ export function SmartInviteScreen({ navigation, route }: Props) {
   });
 
   function inviteText(inv: Invitation): string {
-    const link = buildSmartInviteLink(inv.code);
-    return (
-      'Du wurdest zu FAMII eingeladen ❤️\n\n' +
-      'Gemeinsam könnt ihr Erinnerungen, Fotos und eure Familiengeschichte bewahren.\n\n' +
-      'Einladung öffnen:\n' +
-      link
-    );
+    return inviteMessage(buildSmartInviteLink(inv.code), myPerson?.first_name);
   }
   function shareLink(inv: Invitation) {
     void shareText(inviteText(inv));
@@ -168,7 +162,7 @@ export function SmartInviteScreen({ navigation, route }: Props) {
     const name = result.person_id
       ? fullName(persons.find((p) => p.id === result.person_id)?.first_name, persons.find((p) => p.id === result.person_id)?.last_name)
       : 'dein Familienmitglied';
-    const inviterName = fullName(myPerson?.first_name, myPerson?.last_name) || 'dir';
+    const inviterName = myPerson?.first_name || 'Ein Familienmitglied';
     return (
       <Screen contentStyle={styles.content}>
         <Card style={styles.invite}>
@@ -177,14 +171,17 @@ export function SmartInviteScreen({ navigation, route }: Props) {
             Einladung zu FAMII
           </AppText>
           <AppText variant="body" center color={colors.textSecondary}>
-            Für {name} · Von {inviterName}
+            {inviterName} lädt {name} ein, Teil der Familiengeschichte zu werden.
           </AppText>
           <View style={styles.linkBox}>
             <Ionicons name="checkmark-circle" size={18} color={colors.success} />
             <AppText variant="caption" color={colors.textSecondary}>
-              Link bereit zum Teilen
+              Einladungslink bereit
             </AppText>
           </View>
+          <AppText variant="caption" center color={colors.textMuted}>
+            Einladungscode: {result.code}
+          </AppText>
         </Card>
 
         <View style={styles.shareRow}>

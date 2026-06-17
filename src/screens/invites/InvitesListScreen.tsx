@@ -22,7 +22,7 @@ import {
   buildSmartInviteLink,
 } from '@/api/smartInvites';
 import { generateSuggestions } from '@/api/suggestions';
-import { shareText } from '@/lib/share';
+import { shareText, inviteMessage } from '@/lib/share';
 import { qk } from '@/api/queryKeys';
 import { RELATIONSHIP_LABELS } from '@/constants/relationships';
 import { fullName } from '@/lib/format';
@@ -81,12 +81,8 @@ export function InvitesListScreen({ navigation }: Props) {
   });
 
   function share(inv: Invitation) {
-    const link = buildSmartInviteLink(inv.code);
-    const text =
-      'Du wurdest zu FAMII eingeladen ❤️\n\n' +
-      'Gemeinsam könnt ihr Erinnerungen, Fotos und eure Familiengeschichte bewahren.\n\n' +
-      'Einladung öffnen:\n' + link;
-    void shareText(text);
+    const myFirst = persons.find((p) => p.user_id === userId)?.first_name;
+    void shareText(inviteMessage(buildSmartInviteLink(inv.code), myFirst));
   }
 
   if (invitesQuery.isLoading) return <Loading message="Einladungen werden geladen …" />;

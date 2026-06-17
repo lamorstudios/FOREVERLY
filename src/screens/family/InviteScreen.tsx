@@ -24,7 +24,7 @@ import { useFamily } from '@/context/FamilyContext';
 import { useAuth } from '@/context/AuthContext';
 import { friendlyError } from '@/lib/errors';
 import { confirmAsync, notify } from '@/lib/confirm';
-import { shareText, copyText } from '@/lib/share';
+import { shareText, copyText, inviteMessage } from '@/lib/share';
 import { formatDate } from '@/lib/format';
 import { colors, spacing, radius } from '@/theme';
 import type { FamilyStackParamList } from '@/navigation/types';
@@ -81,12 +81,7 @@ export function InviteScreen() {
   });
 
   function handleShare(code: string) {
-    const link = buildInviteLink(code);
-    const text =
-      'Du wurdest zu FAMII eingeladen ❤️\n\n' +
-      'Gemeinsam könnt ihr Erinnerungen, Fotos und eure Familiengeschichte bewahren.\n\n' +
-      `Einladungscode: ${code}\n\nEinladung öffnen:\n${link}`;
-    void shareText(text);
+    void shareText(inviteMessage(buildInviteLink(code)));
   }
 
   async function handleRevoke(invitation: Invitation) {

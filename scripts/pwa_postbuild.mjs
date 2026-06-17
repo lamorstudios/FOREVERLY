@@ -54,12 +54,12 @@ const meta = [
   `<link rel="apple-touch-icon" href="${BASE}/apple-touch-icon.png" />`,
   `<meta property="og:type" content="website" />`,
   `<meta property="og:site_name" content="FAMII" />`,
-  `<meta property="og:title" content="Einladung zu deiner Familiengeschichte" />`,
-  `<meta property="og:description" content="Du wurdest zu FAMII eingeladen, gemeinsam Erinnerungen und Familiengeschichte zu bewahren." />`,
+  `<meta property="og:title" content="Einladung zu FAMII" />`,
+  `<meta property="og:description" content="Bewahrt Erinnerungen, Fotos und eure Familiengeschichte gemeinsam." />`,
   `<meta property="og:image" content="${ORIGIN}/og-image.png" />`,
   `<meta name="twitter:card" content="summary_large_image" />`,
-  `<meta name="twitter:title" content="Einladung zu deiner Familiengeschichte" />`,
-  `<meta name="twitter:description" content="Du wurdest zu FAMII eingeladen, gemeinsam Erinnerungen und Familiengeschichte zu bewahren." />`,
+  `<meta name="twitter:title" content="Einladung zu FAMII" />`,
+  `<meta name="twitter:description" content="Bewahrt Erinnerungen, Fotos und eure Familiengeschichte gemeinsam." />`,
   `<meta name="twitter:image" content="${ORIGIN}/og-image.png" />`,
 ].join('');
 
