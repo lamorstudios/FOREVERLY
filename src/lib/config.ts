@@ -9,9 +9,17 @@ type Extra = {
 
 const extra = (Constants.expoConfig?.extra ?? {}) as Extra;
 
+// Leere Strings wie „nicht gesetzt" behandeln. WICHTIG: Im CI sind die
+// EXPO_PUBLIC_*-Variablen über den `env:`-Block immer definiert – fehlt das
+// Secret, ist der Wert ein LEERER String. `??` würde diesen NICHT abfangen,
+// sodass ein leerer supabaseUrl an createClient ginge ("supabaseUrl is
+// required" → Absturz beim Start). Daher hier auf nicht-leere Werte normalisieren.
+const envSupabaseUrl = extra.supabaseUrl && extra.supabaseUrl.trim() ? extra.supabaseUrl.trim() : undefined;
+const envSupabaseAnonKey =
+  extra.supabaseAnonKey && extra.supabaseAnonKey.trim() ? extra.supabaseAnonKey.trim() : undefined;
+
 /** Sind echte Supabase-Zugangsdaten konfiguriert? */
-export const isSupabaseConfigured =
-  !!extra.supabaseUrl && !!extra.supabaseAnonKey;
+export const isSupabaseConfigured = !!envSupabaseUrl && !!envSupabaseAnonKey;
 
 /**
  * Demo-Modus: ermöglicht es, die App ohne Supabase-Setup (z.B. im Browser)
@@ -25,8 +33,12 @@ export const DEMO_MODE =
 
 export const config = {
   // Im Demo-Modus dienen Platzhalterwerte nur dazu, dass der Supabase-Client
-  // konstruiert werden kann – er wird dann nie aufgerufen.
-  supabaseUrl: extra.supabaseUrl ?? 'https://demo.foreverly.invalid',
-  supabaseAnonKey: extra.supabaseAnonKey ?? 'demo-anon-key',
-  inviteBaseUrl: extra.inviteBaseUrl ?? 'https://foreverly.app/invite',
+  // konstruiert werden kann – er wird dann nie aufgerufen. Es MUSS eine
+  // gültige (nicht-leere) URL sein, sonst wirft createClient beim Start.
+  supabaseUrl: envSupabaseUrl ?? 'https://demo.foreverly.invalid',
+  supabaseAnonKey: envSupabaseAnonKey ?? 'demo-anon-key',
+  inviteBaseUrl:
+    extra.inviteBaseUrl && extra.inviteBaseUrl.trim()
+      ? extra.inviteBaseUrl
+      : 'https://foreverly.app/invite',
 };
