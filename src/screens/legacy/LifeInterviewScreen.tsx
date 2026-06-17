@@ -92,6 +92,12 @@ export function LifeInterviewScreen({ route }: Props) {
             <Chip label="🎬 Video" selected={kind === 'video'} onPress={() => changeKind('video')} />
           </View>
 
+          {kind !== 'text' ? (
+            <AppText variant="caption" color={colors.primary} style={styles.modeHint}>
+              {kind === 'audio' ? '🎙️ Audio-Modus aktiv' : '🎬 Video-Modus aktiv'}
+            </AppText>
+          ) : null}
+
           {kind === 'audio' ? (
             <VoiceRecorder
               value={mediaUri ? { uri: mediaUri, durationSeconds: audioDuration ?? 0 } : null}
@@ -179,6 +185,7 @@ const styles = StyleSheet.create({
   section: { gap: spacing.sm, marginTop: spacing.md },
   chips: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.xs },
   kinds: { flexDirection: 'row', gap: spacing.xs, marginVertical: spacing.sm },
+  modeHint: { marginBottom: spacing.xs, fontWeight: '600' },
   multiline: { minHeight: 100, textAlignVertical: 'top', borderRadius: radius.md, marginTop: spacing.sm },
   formActions: { flexDirection: 'row', gap: spacing.sm, marginTop: spacing.sm },
   row: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },

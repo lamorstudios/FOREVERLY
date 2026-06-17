@@ -6,6 +6,7 @@ import { Video, ResizeMode } from 'expo-av';
 import { AppText } from './AppText';
 import { Card } from './Card';
 import { Button } from './Button';
+import { isWeb, pickMediaFile } from '@/lib/webFile';
 import { colors, spacing, radius } from '@/theme';
 
 export interface VideoValue {
@@ -33,6 +34,14 @@ export function VideoRecorder({ value, onChange }: Props) {
   async function record() {
     setError(null);
     try {
+      // Im Web echten Datei-/Aufnahme-Dialog öffnen
+      // (`<input type="file" accept="video/*" capture>`). Auf dem Handy
+      // startet das direkt die Kamera-Aufnahme, am Desktop die Dateiauswahl.
+      if (isWeb) {
+        const picked = await pickMediaFile('video/*', true);
+        if (picked) onChange({ uri: picked.uri });
+        return;
+      }
       const perm = await ImagePicker.requestCameraPermissionsAsync();
       if (!perm.granted) {
         setError(PERM_MSG);
@@ -52,6 +61,12 @@ export function VideoRecorder({ value, onChange }: Props) {
   async function pickLibrary() {
     setError(null);
     try {
+      // Im Web ohne `capture`: Datei-/Galerieauswahl statt Kamera.
+      if (isWeb) {
+        const picked = await pickMediaFile('video/*', false);
+        if (picked) onChange({ uri: picked.uri });
+        return;
+      }
       const res = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Videos,
         quality: 0.7,
@@ -87,10 +102,12 @@ export function VideoRecorder({ value, onChange }: Props) {
     <Card style={styles.card}>
       <Ionicons name="videocam-outline" size={40} color={colors.primary} />
       <AppText variant="body" color={colors.textSecondary} center>
-        Nimm ein kurzes Video auf und sieh es dir vor dem Speichern an.
+        {isWeb
+          ? 'Nimm direkt am Handy ein kurzes Video auf oder lade eine Videodatei hoch – danach kannst du es vor dem Speichern ansehen.'
+          : 'Nimm ein kurzes Video auf und sieh es dir vor dem Speichern an.'}
       </AppText>
-      <Button label="Video aufnehmen" icon="videocam" onPress={record} />
-      <Button label="Aus Galerie wählen" icon="film-outline" variant="secondary" onPress={pickLibrary} />
+      <Button label="Video aufnehmen oder hochladen" icon="videocam" onPress={record} />
+      <Button label={isWeb ? 'Datei auswählen' : 'Aus Galerie wählen'} icon="film-outline" variant="secondary" onPress={pickLibrary} />
       {error ? (
         <AppText variant="caption" color={colors.error} center>{error}</AppText>
       ) : null}

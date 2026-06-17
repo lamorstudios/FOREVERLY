@@ -7,6 +7,7 @@ import { Button } from './Button';
 import { useAudioRecorder, type RecordingResult } from '@/hooks/useAudioRecorder';
 import { useAudioPlayer } from '@/hooks/useAudioPlayer';
 import { formatDuration } from '@/lib/format';
+import { isWeb, pickMediaFile } from '@/lib/webFile';
 import { colors, spacing, radius, shadow, withAlpha } from '@/theme';
 
 interface Props {
@@ -53,6 +54,15 @@ export function VoiceRecorder({ value, onChange }: Props) {
   }, [recorder.isRecording, wave, pulse]);
 
   async function handleStart() {
+    // Im Web ist In-App-Aufnahme (expo-av) nicht zuverlässig: echten Datei-/
+    // Aufnahme-Dialog öffnen (`<input type="file" accept="audio/*" capture>`).
+    // Auf dem Handy startet das direkt die Mikrofon-Aufnahme, am Desktop die
+    // Dateiauswahl. Das Ergebnis ist eine sofort abspielbare Blob-URL.
+    if (isWeb) {
+      const picked = await pickMediaFile('audio/*', true);
+      if (picked) onChange({ uri: picked.uri, durationSeconds: 0 });
+      return;
+    }
     onChange(null);
     recorder.reset();
     await recorder.start();
@@ -125,7 +135,7 @@ export function VoiceRecorder({ value, onChange }: Props) {
           </View>
         </View>
         <View style={styles.actions}>
-          <Button label="Neu aufnehmen" icon="mic-outline" variant="secondary" fullWidth={false} onPress={handleStart} />
+          <Button label={isWeb ? 'Neu aufnehmen / hochladen' : 'Neu aufnehmen'} icon="mic-outline" variant="secondary" fullWidth={false} onPress={handleStart} />
           <Button label="Löschen" icon="trash-outline" variant="ghost" fullWidth={false} onPress={handleDelete} />
         </View>
       </Card>
@@ -137,9 +147,11 @@ export function VoiceRecorder({ value, onChange }: Props) {
     <Card style={styles.card}>
       <Ionicons name="mic-outline" size={40} color={colors.primary} />
       <AppText variant="body" color={colors.textSecondary} center>
-        Nimm deine Sprachnachricht auf und höre sie vor dem Speichern an.
+        {isWeb
+          ? 'Nimm direkt am Handy eine Sprachnachricht auf oder lade eine Audiodatei hoch – danach kannst du sie vor dem Speichern anhören.'
+          : 'Nimm deine Sprachnachricht auf und höre sie vor dem Speichern an.'}
       </AppText>
-      <Button label="Aufnahme starten" icon="mic" onPress={handleStart} />
+      <Button label={isWeb ? 'Audio aufnehmen oder hochladen' : 'Aufnahme starten'} icon="mic" onPress={handleStart} />
     </Card>
   );
 }
