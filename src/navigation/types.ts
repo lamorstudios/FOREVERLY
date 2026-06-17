@@ -131,6 +131,7 @@ export type ProfileStackParamList = {
   FamilySettings: undefined;
   // Phase 15 · Production
   Settings: undefined;
+  Language: undefined;
   Premium: undefined;
   Roles: undefined;
   NotificationSettings: undefined;
