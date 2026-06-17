@@ -1,4 +1,4 @@
-import { View, StyleSheet, Alert, Share, Platform } from 'react-native';
+import { View, StyleSheet, Alert } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { Ionicons } from '@expo/vector-icons';
@@ -22,6 +22,7 @@ import {
   buildSmartInviteLink,
 } from '@/api/smartInvites';
 import { generateSuggestions } from '@/api/suggestions';
+import { shareText } from '@/lib/share';
 import { qk } from '@/api/queryKeys';
 import { RELATIONSHIP_LABELS } from '@/constants/relationships';
 import { fullName } from '@/lib/format';
@@ -79,14 +80,13 @@ export function InvitesListScreen({ navigation }: Props) {
     onError: (e) => Alert.alert('Fehler', friendlyError(e)),
   });
 
-  async function share(inv: Invitation) {
+  function share(inv: Invitation) {
     const link = buildSmartInviteLink(inv.code);
-    try {
-      if (Platform.OS === 'web' && !navigator.share) Alert.alert('Einladungslink', link);
-      else await Share.share({ message: `${inv.message ?? 'Du bist eingeladen!'}\n\n${link}` });
-    } catch {
-      Alert.alert('Einladungslink', link);
-    }
+    const text =
+      'Du wurdest zu FAMII eingeladen ❤️\n\n' +
+      'Gemeinsam könnt ihr Erinnerungen, Fotos und eure Familiengeschichte bewahren.\n\n' +
+      'Einladung öffnen:\n' + link;
+    void shareText(text);
   }
 
   if (invitesQuery.isLoading) return <Loading message="Einladungen werden geladen …" />;

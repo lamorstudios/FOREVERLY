@@ -148,7 +148,12 @@ export function SmartInviteScreen({ navigation, route }: Props) {
 
   function inviteText(inv: Invitation): string {
     const link = buildSmartInviteLink(inv.code);
-    return `${inv.message ?? 'Du bist eingeladen, Teil unserer Familie auf FAMII zu werden.'}\n\n${link}`;
+    return (
+      'Du wurdest zu FAMII eingeladen ❤️\n\n' +
+      'Gemeinsam könnt ihr Erinnerungen, Fotos und eure Familiengeschichte bewahren.\n\n' +
+      'Einladung öffnen:\n' +
+      link
+    );
   }
   function shareLink(inv: Invitation) {
     void shareText(inviteText(inv));
@@ -160,26 +165,24 @@ export function SmartInviteScreen({ navigation, route }: Props) {
 
   // Ergebnis-Ansicht
   if (result) {
-    const link = buildSmartInviteLink(result.code);
     const name = result.person_id
       ? fullName(persons.find((p) => p.id === result.person_id)?.first_name, persons.find((p) => p.id === result.person_id)?.last_name)
       : 'dein Familienmitglied';
+    const inviterName = fullName(myPerson?.first_name, myPerson?.last_name) || 'dir';
     return (
       <Screen contentStyle={styles.content}>
         <Card style={styles.invite}>
           <Ionicons name="heart" size={40} color={colors.gold} />
           <AppText variant="title" center color={colors.primaryDark}>
-            Einladung erstellt
+            Einladung zu FAMII
           </AppText>
           <AppText variant="body" center color={colors.textSecondary}>
-            {result.message}
+            Für {name} · Von {inviterName}
           </AppText>
           <View style={styles.linkBox}>
-            <AppText variant="caption" color={colors.textMuted}>
-              Einladungslink
-            </AppText>
-            <AppText variant="bodyStrong" color={colors.primaryDark}>
-              {link}
+            <Ionicons name="checkmark-circle" size={18} color={colors.success} />
+            <AppText variant="caption" color={colors.textSecondary}>
+              Link bereit zum Teilen
             </AppText>
           </View>
         </Card>
@@ -272,12 +275,14 @@ const styles = StyleSheet.create({
   shareCell: { flexGrow: 1, flexBasis: '30%' },
   invite: { alignItems: 'center', gap: spacing.sm, backgroundColor: colors.surfaceAlt },
   linkBox: {
-    alignSelf: 'stretch',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.xs,
     backgroundColor: colors.surface,
     borderRadius: radius.md,
     borderWidth: 1,
     borderColor: colors.border,
-    padding: spacing.md,
-    gap: 2,
+    paddingHorizontal: spacing.md,
+    paddingVertical: spacing.sm,
   },
 });

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { View, StyleSheet, Alert, Share } from 'react-native';
+import { View, StyleSheet, Alert } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import {
   Screen,
@@ -23,7 +23,8 @@ import { qk } from '@/api/queryKeys';
 import { useFamily } from '@/context/FamilyContext';
 import { useAuth } from '@/context/AuthContext';
 import { friendlyError } from '@/lib/errors';
-import { confirmAsync } from '@/lib/confirm';
+import { confirmAsync, notify } from '@/lib/confirm';
+import { shareText, copyText } from '@/lib/share';
 import { formatDate } from '@/lib/format';
 import { colors, spacing, radius } from '@/theme';
 import type { FamilyStackParamList } from '@/navigation/types';
@@ -79,15 +80,13 @@ export function InviteScreen() {
     onError: (e) => Alert.alert('Fehler', friendlyError(e)),
   });
 
-  async function handleShare(code: string) {
+  function handleShare(code: string) {
     const link = buildInviteLink(code);
-    try {
-      await Share.share({
-        message: `Tritt unserer Familie auf FAMII bei! Einladungscode: ${code}\n${link}`,
-      });
-    } catch (e) {
-      Alert.alert('Fehler', friendlyError(e));
-    }
+    const text =
+      'Du wurdest zu FAMII eingeladen ❤️\n\n' +
+      'Gemeinsam könnt ihr Erinnerungen, Fotos und eure Familiengeschichte bewahren.\n\n' +
+      `Einladungscode: ${code}\n\nEinladung öffnen:\n${link}`;
+    void shareText(text);
   }
 
   async function handleRevoke(invitation: Invitation) {
@@ -135,12 +134,21 @@ export function InviteScreen() {
             {createdCode}
           </AppText>
           <AppText variant="caption" color={colors.textMuted} center>
-            {buildInviteLink(createdCode)}
+            FAMII Einladungslink bereit zum Teilen
           </AppText>
           <Button
             label="Teilen"
             icon="share-social-outline"
             onPress={() => handleShare(createdCode)}
+          />
+          <Button
+            label="Link kopieren"
+            icon="copy-outline"
+            variant="secondary"
+            onPress={async () => {
+              const ok = await copyText(buildInviteLink(createdCode));
+              notify('Einladungslink', ok ? 'Link in die Zwischenablage kopiert.' : buildInviteLink(createdCode));
+            }}
           />
         </Card>
       ) : null}

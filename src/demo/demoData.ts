@@ -124,7 +124,7 @@ export interface DemoDataset {
 export function createSeedData(): DemoDataset {
   const profile: Profile = {
     id: DEMO_USER_ID,
-    email: 'nick@foreverly.demo',
+    email: 'nick@famii.demo',
     full_name: 'Nick Mielke',
     avatar_url: portraitImage('NM'),
     bio: 'Sammelt die Erinnerungen der Familie Mielke. 💛',

@@ -20,7 +20,7 @@ const demoSession = {
   token_type: 'bearer',
   user: {
     id: DEMO_USER_ID,
-    email: 'nick@foreverly.demo',
+    email: 'nick@famii.demo',
     app_metadata: {},
     user_metadata: { full_name: 'Nick Mielke' },
     aud: 'authenticated',
