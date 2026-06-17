@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { View, StyleSheet, Pressable } from 'react-native';
+import { View, StyleSheet, Pressable, ScrollView } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import {
   Screen,
@@ -23,6 +23,7 @@ import { colors, spacing, radius, useResponsive } from '@/theme';
 import type { FamilyStackParamList } from '@/navigation/types';
 import type { RelationshipCategory } from '@/types/models';
 import { FamilyTreeView } from './FamilyTreeView';
+import { FamilyTreeStarter } from './FamilyTreeStarter';
 
 type Props = NativeStackScreenProps<FamilyStackParamList, 'Network'>;
 type ViewMode = 'tree' | 'list';
@@ -162,13 +163,13 @@ export function NetworkScreen({ navigation }: Props) {
         {loading ? (
           <Loading message="Familie wird geladen …" />
         ) : persons.length === 0 ? (
-          <EmptyState
-            icon="people-circle-outline"
-            title="Noch keine Personen"
-            message="Füge die erste Person zu eurem Familiennetzwerk hinzu."
-            actionLabel="Person hinzufügen"
-            onAction={() => navigation.navigate('PersonForm', {})}
-          />
+          <ScrollView
+            style={styles.starterScroll}
+            contentContainerStyle={styles.starterContent}
+            showsVerticalScrollIndicator={false}
+          >
+            <FamilyTreeStarter onAdd={() => navigation.navigate('PersonForm', {})} />
+          </ScrollView>
         ) : (
           <View style={styles.treeArea}>
             <FamilyTreeView
@@ -405,6 +406,8 @@ const styles = StyleSheet.create({
     borderRadius: radius.lg,
     overflow: 'hidden',
   },
+  starterScroll: { flex: 1 },
+  starterContent: { flexGrow: 1, justifyContent: 'center' },
   headerButtons: {
     flexDirection: 'row',
     flexWrap: 'wrap',
