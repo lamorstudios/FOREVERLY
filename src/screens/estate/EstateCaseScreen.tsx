@@ -22,7 +22,7 @@ import {
 import { getProfile } from '@/api/profiles';
 import { qk } from '@/api/queryKeys';
 import { formatDateTime } from '@/lib/format';
-import { colors, spacing } from '@/theme';
+import { colors, spacing, useResponsive } from '@/theme';
 import type { ProfileStackParamList } from '@/navigation/types';
 import { CASE_STATUS } from './EstateHubScreen';
 
@@ -30,6 +30,7 @@ type Props = NativeStackScreenProps<ProfileStackParamList, 'EstateCase'>;
 
 export function EstateCaseScreen({ route }: Props) {
   const { caseId } = route.params;
+  const { isSmall } = useResponsive();
   const [busy, setBusy] = useState<string | null>(null);
 
   const caseQuery = useQuery({ queryKey: qk.estateCase(caseId), queryFn: () => getEstateCase(caseId) });
@@ -132,22 +133,26 @@ export function EstateCaseScreen({ route }: Props) {
             const done = confirmations.find((x) => x.trustee_id === t.id);
             return (
               <Card key={t.id}>
-                <View style={styles.row}>
-                  <Avatar name={t.name} size={44} />
-                  <View style={styles.rowText}>
-                    <AppText variant="bodyStrong" numberOfLines={1}>
-                      {t.name}
-                    </AppText>
-                    <AppText variant="caption" color={colors.textSecondary}>
-                      {t.relation}
-                    </AppText>
+                <View style={[styles.confirmHeader, isSmall && styles.confirmHeaderColumn]}>
+                  <View style={[styles.row, !isSmall && styles.flex]}>
+                    <Avatar name={t.name} size={44} />
+                    <View style={styles.rowText}>
+                      <AppText variant="bodyStrong" numberOfLines={2}>
+                        {t.name}
+                      </AppText>
+                      <AppText variant="caption" color={colors.textSecondary} numberOfLines={2}>
+                        {t.relation}
+                      </AppText>
+                    </View>
                   </View>
                   {done ? (
-                    <Chip
-                      label={done.decision === 'confirm' ? 'Bestätigt' : 'Abgelehnt'}
-                      selected
-                      color={done.decision === 'confirm' ? colors.success : colors.error}
-                    />
+                    <View style={[styles.badgeWrap, isSmall && styles.badgeWrapSmall]}>
+                      <Chip
+                        label={done.decision === 'confirm' ? 'Bestätigt' : 'Abgelehnt'}
+                        selected
+                        color={done.decision === 'confirm' ? colors.success : colors.error}
+                      />
+                    </View>
                   ) : null}
                 </View>
                 {!done ? (
@@ -281,6 +286,10 @@ const styles = StyleSheet.create({
   note: { marginTop: spacing.xs },
   progress: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginTop: spacing.sm },
   section: { marginTop: spacing.lg, gap: spacing.sm },
+  confirmHeader: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+  confirmHeaderColumn: { flexDirection: 'column', alignItems: 'stretch', gap: spacing.sm },
+  badgeWrap: { flexShrink: 0 },
+  badgeWrapSmall: { flexDirection: 'row', marginLeft: 44 + spacing.md },
   row: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   rowText: { flex: 1, gap: 2 },
   actions: { flexDirection: 'row', gap: spacing.sm, justifyContent: 'flex-end', marginTop: spacing.sm },

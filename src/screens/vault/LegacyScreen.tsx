@@ -5,7 +5,7 @@ import { Screen, AppText, Card, Button, Chip, EmptyState, Loading } from '@/comp
 import { listLegacyItems } from '@/api/vault';
 import { qk } from '@/api/queryKeys';
 import { useAuth } from '@/context/AuthContext';
-import { colors, spacing } from '@/theme';
+import { colors, spacing, useResponsive } from '@/theme';
 import type { ProfileStackParamList } from '@/navigation/types';
 import { LEGACY_META, AUDIENCE_META } from './vaultMeta';
 
@@ -13,6 +13,7 @@ type Props = NativeStackScreenProps<ProfileStackParamList, 'Legacy'>;
 
 export function LegacyScreen({ navigation }: Props) {
   const { userId } = useAuth();
+  const { isSmall } = useResponsive();
   const itemsQuery = useQuery({ queryKey: qk.legacyItems(userId!), queryFn: () => listLegacyItems(userId!) });
   const items = itemsQuery.data ?? [];
 
@@ -45,11 +46,13 @@ export function LegacyScreen({ navigation }: Props) {
             const meta = LEGACY_META[it.kind];
             return (
               <Card key={it.id} onPress={() => navigation.navigate('LegacyForm', { itemId: it.id })}>
-                <View style={styles.row}>
-                  <AppText variant="bodyStrong" style={styles.flex} numberOfLines={1}>
+                <View style={[styles.header, isSmall && styles.headerColumn]}>
+                  <AppText variant="bodyStrong" style={!isSmall && styles.flex} numberOfLines={2}>
                     {meta.emoji} {it.title}
                   </AppText>
-                  <Chip label={AUDIENCE_META[it.for_audience]} color={colors.gold} />
+                  <View style={[styles.badgeWrap, isSmall && styles.badgeWrapSmall]}>
+                    <Chip label={AUDIENCE_META[it.for_audience]} color={colors.gold} />
+                  </View>
                 </View>
                 <AppText variant="caption" color={colors.textSecondary}>{meta.label}</AppText>
                 <AppText variant="body" numberOfLines={3} style={styles.content}>{it.content}</AppText>
@@ -65,7 +68,10 @@ export function LegacyScreen({ navigation }: Props) {
 
 const styles = StyleSheet.create({
   intro: { marginBottom: spacing.sm },
-  row: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  header: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+  headerColumn: { flexDirection: 'column', alignItems: 'stretch', gap: spacing.sm },
   flex: { flex: 1 },
+  badgeWrap: { flexShrink: 0 },
+  badgeWrapSmall: { flexDirection: 'row' },
   content: { marginTop: spacing.xs },
 });

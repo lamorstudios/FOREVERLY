@@ -15,13 +15,14 @@ import {
 import { listTrustees, deleteTrustee } from '@/api/estate';
 import { qk } from '@/api/queryKeys';
 import { useAuth } from '@/context/AuthContext';
-import { colors, spacing } from '@/theme';
+import { colors, spacing, useResponsive } from '@/theme';
 import type { ProfileStackParamList } from '@/navigation/types';
 
 type Props = NativeStackScreenProps<ProfileStackParamList, 'Trustees'>;
 
 export function TrusteesScreen({ navigation }: Props) {
   const { userId } = useAuth();
+  const { isSmall } = useResponsive();
   const trusteesQuery = useQuery({ queryKey: qk.trustees(userId!), queryFn: () => listTrustees(userId!) });
   const trustees = trusteesQuery.data ?? [];
 
@@ -69,22 +70,26 @@ export function TrusteesScreen({ navigation }: Props) {
         <>
           {trustees.map((t) => (
             <Card key={t.id} onPress={() => navigation.navigate('TrusteeForm', { trusteeId: t.id })}>
-              <View style={styles.row}>
-                <Avatar name={t.name} size={48} />
-                <View style={styles.rowText}>
-                  <AppText variant="bodyStrong" numberOfLines={1}>
-                    {t.name}
-                  </AppText>
-                  <AppText variant="caption" color={colors.textSecondary} numberOfLines={1}>
-                    {t.relation}
-                    {t.phone ? ` · ${t.phone}` : ''}
-                  </AppText>
+              <View style={[styles.header, isSmall && styles.headerColumn]}>
+                <View style={[styles.row, !isSmall && styles.flex]}>
+                  <Avatar name={t.name} size={48} />
+                  <View style={styles.rowText}>
+                    <AppText variant="bodyStrong" numberOfLines={2}>
+                      {t.name}
+                    </AppText>
+                    <AppText variant="caption" color={colors.textSecondary} numberOfLines={2}>
+                      {t.relation}
+                      {t.phone ? ` · ${t.phone}` : ''}
+                    </AppText>
+                  </View>
                 </View>
-                {t.can_confirm_death ? (
-                  <Chip label="Darf bestätigen" selected color={colors.success} />
-                ) : (
-                  <Chip label="Nur Hinweis" color={colors.textMuted} />
-                )}
+                <View style={[styles.badgeWrap, isSmall && styles.badgeWrapSmall]}>
+                  {t.can_confirm_death ? (
+                    <Chip label="Darf bestätigen" selected color={colors.success} />
+                  ) : (
+                    <Chip label="Nur Hinweis" color={colors.textMuted} />
+                  )}
+                </View>
               </View>
               <View style={styles.cardActions}>
                 <Button
@@ -110,7 +115,12 @@ export function TrusteesScreen({ navigation }: Props) {
 
 const styles = StyleSheet.create({
   intro: { marginBottom: spacing.sm },
+  header: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+  headerColumn: { flexDirection: 'column', alignItems: 'stretch', gap: spacing.sm },
   row: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
+  flex: { flex: 1 },
   rowText: { flex: 1, gap: 2 },
+  badgeWrap: { flexShrink: 0 },
+  badgeWrapSmall: { flexDirection: 'row', marginLeft: 48 + spacing.md },
   cardActions: { flexDirection: 'row', justifyContent: 'flex-end', marginTop: spacing.xs },
 });
