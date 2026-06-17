@@ -72,24 +72,72 @@ import type {
   FeedbackKind,
 } from '@/types/models';
 import { createSeedData, DEMO_FAMILY_ID, DEMO_USER_ID } from './demoData';
+import type { DemoDataset } from './demoData';
 
 /**
- * In-Memory-Datenspeicher für den Demo-Modus.
+ * Datenspeicher für den Demo-/Testmodus.
  *
- * Lese-Operationen liefern die Beispiel-Daten; Schreib-Operationen verändern
- * den Speicher zur Laufzeit (zurückgesetzt beim Neuladen der Seite). So fühlt
- * sich die Vorschau interaktiv an – ganz ohne Supabase.
+ * Lese-Operationen liefern die Daten; Schreib-Operationen verändern den Speicher.
+ * Damit echte Testfamilien ihre Eingaben behalten, wird der Datensatz im Web
+ * automatisch in `localStorage` gespeichert und beim Start wiederhergestellt –
+ * die App „vergisst" nach einem Reload nichts mehr. (Auf nativen Geräten ohne
+ * `localStorage` bleibt es ein In-Memory-Speicher.)
+ *
+ * Hinweis: Sehr große Foto-Uploads (Base64) können das `localStorage`-Limit
+ * (~5 MB) sprengen; das Speichern ist daher fehlertolerant (try/catch).
  */
-let data = createSeedData();
+const PERSIST_KEY = 'famii.demo.v2';
+
+function hasLocalStorage(): boolean {
+  try {
+    return typeof localStorage !== 'undefined' && localStorage !== null;
+  } catch {
+    return false;
+  }
+}
+
+function loadPersisted(): DemoDataset | null {
+  try {
+    if (!hasLocalStorage()) return null;
+    const raw = localStorage.getItem(PERSIST_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as DemoDataset;
+    // Mindest-Plausibilität, sonst frische Seed-Daten verwenden.
+    if (!parsed || !parsed.family || !Array.isArray(parsed.persons)) return null;
+    return parsed;
+  } catch {
+    return null;
+  }
+}
+
+let data: DemoDataset = loadPersisted() ?? createSeedData();
 let counter = 1000;
 const newId = (prefix: string) => `${prefix}-${counter++}`;
 const nowIso = () => new Date().toISOString();
 
-export function resetDemoData() {
-  data = createSeedData();
+let persistTimer: ReturnType<typeof setTimeout> | null = null;
+function schedulePersist() {
+  if (!hasLocalStorage()) return;
+  if (persistTimer) clearTimeout(persistTimer);
+  persistTimer = setTimeout(() => {
+    try {
+      localStorage.setItem(PERSIST_KEY, JSON.stringify(data));
+    } catch {
+      // Speicher voll / nicht verfügbar – Daten bleiben zumindest im Speicher.
+    }
+  }, 400);
 }
 
-export const demoStore = {
+export function resetDemoData() {
+  data = createSeedData();
+  try {
+    if (hasLocalStorage()) localStorage.removeItem(PERSIST_KEY);
+  } catch {
+    /* ignore */
+  }
+}
+
+const demoStoreImpl = {
   // --- Profile ---
   getProfile(userId: string): Profile | null {
     return userId === DEMO_USER_ID ? data.profile : data.profile;
@@ -1866,6 +1914,24 @@ export const demoStore = {
     return JSON.parse(JSON.stringify(data));
   },
 };
+
+/**
+ * Exportierter Store: jeder Methodenaufruf speichert den Datensatz anschließend
+ * (debounced) persistent, damit nach einem Reload nichts verloren geht.
+ */
+export const demoStore: typeof demoStoreImpl = new Proxy(demoStoreImpl, {
+  get(target, prop, receiver) {
+    const value = Reflect.get(target, prop, receiver);
+    if (typeof value === 'function') {
+      return (...args: unknown[]) => {
+        const result = (value as (...a: unknown[]) => unknown).apply(target, args);
+        schedulePersist();
+        return result;
+      };
+    }
+    return value;
+  },
+});
 
 /** Ermittelt ein Profil zu einer Nutzer-ID (Demo). */
 function resolveAuthor(userId: string | null): Profile | undefined {

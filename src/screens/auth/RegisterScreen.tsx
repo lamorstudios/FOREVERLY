@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { View, StyleSheet, Pressable } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Screen, AppText, Button, TextField } from '@/components';
 import { BrandHeader } from './BrandHeader';
@@ -15,6 +16,7 @@ export function RegisterScreen({ navigation }: Props) {
   const [fullName, setFullName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [consent, setConsent] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -24,6 +26,8 @@ export function RegisterScreen({ navigation }: Props) {
     if (!email.trim()) return setError('Bitte gib deine E-Mail ein.');
     if (password.length < 6)
       return setError('Das Passwort muss mindestens 6 Zeichen haben.');
+    if (!consent)
+      return setError('Bitte stimme den AGB und der Datenschutzerklärung zu.');
 
     setLoading(true);
     try {
@@ -67,12 +71,29 @@ export function RegisterScreen({ navigation }: Props) {
           secure
           hint="Wähle ein sicheres Passwort, das du dir gut merken kannst."
         />
+        <Pressable
+          onPress={() => setConsent((c) => !c)}
+          style={styles.consentRow}
+          accessibilityRole="checkbox"
+          accessibilityState={{ checked: consent }}
+        >
+          <Ionicons
+            name={consent ? 'checkbox' : 'square-outline'}
+            size={24}
+            color={consent ? colors.primary : colors.textMuted}
+          />
+          <AppText variant="caption" color={colors.textSecondary} style={styles.consentText}>
+            Ich akzeptiere die AGB und habe die Datenschutzerklärung gelesen. Meine
+            Daten werden gemäß DSGVO ausschließlich zur Nutzung von FAMII verarbeitet.
+          </AppText>
+        </Pressable>
+
         {error ? (
           <AppText variant="caption" color={colors.error}>
             {error}
           </AppText>
         ) : null}
-        <Button label="Konto erstellen" onPress={handleRegister} loading={loading} />
+        <Button label="Konto erstellen" onPress={handleRegister} loading={loading} disabled={!consent} />
       </View>
       <Pressable onPress={() => navigation.navigate('Login')} style={styles.footer}>
         <AppText variant="body" color={colors.textSecondary} center>
@@ -89,5 +110,7 @@ export function RegisterScreen({ navigation }: Props) {
 const styles = StyleSheet.create({
   content: { gap: spacing.lg, paddingTop: spacing.lg },
   form: { gap: spacing.md },
+  consentRow: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.sm },
+  consentText: { flex: 1 },
   footer: { marginTop: spacing.md },
 });

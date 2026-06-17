@@ -27,6 +27,7 @@ import { listTrustedContacts } from '@/api/trustedContacts';
 import { TRUSTED_ROLES } from '@/constants/trusted';
 import { formatDateTime, fullName } from '@/lib/format';
 import { friendlyError } from '@/lib/errors';
+import { confirmAsync } from '@/lib/confirm';
 import { useAuth } from '@/context/AuthContext';
 import { useFamily } from '@/context/FamilyContext';
 import type { HomeStackParamList } from '@/navigation/types';
@@ -164,19 +165,14 @@ export function EmergencyScreen({
     resolveMutation.mutate(event.id);
   }
 
-  function confirmDeleteContact(contact: EmergencyContact) {
-    Alert.alert(
-      'Kontakt löschen',
-      `Möchtest du „${contact.name}“ wirklich aus den Notfallkontakten entfernen?`,
-      [
-        { text: 'Abbrechen', style: 'cancel' },
-        {
-          text: 'Löschen',
-          style: 'destructive',
-          onPress: () => deleteContactMutation.mutate(contact.id),
-        },
-      ],
-    );
+  async function confirmDeleteContact(contact: EmergencyContact) {
+    const ok = await confirmAsync({
+      title: 'Kontakt löschen',
+      message: `Möchtest du „${contact.name}" wirklich aus den Notfallkontakten entfernen?`,
+      confirmLabel: 'Löschen',
+      destructive: true,
+    });
+    if (ok) deleteContactMutation.mutate(contact.id);
   }
 
   const activeEvents = events.filter((e) => e.state === 'active');

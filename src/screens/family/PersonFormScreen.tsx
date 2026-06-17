@@ -28,6 +28,7 @@ import { useFamily } from '@/context/FamilyContext';
 import { useAuth } from '@/context/AuthContext';
 import { useImagePicker } from '@/hooks/useImagePicker';
 import { friendlyError } from '@/lib/errors';
+import { confirmAsync } from '@/lib/confirm';
 import { fullName } from '@/lib/format';
 import {
   RELATIONSHIP_LABELS,
@@ -183,19 +184,14 @@ export function PersonFormScreen({ navigation, route }: Props) {
     saveMutation.mutate();
   }
 
-  function handleDelete() {
-    Alert.alert(
-      'Person löschen',
-      'Möchtest du diese Person wirklich dauerhaft löschen?',
-      [
-        { text: 'Abbrechen', style: 'cancel' },
-        {
-          text: 'Löschen',
-          style: 'destructive',
-          onPress: () => deleteMutation.mutate(),
-        },
-      ],
-    );
+  async function handleDelete() {
+    const ok = await confirmAsync({
+      title: 'Person löschen',
+      message: 'Möchtest du diese Person wirklich dauerhaft löschen?',
+      confirmLabel: 'Löschen',
+      destructive: true,
+    });
+    if (ok) deleteMutation.mutate();
   }
 
   if (isEditing && personQuery.isLoading) {

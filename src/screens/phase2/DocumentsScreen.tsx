@@ -16,6 +16,7 @@ import { qk } from '@/api/queryKeys';
 import { listDocuments, deleteDocument } from '@/api/documents';
 import { DOCUMENT_KINDS } from '@/constants/phase2';
 import { friendlyError } from '@/lib/errors';
+import { confirmAsync } from '@/lib/confirm';
 import { useFamily } from '@/context/FamilyContext';
 import type { HomeStackParamList } from '@/navigation/types';
 import type { FamilyDocument } from '@/types/models';
@@ -44,19 +45,14 @@ export function DocumentsScreen({
 
   const documents = documentsQuery.data ?? [];
 
-  function confirmDelete(doc: FamilyDocument) {
-    Alert.alert(
-      'Eintrag löschen',
-      `Möchten Sie den Eintrag „${doc.title}“ wirklich löschen? Es wird nur dieser Hinweis entfernt – das Dokument selbst bleibt unberührt.`,
-      [
-        { text: 'Abbrechen', style: 'cancel' },
-        {
-          text: 'Löschen',
-          style: 'destructive',
-          onPress: () => deleteMutation.mutate(doc.id),
-        },
-      ],
-    );
+  async function confirmDelete(doc: FamilyDocument) {
+    const ok = await confirmAsync({
+      title: 'Eintrag löschen',
+      message: `Möchten Sie den Eintrag „${doc.title}" wirklich löschen? Es wird nur dieser Hinweis entfernt – das Dokument selbst bleibt unberührt.`,
+      confirmLabel: 'Löschen',
+      destructive: true,
+    });
+    if (ok) deleteMutation.mutate(doc.id);
   }
 
   if (documentsQuery.isLoading) {
