@@ -59,6 +59,9 @@ jobs:
           sed -i 's#\.js" defer></script>#.js" defer onerror="window.__fvErr()"></script>#' dist/index.html
           cp dist/index.html dist/404.html
 
+      - name: PWA-Manifest, App-Icons & Social-Vorschau (Open Graph)
+        run: node scripts/pwa_postbuild.mjs
+
       - name: Deploy to gh-pages branch
         uses: peaceiris/actions-gh-pages@v4
         with:
