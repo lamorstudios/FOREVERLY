@@ -4,11 +4,17 @@ import {
   TextInput,
   StyleSheet,
   TextInputProps,
+  TextStyle,
   Pressable,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { AppText } from './AppText';
 import { colors, radius, spacing, typography } from '@/theme';
+
+// Entfernt den voreingestellten schwarzen/blauen Fokus-Rahmen des Browsers (Web).
+const noWebOutline =
+  Platform.OS === 'web' ? ({ outlineStyle: 'none' } as unknown as TextStyle) : null;
 
 interface TextFieldProps extends TextInputProps {
   label?: string;
@@ -44,7 +50,7 @@ export function TextField({
         ]}
       >
         <TextInput
-          style={[styles.input, style]}
+          style={[styles.input, noWebOutline, style]}
           placeholderTextColor={colors.textMuted}
           secureTextEntry={hidden}
           onFocus={() => setFocused(true)}
@@ -84,13 +90,22 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: colors.surface,
-    borderWidth: 1.5,
+    // Dünner, ruhiger Beige-Border (kein Browser-Look).
+    borderWidth: 1,
     borderColor: colors.border,
-    borderRadius: radius.md,
+    borderRadius: radius.lg,
     paddingHorizontal: spacing.md,
     minHeight: 58,
   },
-  focused: { borderColor: colors.primary },
+  // Fokus: zartes Gold + weicher Glow (iOS-/moderne App-Optik), ohne Layout-Sprung.
+  focused: {
+    borderColor: colors.gold,
+    shadowColor: colors.gold,
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 2 },
+    elevation: 3,
+  },
   errored: { borderColor: colors.error },
   input: {
     flex: 1,
