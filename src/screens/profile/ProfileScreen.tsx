@@ -1,4 +1,4 @@
-import { View, StyleSheet, Alert } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import {
@@ -19,6 +19,7 @@ import { qk } from '@/api/queryKeys';
 import { useAuth } from '@/context/AuthContext';
 import { useFamily } from '@/context/FamilyContext';
 import { useOnboarding } from '@/context/OnboardingContext';
+import { confirmAsync } from '@/lib/confirm';
 import { colors, spacing } from '@/theme';
 import type { ProfileStackParamList } from '@/navigation/types';
 
@@ -34,21 +35,14 @@ export function ProfileScreen({ navigation }: Props) {
     queryFn: () => getProfile(userId!),
   });
 
-  function handleSignOut() {
-    Alert.alert(
-      'Abmelden',
-      'Möchtest du dich wirklich abmelden?',
-      [
-        { text: 'Abbrechen', style: 'cancel' },
-        {
-          text: 'Abmelden',
-          style: 'destructive',
-          onPress: () => {
-            void signOut();
-          },
-        },
-      ],
-    );
+  async function handleSignOut() {
+    const ok = await confirmAsync({
+      title: 'Abmelden',
+      message: 'Möchtest du dich wirklich abmelden?',
+      confirmLabel: 'Abmelden',
+      destructive: true,
+    });
+    if (ok) void signOut();
   }
 
   if (profileQuery.isLoading) {

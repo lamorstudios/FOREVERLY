@@ -23,6 +23,7 @@ import { qk } from '@/api/queryKeys';
 import { useFamily } from '@/context/FamilyContext';
 import { useAuth } from '@/context/AuthContext';
 import { friendlyError } from '@/lib/errors';
+import { confirmAsync } from '@/lib/confirm';
 import { formatDate } from '@/lib/format';
 import { colors, spacing, radius } from '@/theme';
 import type { FamilyStackParamList } from '@/navigation/types';
@@ -89,19 +90,14 @@ export function InviteScreen() {
     }
   }
 
-  function handleRevoke(invitation: Invitation) {
-    Alert.alert(
-      'Einladung zurückziehen',
-      'Möchtest du diese Einladung wirklich zurückziehen?',
-      [
-        { text: 'Abbrechen', style: 'cancel' },
-        {
-          text: 'Zurückziehen',
-          style: 'destructive',
-          onPress: () => revokeMutation.mutate(invitation.id),
-        },
-      ],
-    );
+  async function handleRevoke(invitation: Invitation) {
+    const ok = await confirmAsync({
+      title: 'Einladung zurückziehen',
+      message: 'Möchtest du diese Einladung wirklich zurückziehen?',
+      confirmLabel: 'Zurückziehen',
+      destructive: true,
+    });
+    if (ok) revokeMutation.mutate(invitation.id);
   }
 
   const invitations = data ?? [];

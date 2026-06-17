@@ -24,6 +24,7 @@ import { qk } from '@/api/queryKeys';
 import { TRUSTED_ROLES } from '@/constants/trusted';
 import { fullName } from '@/lib/format';
 import { friendlyError } from '@/lib/errors';
+import { confirmAsync } from '@/lib/confirm';
 import { colors, radius, spacing } from '@/theme';
 import type { HomeStackParamList } from '@/navigation/types';
 import type { TrustedContact } from '@/types/models';
@@ -84,11 +85,14 @@ export function TrustedCircleScreen({ navigation, route }: Props) {
     Alert.alert(`${name} angestupst`, 'Wir haben deinen Gruß übermittelt. (Demo)');
   }
 
-  function confirmDelete(c: TrustedContact) {
-    Alert.alert('Vertrauensperson entfernen', `${c.name} aus dem Vertrauenskreis entfernen?`, [
-      { text: 'Abbrechen', style: 'cancel' },
-      { text: 'Entfernen', style: 'destructive', onPress: () => removeContact.mutate(c.id) },
-    ]);
+  async function confirmDelete(c: TrustedContact) {
+    const ok = await confirmAsync({
+      title: 'Vertrauensperson entfernen',
+      message: `${c.name} aus dem Vertrauenskreis entfernen?`,
+      confirmLabel: 'Entfernen',
+      destructive: true,
+    });
+    if (ok) removeContact.mutate(c.id);
   }
 
   const persons = personsQuery.data ?? [];

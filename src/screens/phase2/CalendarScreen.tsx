@@ -18,6 +18,7 @@ import { listPersons } from '@/api/persons';
 import { CALENDAR_TYPES } from '@/constants/phase2';
 import { formatDate, fullName, daysUntil } from '@/lib/format';
 import { friendlyError } from '@/lib/errors';
+import { confirmAsync } from '@/lib/confirm';
 import { useFamily } from '@/context/FamilyContext';
 import type { HomeStackParamList } from '@/navigation/types';
 import type { CalendarEvent, Person } from '@/types/models';
@@ -56,19 +57,14 @@ export function CalendarScreen({
     personsQuery.refetch();
   }
 
-  function confirmDelete(event: CalendarEvent) {
-    Alert.alert(
-      'Termin löschen',
-      `Möchten Sie „${event.title}“ wirklich löschen?`,
-      [
-        { text: 'Abbrechen', style: 'cancel' },
-        {
-          text: 'Löschen',
-          style: 'destructive',
-          onPress: () => deleteMutation.mutate(event.id),
-        },
-      ],
-    );
+  async function confirmDelete(event: CalendarEvent) {
+    const ok = await confirmAsync({
+      title: 'Termin löschen',
+      message: `Möchten Sie „${event.title}" wirklich löschen?`,
+      confirmLabel: 'Löschen',
+      destructive: true,
+    });
+    if (ok) deleteMutation.mutate(event.id);
   }
 
   function participantsLabel(event: CalendarEvent): string {

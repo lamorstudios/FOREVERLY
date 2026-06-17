@@ -11,6 +11,7 @@ import { getCapsule, capsuleMediaUrl, deleteCapsule } from '@/api/timeCapsules';
 import { qk } from '@/api/queryKeys';
 import { formatDateTime, openingCountdown } from '@/lib/format';
 import { friendlyError } from '@/lib/errors';
+import { confirmAsync } from '@/lib/confirm';
 import { colors, spacing, radius } from '@/theme';
 import type { TimeCapsule } from '@/types/models';
 import type { CapsulesStackParamList } from '@/navigation/types';
@@ -39,19 +40,14 @@ export function CapsuleDetailScreen({ navigation, route }: Props) {
     onError: (e) => Alert.alert('Fehler', friendlyError(e)),
   });
 
-  function confirmDelete() {
-    Alert.alert(
-      'Zeitkapsel löschen',
-      'Möchtest du diese Zeitkapsel wirklich für immer löschen?',
-      [
-        { text: 'Abbrechen', style: 'cancel' },
-        {
-          text: 'Löschen',
-          style: 'destructive',
-          onPress: () => deleteMutation.mutate(),
-        },
-      ],
-    );
+  async function confirmDelete() {
+    const ok = await confirmAsync({
+      title: 'Zeitkapsel löschen',
+      message: 'Möchtest du diese Zeitkapsel wirklich für immer löschen?',
+      confirmLabel: 'Löschen',
+      destructive: true,
+    });
+    if (ok) deleteMutation.mutate();
   }
 
   if (isLoading) {

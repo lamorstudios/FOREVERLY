@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
-import { View, StyleSheet, Switch, Alert, Share, Platform } from 'react-native';
+import { View, StyleSheet, Switch, Share, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Screen, AppText, Card, Button } from '@/components';
 import { exportFamilyData } from '@/api/feedback';
 import { useFamily } from '@/context/FamilyContext';
+import { confirmAsync, notify } from '@/lib/confirm';
 import { colors, spacing } from '@/theme';
 import type { ProfileStackParamList } from '@/navigation/types';
 
@@ -42,7 +43,7 @@ export function PrivacyDataScreen(_: Props) {
       const data = await exportFamilyData(familyId);
       const json = JSON.stringify(data, null, 2);
       if (Platform.OS === 'web') {
-        Alert.alert('Datenexport erstellt', `Dein Familienarchiv wurde erzeugt (${Math.round(json.length / 1024)} KB). Im Realbetrieb erhältst du eine Download-Datei.`);
+        notify('Datenexport erstellt', `Dein Familienarchiv wurde erzeugt (${Math.round(json.length / 1024)} KB). Im Realbetrieb erhältst du eine Download-Datei.`);
       } else {
         await Share.share({ title: 'FAMII Datenexport', message: json.slice(0, 4000) });
       }
@@ -51,15 +52,14 @@ export function PrivacyDataScreen(_: Props) {
     }
   }
 
-  function onDelete() {
-    Alert.alert(
-      'Daten löschen',
-      'Möchtest du die Löschung aller Familiendaten beantragen? Dieser Schritt wird im Realbetrieb mit zusätzlicher Bestätigung ausgeführt.',
-      [
-        { text: 'Abbrechen', style: 'cancel' },
-        { text: 'Löschung beantragen', style: 'destructive', onPress: () => Alert.alert('Antrag erfasst', 'Deine Löschanfrage wurde vorgemerkt.') },
-      ],
-    );
+  async function onDelete() {
+    const ok = await confirmAsync({
+      title: 'Daten löschen',
+      message: 'Möchtest du die Löschung aller Familiendaten beantragen? Dieser Schritt wird im Realbetrieb mit zusätzlicher Bestätigung ausgeführt.',
+      confirmLabel: 'Löschung beantragen',
+      destructive: true,
+    });
+    if (ok) notify('Antrag erfasst', 'Deine Löschanfrage wurde vorgemerkt.');
   }
 
   return (
