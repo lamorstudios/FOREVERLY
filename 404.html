@@ -31,7 +31,41 @@
       You need to enable JavaScript to run this app.
     </noscript>
     <!-- The root element for your Expo app. -->
-    <div id="root"><div style="font-family:sans-serif;padding:48px 24px;text-align:center;color:#6F6253">Foreverly wird geladen &hellip;<br/><br/>Falls dies länger dauert, bitte die Seite neu laden und ggf. den Browser-Cache leeren.</div></div>
-  <script src="/FOREVERLY/_expo/static/js/web/AppEntry-6242956c9a10d6a09f54c576fafcdfe0.js" defer></script>
-</body>
+    <div id="root"><div id="foreverly-fallback" style="font-family:sans-serif;padding:48px 24px;text-align:center;color:#6F6253;line-height:1.5">Foreverly wird geladen &hellip;<br/><br/>Falls dies länger dauert, wird automatisch neu geladen.</div></div>
+  <script src="/FOREVERLY/_expo/static/js/web/AppEntry-07ea7f97c0f0962768d037d9e4c1e15a.js" defer></script>
+<script>
+(function(){
+  var KEY='foreverly_recover_attempt';
+  function reactMounted(){
+    var r=document.getElementById('root');
+    // React ersetzt beim Mounten den Inhalt von #root -> Platzhalter ist weg.
+    return !!r && !document.getElementById('foreverly-fallback');
+  }
+  // Erfolgsfall: Wiederherstellungs-Zähler zurücksetzen.
+  var ok=setInterval(function(){
+    if(reactMounted()){ clearInterval(ok); try{sessionStorage.removeItem(KEY);}catch(e){} }
+  },300);
+  setTimeout(function(){
+    if(reactMounted()) return;
+    var tries=0; try{tries=parseInt(sessionStorage.getItem(KEY)||'0',10)||0;}catch(e){}
+    if(tries<1){
+      try{sessionStorage.setItem(KEY,String(tries+1));}catch(e){}
+      // Häufigste Ursache: veraltetes Bundle / Cache. Alles leeren ...
+      try{ if('serviceWorker' in navigator){ navigator.serviceWorker.getRegistrations().then(function(rs){rs.forEach(function(x){x.unregister();});}).catch(function(){}); } }catch(e){}
+      try{ if(window.caches&&caches.keys){ caches.keys().then(function(ks){ks.forEach(function(k){caches.delete(k);});}).catch(function(){}); } }catch(e){}
+      // ... und EINMAL hart neu laden (Cache-Buster gegen alte index.html).
+      try{ location.replace(location.pathname+'?v='+Date.now()); }catch(e){ location.reload(); }
+    } else {
+      var f=document.getElementById('foreverly-fallback');
+      if(f){
+        f.innerHTML='Die App konnte nicht vollständig geladen werden.<br/><br/>'+
+          'Bitte prüfe deine Internetverbindung.<br/><br/>'+
+          '<button id="foreverly-retry" style="padding:12px 22px;font-size:16px;border:0;border-radius:10px;background:#B6864E;color:#fff;cursor:pointer">Neu laden</button>';
+        var b=document.getElementById('foreverly-retry');
+        if(b){ b.onclick=function(){ try{sessionStorage.clear();}catch(e){}; location.replace(location.pathname+'?v='+Date.now()); }; }
+      }
+    }
+  },8000);
+})();
+</script></body>
 </html>
