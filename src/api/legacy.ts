@@ -96,6 +96,7 @@ export interface LifeStoryInput {
   question: string;
   kind: LifeStoryKind;
   content?: string | null;
+  mediaUri?: string | null;
   isFutureQuestion?: boolean;
 }
 
@@ -109,6 +110,7 @@ export async function addLifeStory(input: LifeStoryInput): Promise<LifeStory> {
       question: input.question,
       kind: input.kind,
       content: input.content ?? null,
+      media_path: input.mediaUri ?? null,
       is_future_question: input.isFutureQuestion ?? false,
     })
     .select('*')

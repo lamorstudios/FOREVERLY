@@ -1808,6 +1808,7 @@ const demoStoreImpl = {
     question: string;
     kind: LifeStoryKind;
     content?: string | null;
+    mediaUri?: string | null;
     isFutureQuestion?: boolean;
   }): LifeStory {
     const s: LifeStory = {
@@ -1817,7 +1818,7 @@ const demoStoreImpl = {
       question: input.question,
       kind: input.kind,
       content: input.content ?? null,
-      media_path: null,
+      media_path: input.mediaUri ?? null,
       is_future_question: input.isFutureQuestion ?? false,
       created_at: nowIso(),
     };
