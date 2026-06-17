@@ -23,7 +23,9 @@ const copy = (from, to) => { try { fs.copyFileSync(from, `${dist}/${to}`); } cat
 copy('assets/icon.png', 'icon-192.png');
 copy('assets/icon.png', 'icon-512.png');
 copy('assets/icon.png', 'apple-touch-icon.png');
-copy('assets/splash.png', 'og-image.png');
+// Quadratisches Logo als Social-Vorschaubild (sauberer WhatsApp-Thumbnail als das
+// hohe Phone-Splash, das beschnitten würde).
+copy('assets/icon.png', 'og-image.png');
 
 // 2) Web App Manifest
 const manifest = {
