@@ -72,6 +72,7 @@ export const qk = {
   moment: (id: string) => ['moment', id] as const,
   momentComments: (momentId: string) => ['momentComments', momentId] as const,
   chronicle: (familyId: string) => ['chronicle', familyId] as const,
+  familyStory: (familyId: string) => ['familyStory', familyId] as const,
   photoMemories: (familyId: string) => ['photoMemories', familyId] as const,
   // Trustee & Nachlass-Freigabe
   trustees: (ownerUserId: string) => ['trustees', ownerUserId] as const,

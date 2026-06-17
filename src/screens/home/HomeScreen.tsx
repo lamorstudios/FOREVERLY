@@ -78,6 +78,7 @@ type QuickRoute =
   | 'Sos'
   | 'FamilyYear'
   | 'FamilyWisdoms'
+  | 'Chronik'
   | 'SeniorMode';
 
 interface QuickAction {
@@ -88,6 +89,7 @@ interface QuickAction {
 }
 
 const QUICK_ACTIONS: QuickAction[] = [
+  { label: 'Familienchronik', icon: 'book-outline', color: colors.bronze, route: 'Chronik' },
   { label: 'Familienassistent', icon: 'sparkles-outline', color: colors.primary, route: 'Assistant' },
   { label: 'Suche', icon: 'search-outline', color: colors.relationAdoption, route: 'GlobalSearch' },
   { label: 'Familienkarte', icon: 'location-outline', color: colors.relationMarried, route: 'LiveMap' },
