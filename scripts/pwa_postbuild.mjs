@@ -57,11 +57,11 @@ const meta = [
   `<meta property="og:type" content="website" />`,
   `<meta property="og:site_name" content="FAMII" />`,
   `<meta property="og:title" content="Einladung zu FAMII" />`,
-  `<meta property="og:description" content="Bewahrt Erinnerungen, Fotos und eure Familiengeschichte gemeinsam." />`,
+  `<meta property="og:description" content="Gemeinsam Erinnerungen und Familiengeschichte bewahren." />`,
   `<meta property="og:image" content="${ORIGIN}/og-image.png" />`,
   `<meta name="twitter:card" content="summary_large_image" />`,
   `<meta name="twitter:title" content="Einladung zu FAMII" />`,
-  `<meta name="twitter:description" content="Bewahrt Erinnerungen, Fotos und eure Familiengeschichte gemeinsam." />`,
+  `<meta name="twitter:description" content="Gemeinsam Erinnerungen und Familiengeschichte bewahren." />`,
   `<meta name="twitter:image" content="${ORIGIN}/og-image.png" />`,
 ].join('');
 
