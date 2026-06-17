@@ -151,6 +151,14 @@ export function SosScreen({ navigation }: Props) {
         Im Notfall genügt ein Druck. Es werden dein Standortstatus, deine Nachricht
         und die Uhrzeit gesendet.
       </AppText>
+      <View style={styles.betaHint}>
+        <Ionicons name="information-circle-outline" size={18} color={colors.bronze} />
+        <AppText variant="caption" color={colors.bronze} style={styles.flex}>
+          SOS befindet sich aktuell im Beta-Test: Deine Familie wird in der App
+          benachrichtigt. Verlasse dich im echten Notfall bitte zusätzlich auf
+          den Notruf 112.
+        </AppText>
+      </View>
 
       {/* Großer, immer sichtbarer SOS-Auslöser */}
       <Pressable
@@ -320,7 +328,12 @@ export function SosScreen({ navigation }: Props) {
 }
 
 const styles = StyleSheet.create({
-  intro: { marginBottom: spacing.md },
+  intro: { marginBottom: spacing.sm },
+  betaHint: {
+    flexDirection: 'row', alignItems: 'center', gap: spacing.sm,
+    backgroundColor: colors.goldSoft, borderRadius: radius.md,
+    padding: spacing.md, marginBottom: spacing.md,
+  },
   flex: { flex: 1, minWidth: 0 },
   sosButton: {
     backgroundColor: colors.error,
