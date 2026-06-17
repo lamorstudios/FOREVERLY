@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { View, StyleSheet, Alert, Share } from 'react-native';
+import { View, StyleSheet, Alert } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import {
   Screen,
@@ -23,6 +23,8 @@ import { qk } from '@/api/queryKeys';
 import { useFamily } from '@/context/FamilyContext';
 import { useAuth } from '@/context/AuthContext';
 import { friendlyError } from '@/lib/errors';
+import { confirmAsync, notify } from '@/lib/confirm';
+import { shareText, copyText, inviteMessage } from '@/lib/share';
 import { formatDate } from '@/lib/format';
 import { colors, spacing, radius } from '@/theme';
 import type { FamilyStackParamList } from '@/navigation/types';
@@ -78,30 +80,18 @@ export function InviteScreen() {
     onError: (e) => Alert.alert('Fehler', friendlyError(e)),
   });
 
-  async function handleShare(code: string) {
-    const link = buildInviteLink(code);
-    try {
-      await Share.share({
-        message: `Tritt unserer Familie auf Foreverly bei! Einladungscode: ${code}\n${link}`,
-      });
-    } catch (e) {
-      Alert.alert('Fehler', friendlyError(e));
-    }
+  function handleShare(code: string) {
+    void shareText(inviteMessage(buildInviteLink(code)));
   }
 
-  function handleRevoke(invitation: Invitation) {
-    Alert.alert(
-      'Einladung zurückziehen',
-      'Möchtest du diese Einladung wirklich zurückziehen?',
-      [
-        { text: 'Abbrechen', style: 'cancel' },
-        {
-          text: 'Zurückziehen',
-          style: 'destructive',
-          onPress: () => revokeMutation.mutate(invitation.id),
-        },
-      ],
-    );
+  async function handleRevoke(invitation: Invitation) {
+    const ok = await confirmAsync({
+      title: 'Einladung zurückziehen',
+      message: 'Möchtest du diese Einladung wirklich zurückziehen?',
+      confirmLabel: 'Zurückziehen',
+      destructive: true,
+    });
+    if (ok) revokeMutation.mutate(invitation.id);
   }
 
   const invitations = data ?? [];
@@ -139,12 +129,21 @@ export function InviteScreen() {
             {createdCode}
           </AppText>
           <AppText variant="caption" color={colors.textMuted} center>
-            {buildInviteLink(createdCode)}
+            FAMII Einladungslink bereit zum Teilen
           </AppText>
           <Button
             label="Teilen"
             icon="share-social-outline"
             onPress={() => handleShare(createdCode)}
+          />
+          <Button
+            label="Link kopieren"
+            icon="copy-outline"
+            variant="secondary"
+            onPress={async () => {
+              const ok = await copyText(buildInviteLink(createdCode));
+              notify('Einladungslink', ok ? 'Link in die Zwischenablage kopiert.' : buildInviteLink(createdCode));
+            }}
           />
         </Card>
       ) : null}

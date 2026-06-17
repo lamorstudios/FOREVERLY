@@ -11,6 +11,7 @@ import { qk } from '@/api/queryKeys';
 import { useAudioPlayer } from '@/hooks/useAudioPlayer';
 import { formatDate, formatDateTime, formatDuration } from '@/lib/format';
 import { friendlyError } from '@/lib/errors';
+import { confirmAsync } from '@/lib/confirm';
 import { colors, spacing, radius } from '@/theme';
 import type { MemoriesStackParamList } from '@/navigation/types';
 
@@ -46,19 +47,14 @@ export function MemoryDetailScreen({ navigation, route }: Props) {
     onError: (e) => Alert.alert('Fehler', friendlyError(e)),
   });
 
-  function confirmDelete() {
-    Alert.alert(
-      'Erinnerung löschen',
-      'Möchtest du diese Erinnerung wirklich löschen? Das kann nicht rückgängig gemacht werden.',
-      [
-        { text: 'Abbrechen', style: 'cancel' },
-        {
-          text: 'Löschen',
-          style: 'destructive',
-          onPress: () => deleteMutation.mutate(),
-        },
-      ],
-    );
+  async function confirmDelete() {
+    const ok = await confirmAsync({
+      title: 'Erinnerung löschen',
+      message: 'Möchtest du diese Erinnerung wirklich löschen? Das kann nicht rückgängig gemacht werden.',
+      confirmLabel: 'Löschen',
+      destructive: true,
+    });
+    if (ok) deleteMutation.mutate();
   }
 
   if (memoryQuery.isLoading) {

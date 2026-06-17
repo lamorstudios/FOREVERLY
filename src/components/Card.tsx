@@ -1,16 +1,25 @@
-import { ReactNode } from 'react';
-import { Pressable, View, StyleSheet, ViewStyle } from 'react-native';
+import { ReactNode, useRef } from 'react';
+import { Pressable, View, StyleSheet, ViewStyle, StyleProp, Animated } from 'react-native';
 import { colors, radius, spacing, shadow } from '@/theme';
 
 interface CardProps {
   children: ReactNode;
   onPress?: () => void;
-  style?: ViewStyle;
+  style?: StyleProp<ViewStyle>;
   padded?: boolean;
 }
 
-/** Weiche, warme Karte für Inhalte. */
+/** Hochwertige, weiche Karte mit dezenter Press-/Hover-Animation. */
 export function Card({ children, onPress, style, padded = true }: CardProps) {
+  const scale = useRef(new Animated.Value(1)).current;
+  const animate = (to: number) =>
+    Animated.spring(scale, {
+      toValue: to,
+      useNativeDriver: true,
+      friction: 7,
+      tension: 80,
+    }).start();
+
   const content = (
     <View style={[styles.card, padded && styles.padded, style]}>{children}</View>
   );
@@ -21,9 +30,12 @@ export function Card({ children, onPress, style, padded = true }: CardProps) {
     <Pressable
       onPress={onPress}
       accessibilityRole="button"
-      style={({ pressed }) => [pressed && styles.pressed]}
+      onPressIn={() => animate(0.97)}
+      onPressOut={() => animate(1)}
+      onHoverIn={() => animate(1.01)}
+      onHoverOut={() => animate(1)}
     >
-      {content}
+      <Animated.View style={{ transform: [{ scale }] }}>{content}</Animated.View>
     </Pressable>
   );
 }
@@ -31,11 +43,10 @@ export function Card({ children, onPress, style, padded = true }: CardProps) {
 const styles = StyleSheet.create({
   card: {
     backgroundColor: colors.surface,
-    borderRadius: radius.lg,
-    borderWidth: 1,
+    borderRadius: radius.xl,
+    borderWidth: StyleSheet.hairlineWidth, // subtilerer Rahmen
     borderColor: colors.border,
-    ...shadow.soft,
+    ...shadow.card,
   },
   padded: { padding: spacing.lg, gap: spacing.sm },
-  pressed: { opacity: 0.9, transform: [{ scale: 0.995 }] },
 });

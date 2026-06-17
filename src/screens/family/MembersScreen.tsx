@@ -16,6 +16,7 @@ import { qk } from '@/api/queryKeys';
 import { useFamily } from '@/context/FamilyContext';
 import { useAuth } from '@/context/AuthContext';
 import { friendlyError } from '@/lib/errors';
+import { confirmAsync } from '@/lib/confirm';
 import { colors, spacing, radius } from '@/theme';
 import type { FamilyStackParamList } from '@/navigation/types';
 import type { FamilyMember, MemberRole } from '@/types/models';
@@ -50,37 +51,26 @@ export function MembersScreen() {
     onError: (e) => Alert.alert('Fehler', friendlyError(e)),
   });
 
-  function handleToggleRole(member: FamilyMember) {
+  async function handleToggleRole(member: FamilyMember) {
     const nextRole: MemberRole = member.role === 'admin' ? 'member' : 'admin';
     const label =
       nextRole === 'admin' ? 'zum Administrator machen' : 'zum Mitglied machen';
-    Alert.alert(
-      'Rolle ändern',
-      `Möchtest du ${member.profile?.full_name ?? 'dieses Mitglied'} ${label}?`,
-      [
-        { text: 'Abbrechen', style: 'cancel' },
-        {
-          text: 'Ändern',
-          onPress: () =>
-            roleMutation.mutate({ memberId: member.id, role: nextRole }),
-        },
-      ],
-    );
+    const ok = await confirmAsync({
+      title: 'Rolle ändern',
+      message: `Möchtest du ${member.profile?.full_name ?? 'dieses Mitglied'} ${label}?`,
+      confirmLabel: 'Ändern',
+    });
+    if (ok) roleMutation.mutate({ memberId: member.id, role: nextRole });
   }
 
-  function handleRemove(member: FamilyMember) {
-    Alert.alert(
-      'Mitglied entfernen',
-      `Möchtest du ${member.profile?.full_name ?? 'dieses Mitglied'} wirklich aus der Familie entfernen?`,
-      [
-        { text: 'Abbrechen', style: 'cancel' },
-        {
-          text: 'Entfernen',
-          style: 'destructive',
-          onPress: () => removeMutation.mutate(member.id),
-        },
-      ],
-    );
+  async function handleRemove(member: FamilyMember) {
+    const ok = await confirmAsync({
+      title: 'Mitglied entfernen',
+      message: `Möchtest du ${member.profile?.full_name ?? 'dieses Mitglied'} wirklich aus der Familie entfernen?`,
+      confirmLabel: 'Entfernen',
+      destructive: true,
+    });
+    if (ok) removeMutation.mutate(member.id);
   }
 
   if (isLoading) {
@@ -123,7 +113,7 @@ export function MembersScreen() {
                     <Avatar name={name} size={56} />
                   )}
                   <View style={styles.info}>
-                    <AppText variant="bodyStrong" numberOfLines={1}>
+                    <AppText variant="bodyStrong" numberOfLines={2}>
                       {name}
                       {isSelf ? ' (Du)' : ''}
                     </AppText>
@@ -202,7 +192,7 @@ const styles = StyleSheet.create({
   card: { gap: spacing.md },
   row: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   avatar: { width: 56, height: 56, borderRadius: 28 },
-  info: { flex: 1, gap: spacing.xs },
+  info: { flex: 1, minWidth: 0, gap: spacing.xs },
   badge: {
     alignSelf: 'flex-start',
     paddingHorizontal: spacing.sm,

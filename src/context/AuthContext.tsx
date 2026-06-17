@@ -20,9 +20,9 @@ const demoSession = {
   token_type: 'bearer',
   user: {
     id: DEMO_USER_ID,
-    email: 'nick@foreverly.demo',
+    email: 'nick@famii.demo',
     app_metadata: {},
-    user_metadata: { full_name: 'Nick Mielke' },
+    user_metadata: { full_name: 'Beispiel-Profil' },
     aud: 'authenticated',
     created_at: new Date().toISOString(),
   },
@@ -53,15 +53,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (DEMO_MODE) return; // Im Demo-Modus keine echte Auth.
-    supabase.auth.getSession().then(({ data }) => {
-      setSession(data.session);
+
+    let done = false;
+    const finish = (next: Session | null) => {
+      if (done) return;
+      done = true;
+      setSession(next);
       setInitializing(false);
-    });
+    };
+
+    // Sicherheitsnetz gegen „weiße/hängende Screens": Falls getSession nie
+    // antwortet (Netzwerk/Token), spätestens nach 4 s ohne Sitzung fortfahren.
+    const watchdog = setTimeout(() => finish(null), 4000);
+
+    supabase.auth
+      .getSession()
+      .then(({ data }) => finish(data.session))
+      .catch(() => finish(null));
 
     const { data: sub } = supabase.auth.onAuthStateChange((_event, next) => {
       setSession(next);
     });
-    return () => sub.subscription.unsubscribe();
+    return () => {
+      clearTimeout(watchdog);
+      sub.subscription.unsubscribe();
+    };
   }, []);
 
   const signUp = useCallback<AuthContextValue['signUp']>(

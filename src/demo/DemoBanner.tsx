@@ -11,8 +11,8 @@ export function DemoBanner() {
     <View style={styles.banner}>
       <Ionicons name="sparkles" size={18} color={colors.primaryDark} />
       <AppText variant="caption" color={colors.primaryDark} style={styles.text}>
-        Demo-Modus · Beispiel-Daten der Familie Mielke. Änderungen werden beim
-        Neuladen zurückgesetzt.
+        Demo-Modus · Dies sind Beispiel-Daten. Ersetze sie später durch deine
+        eigene Familie. Änderungen werden beim Neuladen zurückgesetzt.
       </AppText>
     </View>
   );

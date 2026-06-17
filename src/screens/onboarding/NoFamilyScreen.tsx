@@ -3,6 +3,7 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Ionicons } from '@expo/vector-icons';
 import { Screen, AppText, Button, Card } from '@/components';
 import { useAuth } from '@/context/AuthContext';
+import { BRAND } from '@/lib/brand';
 import { colors, spacing } from '@/theme';
 import type { OnboardingStackParamList } from '@/navigation/types';
 
@@ -18,7 +19,10 @@ export function NoFamilyScreen({ navigation }: Props) {
           <Ionicons name="home" size={36} color={colors.gold} />
         </View>
         <AppText variant="title" center>
-          Willkommen bei Foreverly
+          Willkommen bei FAMII
+        </AppText>
+        <AppText variant="bodyStrong" center color={colors.primaryDark}>
+          {BRAND.slogan}
         </AppText>
         <AppText variant="body" color={colors.textSecondary} center>
           Erstelle eine neue Familie oder tritt einer bestehenden Familie bei,

@@ -123,7 +123,8 @@ export function DocumentFormScreen({
         />
         <AppText variant="body" color={colors.textSecondary} style={styles.infoText}>
           Sie halten hier nur fest, OB ein Dokument existiert und wo es liegt.
-          Inhalte werden niemals gespeichert.
+          Inhalte werden niemals gespeichert. Bitte keine Passwörter, PINs, TANs
+          oder Zugangsdaten eintragen – nur Hinweise wie „Ordner liegt bei …".
         </AppText>
       </View>
 

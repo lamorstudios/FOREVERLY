@@ -41,4 +41,87 @@ export const qk = {
     ['historian', 'insight', familyId, personId] as const,
   knowledgeGaps: (familyId: string) =>
     ['historian', 'gaps', familyId] as const,
+  // Phase 8 · KI-Familienhistoriker
+  familyKnowledge: (familyId: string) => ['historian', 'knowledge', familyId] as const,
+  historianTopics: (familyId: string) => ['historian', 'topics', familyId] as const,
+  personConnections: (familyId: string, personId: string) =>
+    ['historian', 'connections', familyId, personId] as const,
+  personTimeline: (familyId: string, personId: string) =>
+    ['historian', 'personTimeline', familyId, personId] as const,
+  onThisDay: (familyId: string) => ['historian', 'onThisDay', familyId] as const,
+  // Phase 4 · Familienbuch
+  bookProjects: (familyId: string) => ['book', 'projects', familyId] as const,
+  book: (familyId: string, projectId: string) =>
+    ['book', 'generated', familyId, projectId] as const,
+  // Trusted Circle / Vertrauenskreis
+  trustedContacts: (familyId: string, personId?: string) =>
+    ['trustedContacts', familyId, personId ?? 'all'] as const,
+  // Phase 4.5 · Familiennähe & Zweige
+  closeness: (familyId: string, userId: string) =>
+    ['closeness', familyId, userId] as const,
+  branches: (familyId: string) => ['branches', familyId] as const,
+  // Phase 5 · Smart Invites
+  smartInvites: (familyId: string) => ['smartInvites', familyId] as const,
+  suggestions: (familyId: string) => ['suggestions', familyId] as const,
+  // Phase 6 · Familienmomente & Events
+  events: (familyId: string) => ['events', familyId] as const,
+  event: (id: string) => ['event', id] as const,
+  eventParticipants: (eventId: string) => ['eventParticipants', eventId] as const,
+  moments: (familyId: string, scope: string) =>
+    ['moments', familyId, scope] as const,
+  moment: (id: string) => ['moment', id] as const,
+  momentComments: (momentId: string) => ['momentComments', momentId] as const,
+  chronicle: (familyId: string) => ['chronicle', familyId] as const,
+  familyStory: (familyId: string) => ['familyStory', familyId] as const,
+  photoMemories: (familyId: string) => ['photoMemories', familyId] as const,
+  // Trustee & Nachlass-Freigabe
+  trustees: (ownerUserId: string) => ['trustees', ownerUserId] as const,
+  estateInfo: (ownerUserId: string) => ['estateInfo', ownerUserId] as const,
+  estateCases: (familyId: string) => ['estateCases', familyId] as const,
+  estateCase: (id: string) => ['estateCase', id] as const,
+  // Family Safety & Live Location
+  liveShares: (familyId: string) => ['liveShares', familyId] as const,
+  myLiveShare: (userId: string) => ['myLiveShare', userId] as const,
+  safetyTrips: (familyId: string) => ['safetyTrips', familyId] as const,
+  safetyTrip: (id: string) => ['safetyTrip', id] as const,
+  safetyAlerts: (familyId: string) => ['safetyAlerts', familyId] as const,
+  // Family Vault · Dokumente & Vermächtnis
+  vaultEntries: (ownerUserId: string) => ['vaultEntries', ownerUserId] as const,
+  legacyItems: (ownerUserId: string) => ['legacyItems', ownerUserId] as const,
+  farewellMessages: (ownerUserId: string) => ['farewellMessages', ownerUserId] as const,
+  // Familienfilm
+  filmProjects: (familyId: string) => ['filmProjects', familyId] as const,
+  filmProject: (id: string) => ['filmProject', id] as const,
+  generatedFilm: (id: string) => ['generatedFilm', id] as const,
+  autoFilms: (familyId: string) => ['autoFilms', familyId] as const,
+  // KI-Familienassistent
+  assistantOverview: (familyId: string) => ['assistantOverview', familyId] as const,
+  assistantAsk: (familyId: string, query: string) => ['assistantAsk', familyId, query] as const,
+  // Legacy AI · Familienstimmen
+  legends: (familyId: string) => ['legends', familyId] as const,
+  personStory: (familyId: string, personId: string) => ['personStory', familyId, personId] as const,
+  lifeStories: (personId: string) => ['lifeStories', personId] as const,
+  memoryJourney: (familyId: string, query: string) => ['memoryJourney', familyId, query] as const,
+  // Familienmuseum
+  museumOverview: (familyId: string) => ['museumOverview', familyId] as const,
+  museumGenerations: (familyId: string) => ['museumGenerations', familyId] as const,
+  museumTimeTravel: (familyId: string, year: number) => ['museumTimeTravel', familyId, year] as const,
+  museumPlaces: (familyId: string) => ['museumPlaces', familyId] as const,
+  artifacts: (familyId: string) => ['artifacts', familyId] as const,
+  // Admin-Dashboard (betreiberintern)
+  adminDashboard: () => ['adminDashboard'] as const,
+  // Legacy Moments & Family Memories
+  memoryOfTheDay: (familyId: string) => ['legacyMoments', 'memoryOfTheDay', familyId] as const,
+  legacyScores: (familyId: string) => ['legacyMoments', 'scores', familyId] as const,
+  elderToAsk: (familyId: string) => ['legacyMoments', 'elder', familyId] as const,
+  treasurePrompts: (familyId: string) => ['legacyMoments', 'treasures', familyId] as const,
+  familyYear: (familyId: string, year: number) => ['legacyMoments', 'year', familyId, year] as const,
+  familyWisdoms: (familyId: string) => ['legacyMoments', 'wisdoms', familyId] as const,
+  // Onboarding · Erste Schritte
+  firstSteps: (familyId: string, userId: string) => ['firstSteps', familyId, userId] as const,
+  // Phase 16 · Ehrenmitglieder & Familienerbe
+  personQuotes: (personId: string) => ['personQuotes', personId] as const,
+  personTributes: (personId: string) => ['personTributes', personId] as const,
+  personAudios: (familyId: string, personId: string) => ['personAudios', familyId, personId] as const,
+  memorialStory: (familyId: string, personId: string) => ['memorialStory', familyId, personId] as const,
 };

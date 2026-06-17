@@ -1,4 +1,5 @@
-import { View, Pressable, StyleSheet, Alert } from 'react-native';
+import { useState } from 'react';
+import { View, Pressable, StyleSheet, Alert, Linking } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
@@ -22,8 +23,11 @@ import {
   deleteEmergencyContact,
 } from '@/api/emergency';
 import { listPersons } from '@/api/persons';
+import { listTrustedContacts } from '@/api/trustedContacts';
+import { TRUSTED_ROLES } from '@/constants/trusted';
 import { formatDateTime, fullName } from '@/lib/format';
 import { friendlyError } from '@/lib/errors';
+import { confirmAsync } from '@/lib/confirm';
 import { useAuth } from '@/context/AuthContext';
 import { useFamily } from '@/context/FamilyContext';
 import type { HomeStackParamList } from '@/navigation/types';
@@ -48,6 +52,7 @@ export function EmergencyScreen({
   const { activeFamily } = useFamily();
   const familyId = activeFamily!.id;
   const queryClient = useQueryClient();
+  const [confirming, setConfirming] = useState(false);
 
   const contactsQuery = useQuery({
     queryKey: qk.emergencyContacts(familyId),
@@ -62,9 +67,38 @@ export function EmergencyScreen({
     queryFn: () => listPersons(familyId),
   });
 
+  const trustedQuery = useQuery({
+    queryKey: qk.trustedContacts(familyId),
+    queryFn: () => listTrustedContacts(familyId),
+  });
+
   const contacts = contactsQuery.data ?? [];
   const events = eventsQuery.data ?? [];
   const persons = personsQuery.data ?? [];
+  const trusted = trustedQuery.data ?? [];
+
+  // Vertrauenspersonen nach zugeordnetem Familienmitglied gruppieren
+  const trustedByPerson = persons
+    .map((p) => ({
+      person: p,
+      list: trusted.filter((t) => t.person_id === p.id),
+    }))
+    .filter((g) => g.list.length > 0);
+
+  async function callTrusted(phone: string | null) {
+    if (!phone) {
+      Alert.alert('Keine Nummer', 'Für diese Person ist keine Telefonnummer hinterlegt.');
+      return;
+    }
+    const url = `tel:${phone.replace(/\s/g, '')}`;
+    try {
+      const ok = await Linking.canOpenURL(url);
+      if (ok) await Linking.openURL(url);
+      else throw new Error('not supported');
+    } catch {
+      Alert.alert('Anrufen', `Anruf an ${phone} (in der Vorschau simuliert).`);
+    }
+  }
 
   const triggerMutation = useMutation({
     mutationFn: () =>
@@ -74,15 +108,12 @@ export function EmergencyScreen({
         latitude: DEMO_LOCATION.latitude,
         longitude: DEMO_LOCATION.longitude,
         locationLabel: DEMO_LOCATION.label,
-        message: 'SOS über Foreverly ausgelöst',
+        message: 'SOS über FAMII ausgelöst',
       }),
     onSuccess: () => {
+      setConfirming(false);
       queryClient.invalidateQueries({ queryKey: qk.emergencyEvents(familyId) });
       queryClient.invalidateQueries({ queryKey: qk.notifications(familyId) });
-      Alert.alert(
-        'Notfall ausgelöst',
-        'Deine Notfallkontakte wurden benachrichtigt (simuliert). Der Notfall erscheint jetzt für deine Familie.',
-      );
     },
     onError: (e) => {
       Alert.alert('Fehler', friendlyError(e));
@@ -116,6 +147,7 @@ export function EmergencyScreen({
     contactsQuery.refetch();
     eventsQuery.refetch();
     personsQuery.refetch();
+    trustedQuery.refetch();
   }
 
   function triggererName(event: EmergencyEvent): string {
@@ -125,47 +157,22 @@ export function EmergencyScreen({
   }
 
   function handleSos() {
-    Alert.alert(
-      'Notfall auslösen?',
-      'Deine Notfallkontakte werden benachrichtigt und dein Standort vorbereitet.',
-      [
-        { text: 'Abbrechen', style: 'cancel' },
-        {
-          text: 'Notfall auslösen',
-          style: 'destructive',
-          onPress: () => triggerMutation.mutate(),
-        },
-      ],
-    );
+    setConfirming(true);
   }
 
   function confirmResolve(event: EmergencyEvent) {
-    Alert.alert(
-      'Notfall als gelöst markieren?',
-      'Die Familie wird sehen, dass dieser Notfall beendet ist.',
-      [
-        { text: 'Abbrechen', style: 'cancel' },
-        {
-          text: 'Als gelöst markieren',
-          onPress: () => resolveMutation.mutate(event.id),
-        },
-      ],
-    );
+    // Positiver Schritt – direkt ausführen (zuverlässig auch im Web, ohne Alert).
+    resolveMutation.mutate(event.id);
   }
 
-  function confirmDeleteContact(contact: EmergencyContact) {
-    Alert.alert(
-      'Kontakt löschen',
-      `Möchtest du „${contact.name}“ wirklich aus den Notfallkontakten entfernen?`,
-      [
-        { text: 'Abbrechen', style: 'cancel' },
-        {
-          text: 'Löschen',
-          style: 'destructive',
-          onPress: () => deleteContactMutation.mutate(contact.id),
-        },
-      ],
-    );
+  async function confirmDeleteContact(contact: EmergencyContact) {
+    const ok = await confirmAsync({
+      title: 'Kontakt löschen',
+      message: `Möchtest du „${contact.name}" wirklich aus den Notfallkontakten entfernen?`,
+      confirmLabel: 'Löschen',
+      destructive: true,
+    });
+    if (ok) deleteContactMutation.mutate(contact.id);
   }
 
   const activeEvents = events.filter((e) => e.state === 'active');
@@ -193,7 +200,7 @@ export function EmergencyScreen({
     >
       <AppText variant="display">Notfall</AppText>
       <AppText variant="body" color={colors.textSecondary} style={styles.intro}>
-        Im Notfall benachrichtigt Foreverly deine hinterlegten Kontakte und
+        Im Notfall benachrichtigt FAMII deine hinterlegten Kontakte und
         teilt deinen Standort.
       </AppText>
 
@@ -227,6 +234,29 @@ export function EmergencyScreen({
           </AppText>
         </Pressable>
       </View>
+
+      {/* Sicherheitsabfrage (In-Screen, funktioniert auch im Web) */}
+      {confirming ? (
+        <Card style={styles.confirmCard}>
+          <AppText variant="subheading" color={colors.error}>Notfall auslösen?</AppText>
+          <AppText variant="body" color={colors.textSecondary}>
+            Deine Notfallkontakte werden benachrichtigt und dein Standort wird
+            mitgesendet. Der Notfall erscheint danach für deine Familie.
+          </AppText>
+          <Button
+            label="Notfall auslösen"
+            icon="warning-outline"
+            loading={triggerMutation.isPending}
+            onPress={() => triggerMutation.mutate()}
+          />
+          <Button
+            label="Abbrechen"
+            icon="close-outline"
+            variant="secondary"
+            onPress={() => setConfirming(false)}
+          />
+        </Card>
+      ) : null}
 
       {/* Aktive Notfälle */}
       {activeEvents.length > 0 ? (
@@ -272,6 +302,51 @@ export function EmergencyScreen({
                   onPress={() => confirmResolve(event)}
                   style={styles.resolveButton}
                 />
+              </Card>
+            ))}
+          </View>
+        </View>
+      ) : null}
+
+      {/* Vertrauenspersonen vor Ort (Trusted Circle) */}
+      {trustedByPerson.length > 0 ? (
+        <View style={styles.section}>
+          <SectionHeader title="Vertrauenspersonen vor Ort" />
+          <View style={styles.list}>
+            {trustedByPerson.map((group) => (
+              <Card key={group.person.id}>
+                <AppText variant="bodyStrong">
+                  In der Nähe von {fullName(group.person.first_name, group.person.last_name)} erreichbar:
+                </AppText>
+                {group.list.map((t) => (
+                  <View key={t.id} style={styles.trustedRow}>
+                    <Ionicons
+                      name={t.is_emergency ? 'shield-checkmark' : TRUSTED_ROLES[t.role].icon}
+                      size={20}
+                      color={t.is_emergency ? colors.error : colors.relationMarried}
+                    />
+                    <View style={styles.trustedBody}>
+                      <AppText variant="body">
+                        {t.name}
+                        <AppText variant="caption" color={colors.textMuted}>
+                          {`  ${TRUSTED_ROLES[t.role].label}`}
+                        </AppText>
+                      </AppText>
+                      {t.phone ? (
+                        <AppText variant="caption" color={colors.textSecondary}>
+                          {t.phone}
+                        </AppText>
+                      ) : null}
+                    </View>
+                    <Pressable
+                      hitSlop={8}
+                      onPress={() => callTrusted(t.phone)}
+                      accessibilityLabel={`${t.name} anrufen`}
+                    >
+                      <Ionicons name="call" size={22} color={colors.success} />
+                    </Pressable>
+                  </View>
+                ))}
               </Card>
             ))}
           </View>
@@ -405,6 +480,7 @@ const styles = StyleSheet.create({
     ...shadow.card,
   },
   sosButtonPressed: { opacity: 0.85, transform: [{ scale: 0.97 }] },
+  confirmCard: { borderColor: colors.error, borderWidth: 1.5, gap: spacing.sm, marginBottom: spacing.xl },
   sosButtonDisabled: { opacity: 0.6 },
   sosLabel: { letterSpacing: 2 },
   section: { marginBottom: spacing.xl },
@@ -437,6 +513,13 @@ const styles = StyleSheet.create({
   contactBody: { flex: 1, gap: spacing.xs },
   contactNote: { marginTop: spacing.xs },
   trash: { padding: spacing.xs },
+  trustedRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+    marginTop: spacing.sm,
+  },
+  trustedBody: { flex: 1 },
   historyCard: { backgroundColor: colors.surfaceAlt },
   historyRow: { flexDirection: 'row', alignItems: 'flex-start', gap: spacing.sm },
   historyBody: { flex: 1, gap: 2 },

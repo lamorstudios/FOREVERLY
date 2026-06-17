@@ -16,10 +16,11 @@ import { formatDate } from '@/lib/format';
 import { askHistorian } from '@/api/historian';
 import { qk } from '@/api/queryKeys';
 import { useFamily } from '@/context/FamilyContext';
-import type { HistorianStackParamList } from '@/navigation/types';
+import { useAuth } from '@/context/AuthContext';
+import type { HomeStackParamList } from '@/navigation/types';
 import type { HistorianSource, KnowledgeKind } from '@/historian/engine';
 
-type Props = NativeStackScreenProps<HistorianStackParamList, 'HistorianAnswer'>;
+type Props = NativeStackScreenProps<HomeStackParamList, 'HistorianAnswer'>;
 
 const SOURCE_ICON: Record<KnowledgeKind, keyof typeof Ionicons.glyphMap> = {
   person: 'person-circle-outline',
@@ -49,11 +50,12 @@ function SourceRow({ source }: { source: HistorianSource }) {
 export function HistorianAnswerScreen({ navigation, route }: Props) {
   const { query } = route.params;
   const { activeFamily } = useFamily();
+  const { userId } = useAuth();
   const [followUp, setFollowUp] = useState('');
 
   const { data: answer, isLoading } = useQuery({
     queryKey: qk.historianAsk(activeFamily!.id, query),
-    queryFn: () => askHistorian(activeFamily!.id, query),
+    queryFn: () => askHistorian(activeFamily!.id, query, userId ?? undefined),
   });
 
   const askAgain = () => {

@@ -18,6 +18,7 @@ import { useImagePicker } from '@/hooks/useImagePicker';
 import { listPhotos, uploadPhoto, deletePhoto } from '@/api/media';
 import { qk } from '@/api/queryKeys';
 import { friendlyError } from '@/lib/errors';
+import { confirmAsync } from '@/lib/confirm';
 import { colors, spacing, radius } from '@/theme';
 import type { Photo } from '@/types/models';
 import type { MemoriesStackParamList } from '@/navigation/types';
@@ -78,19 +79,14 @@ export function PhotoGalleryScreen({ route }: Props) {
     onError: (e) => Alert.alert('Fehler', friendlyError(e)),
   });
 
-  function confirmDelete(photo: Photo) {
-    Alert.alert(
-      'Foto löschen',
-      'Möchtest du dieses Foto wirklich löschen?',
-      [
-        { text: 'Abbrechen', style: 'cancel' },
-        {
-          text: 'Löschen',
-          style: 'destructive',
-          onPress: () => deleteMutation.mutate(photo.id),
-        },
-      ],
-    );
+  async function confirmDelete(photo: Photo) {
+    const ok = await confirmAsync({
+      title: 'Foto löschen',
+      message: 'Möchtest du dieses Foto wirklich löschen?',
+      confirmLabel: 'Löschen',
+      destructive: true,
+    });
+    if (ok) deleteMutation.mutate(photo.id);
   }
 
   if (isLoading) {

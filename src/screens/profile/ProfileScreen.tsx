@@ -1,4 +1,4 @@
-import { View, StyleSheet, Alert } from 'react-native';
+import { View, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import {
@@ -10,6 +10,7 @@ import {
   Chip,
   Loading,
   SectionHeader,
+  InviteFamilyButton,
 } from '@/components';
 import { SignedImage } from '@/components/SignedImage';
 import { useQuery } from '@tanstack/react-query';
@@ -17,6 +18,8 @@ import { getProfile } from '@/api/profiles';
 import { qk } from '@/api/queryKeys';
 import { useAuth } from '@/context/AuthContext';
 import { useFamily } from '@/context/FamilyContext';
+import { useOnboarding } from '@/context/OnboardingContext';
+import { confirmAsync } from '@/lib/confirm';
 import { colors, spacing } from '@/theme';
 import type { ProfileStackParamList } from '@/navigation/types';
 
@@ -25,27 +28,21 @@ type Props = NativeStackScreenProps<ProfileStackParamList, 'Profile'>;
 export function ProfileScreen({ navigation }: Props) {
   const { userId, signOut } = useAuth();
   const { activeFamily, families, setActiveFamily } = useFamily();
+  const { restartIntro } = useOnboarding();
 
   const profileQuery = useQuery({
     queryKey: qk.profile(userId!),
     queryFn: () => getProfile(userId!),
   });
 
-  function handleSignOut() {
-    Alert.alert(
-      'Abmelden',
-      'Möchtest du dich wirklich abmelden?',
-      [
-        { text: 'Abbrechen', style: 'cancel' },
-        {
-          text: 'Abmelden',
-          style: 'destructive',
-          onPress: () => {
-            void signOut();
-          },
-        },
-      ],
-    );
+  async function handleSignOut() {
+    const ok = await confirmAsync({
+      title: 'Abmelden',
+      message: 'Möchtest du dich wirklich abmelden?',
+      confirmLabel: 'Abmelden',
+      destructive: true,
+    });
+    if (ok) void signOut();
   }
 
   if (profileQuery.isLoading) {
@@ -91,6 +88,8 @@ export function ProfileScreen({ navigation }: Props) {
       </View>
 
       <View style={styles.actions}>
+        <InviteFamilyButton />
+
         <Card onPress={() => navigation.navigate('EditProfile')}>
           <View style={styles.row}>
             <Ionicons
@@ -120,6 +119,49 @@ export function ProfileScreen({ navigation }: Props) {
               size={24}
               color={colors.textMuted}
             />
+          </View>
+        </Card>
+
+        <Card onPress={() => navigation.navigate('Settings')}>
+          <View style={styles.row}>
+            <Ionicons name="settings-outline" size={32} color={colors.primary} />
+            <View style={styles.rowLabel}>
+              <AppText variant="bodyStrong">Einstellungen</AppText>
+              <AppText variant="caption" color={colors.textSecondary}>
+                Speicher · Rollen · Datenschutz · Feedback
+              </AppText>
+            </View>
+            <Ionicons name="chevron-forward" size={24} color={colors.textMuted} />
+          </View>
+        </Card>
+
+        <Card onPress={() => navigation.navigate('VaultHub')}>
+          <View style={styles.row}>
+            <Ionicons name="file-tray-full-outline" size={32} color={colors.primary} />
+            <View style={styles.rowLabel}>
+              <AppText variant="bodyStrong">Dokumente & Nachlass</AppText>
+              <AppText variant="caption" color={colors.textSecondary}>
+                Family Vault · Vermächtnisse · Vertrauenspersonen
+              </AppText>
+            </View>
+            <Ionicons
+              name="chevron-forward"
+              size={24}
+              color={colors.textMuted}
+            />
+          </View>
+        </Card>
+
+        <Card onPress={restartIntro}>
+          <View style={styles.row}>
+            <Ionicons name="help-buoy-outline" size={32} color={colors.primary} />
+            <View style={styles.rowLabel}>
+              <AppText variant="bodyStrong">Hilfe & Einführung erneut starten</AppText>
+              <AppText variant="caption" color={colors.textSecondary}>
+                Vollbild-Onboarding & interaktive Tour neu abspielen
+              </AppText>
+            </View>
+            <Ionicons name="chevron-forward" size={24} color={colors.textMuted} />
           </View>
         </Card>
       </View>

@@ -19,6 +19,9 @@ import type {
   Audio,
   TimeCapsule,
   CalendarEvent,
+  Relationship,
+  PersonQuote,
+  PersonTribute,
 } from '@/types/models';
 
 export type KnowledgeKind =
@@ -102,6 +105,10 @@ export interface FamilyData {
   audios: Audio[];
   capsules: TimeCapsule[];
   calendarEvents: CalendarEvent[];
+  relationships: Relationship[];
+  /** Phase 16: Zitate & Erinnerungen von Ehrenmitgliedern (für Buch/Historiker). */
+  quotes?: PersonQuote[];
+  tributes?: PersonTribute[];
 }
 
 export interface KnowledgeBase {
@@ -226,10 +233,10 @@ export function buildKnowledgeBase(data: FamilyData): KnowledgeBase {
     } as unknown as KnowledgeDoc);
   }
 
-  // Audios
+  // Audios (inkl. Transkription, falls vorhanden → durchsuchbar)
   for (const a of data.audios) {
     const who = nameOf(a.person_id);
-    const text = [a.title ?? 'Audioaufnahme', who].filter(Boolean).join('. ');
+    const text = [a.title ?? 'Audioaufnahme', who, a.transcript ?? ''].filter(Boolean).join('. ');
     docs.push({
       id: `audio-${a.id}`,
       kind: 'audio',
@@ -513,6 +520,203 @@ export function personInsight(
 }
 
 // --- Familienwissen retten (Lücken erkennen) --------------------------
+
+// ====================== Phase 8 · KI-Familienhistoriker ======================
+
+export interface FamilyKnowledge {
+  origins: { label: string; count: number }[]; // Orte (Geburtsorte etc.)
+  professions: { label: string; count: number }[];
+  traditions: { label: string; source: HistorianSource }[];
+}
+
+const PROFESSION_WORDS = [
+  'Lehrer', 'Lehrerin', 'Tischler', 'Ingenieur', 'Krankenschwester', 'Arzt',
+  'Ärztin', 'Bauer', 'Handwerk', 'Handwerker', 'Kaufmann', 'Schneider',
+  'Bäcker', 'Pfarrer', 'Seefahrt', 'Seemann',
+];
+const TRADITION_WORDS = [
+  'Streuselkuchen', 'Weihnachten', 'Sonntagskaffee', 'Sonntag', 'Kuchen',
+  'Grillen', 'Grillfest', 'Urlaub', 'Ostsee', 'Garten', 'Rezept',
+];
+
+/** Aggregiert Familienwissen (nur aus vorhandenen Inhalten). */
+export function familyKnowledge(kb: KnowledgeBase): FamilyKnowledge {
+  const places = new Map<string, number>();
+  for (const p of kb.data.persons) {
+    if (p.birth_place) places.set(p.birth_place, (places.get(p.birth_place) ?? 0) + 1);
+  }
+  const professions = new Map<string, number>();
+  const traditions: { label: string; source: HistorianSource }[] = [];
+  const seenTradition = new Set<string>();
+
+  for (const doc of kb.docs) {
+    const folded = fold(doc.text);
+    for (const w of PROFESSION_WORDS) {
+      if (folded.includes(fold(w))) professions.set(w, (professions.get(w) ?? 0) + 1);
+    }
+    for (const w of TRADITION_WORDS) {
+      if (folded.includes(fold(w)) && !seenTradition.has(fold(w)) && doc.kind !== 'person') {
+        seenTradition.add(fold(w));
+        traditions.push({ label: w, source: doc.source });
+      }
+    }
+  }
+
+  const toSorted = (m: Map<string, number>) =>
+    [...m.entries()].map(([label, count]) => ({ label, count })).sort((a, b) => b.count - a.count);
+
+  return { origins: toSorted(places), professions: toSorted(professions), traditions };
+}
+
+export interface TopicGroup {
+  topic: string;
+  label: string;
+  count: number;
+  sources: HistorianSource[];
+}
+
+const TOPIC_KEYWORDS: { topic: string; label: string; words: string[] }[] = [
+  { topic: 'kindheit', label: 'Kindheit', words: ['kindheit', 'kind', 'schule', 'einschulung', 'jugend'] },
+  { topic: 'auswanderung', label: 'Auswanderung & Herkunft', words: ['stettin', 'auswander', 'flucht', 'heimat', 'herkunft'] },
+  { topic: 'hochzeit', label: 'Hochzeit & Liebe', words: ['hochzeit', 'heirat', 'ja-wort', 'liebe', 'jahrestag'] },
+  { topic: 'beruf', label: 'Beruf & Arbeit', words: ['arbeit', 'beruf', 'tischler', 'lehrer', 'ingenieur', 'krankenschwester'] },
+  { topic: 'familie', label: 'Familie & Feiern', words: ['familie', 'fest', 'feier', 'weihnachten', 'grillen', 'geburtstag'] },
+  { topic: 'reisen', label: 'Reisen & Urlaub', words: ['urlaub', 'reise', 'ostsee', 'italien', 'strand', 'see'] },
+];
+
+/** Erkennt Themen über vorhandene Inhalte (schlagwortbasiert). */
+export function detectTopics(kb: KnowledgeBase): TopicGroup[] {
+  const groups = TOPIC_KEYWORDS.map((t) => ({ ...t, count: 0, sources: [] as HistorianSource[] }));
+  for (const doc of kb.docs) {
+    if (doc.kind === 'person') continue;
+    const folded = fold(doc.text);
+    for (const g of groups) {
+      if (g.words.some((w) => folded.includes(fold(w)))) {
+        g.count += 1;
+        if (g.sources.length < 6) g.sources.push(doc.source);
+      }
+    }
+  }
+  return groups
+    .filter((g) => g.count > 0)
+    .map(({ topic, label, count, sources }) => ({ topic, label, count, sources }))
+    .sort((a, b) => b.count - a.count);
+}
+
+export interface PersonConnection {
+  person: Person;
+  count: number;
+  reason: string;
+}
+
+/** Erkennt Personen, die häufig gemeinsam mit der Person erwähnt werden. */
+export function personConnections(kb: KnowledgeBase, personId: string): PersonConnection[] {
+  const target = kb.personById.get(personId);
+  if (!target) return [];
+  const counts = new Map<string, { count: number; reasons: Set<string> }>();
+  const bump = (id: string, reason: string) => {
+    if (id === personId || !kb.personById.has(id)) return;
+    if (!counts.has(id)) counts.set(id, { count: 0, reasons: new Set() });
+    const e = counts.get(id)!;
+    e.count += 1;
+    e.reasons.add(reason);
+  };
+
+  // Gemeinsame Familienereignisse (Kalender-Teilnehmer).
+  for (const ev of kb.data.calendarEvents) {
+    const ids = ev.participant_ids ?? [];
+    if (ids.includes(personId)) ids.forEach((id) => bump(id, 'gemeinsame Familienereignisse'));
+  }
+  // Gemeinsame Nennung in Erinnerungstexten (Namens-Erwähnung).
+  const others = kb.data.persons.filter((p) => p.id !== personId);
+  for (const m of kb.data.memories) {
+    const text = fold(`${m.title} ${m.description ?? ''}`);
+    const mentionsTarget = m.person_id === personId || text.includes(fold(target.first_name));
+    if (!mentionsTarget) continue;
+    for (const o of others) {
+      if (m.person_id === o.id || text.includes(fold(o.first_name))) bump(o.id, 'gemeinsame Erinnerungen');
+    }
+  }
+
+  return [...counts.entries()]
+    .map(([id, e]) => ({ person: kb.personById.get(id)!, count: e.count, reason: [...e.reasons].join(' · ') }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 8);
+}
+
+/** Zeitleiste einer einzelnen Person. */
+export function personTimeline(kb: KnowledgeBase, personId: string): TimelineEntry[] {
+  return buildTimeline(kb).filter((e) => e.source.personId === personId);
+}
+
+export interface OnThisDayItem {
+  yearsAgo: number;
+  date: string;
+  label: string;
+  source: HistorianSource;
+}
+
+/** „Heute in der Familiengeschichte" – gleicher Tag/Monat in früheren Jahren. */
+export function onThisDay(kb: KnowledgeBase, ref: Date = new Date()): OnThisDayItem[] {
+  const mm = ref.getMonth();
+  const dd = ref.getDate();
+  const items: OnThisDayItem[] = [];
+  const add = (date: string | null, label: string, source: HistorianSource) => {
+    if (!date) return;
+    const d = new Date(date);
+    if (Number.isNaN(d.getTime())) return;
+    if (d.getMonth() !== mm || d.getDate() !== dd) return;
+    const yearsAgo = ref.getFullYear() - d.getFullYear();
+    if (yearsAgo <= 0) return;
+    items.push({ yearsAgo, date, label, source });
+  };
+
+  for (const p of kb.data.persons) {
+    const name = fullName(p.first_name, p.last_name);
+    add(p.birth_date, `Geburtstag von ${name}`, { kind: 'person', label: `Profil von ${name}`, entityId: p.id, personId: p.id, date: p.birth_date });
+  }
+  for (const m of kb.data.memories) {
+    add(m.occurred_on, m.title, { kind: 'memory', label: `Erinnerung „${m.title}"`, entityId: m.id, personId: m.person_id, date: m.occurred_on });
+  }
+  for (const ev of kb.data.calendarEvents) {
+    add(ev.event_date, ev.title, { kind: 'person', label: ev.title, entityId: ev.id, date: ev.event_date });
+  }
+  return items.sort((a, b) => a.yearsAgo - b.yearsAgo);
+}
+
+/** Themen, die mit einer bestimmten Person verbunden sind. */
+export function personTopics(kb: KnowledgeBase, personId: string): TopicGroup[] {
+  const docs = kb.docs.filter((d) => d.personId === personId && d.kind !== 'person');
+  const groups = TOPIC_KEYWORDS.map((t) => ({ ...t, count: 0, sources: [] as HistorianSource[] }));
+  for (const doc of docs) {
+    const folded = fold(doc.text);
+    for (const g of groups) {
+      if (g.words.some((w) => folded.includes(fold(w)))) {
+        g.count += 1;
+        if (g.sources.length < 6) g.sources.push(doc.source);
+      }
+    }
+  }
+  return groups.filter((g) => g.count > 0).map(({ topic, label, count, sources }) => ({ topic, label, count, sources })).sort((a, b) => b.count - a.count);
+}
+
+export interface MemoryJourney {
+  query: string;
+  total: number;
+  photos: KnowledgeDoc[];
+  audios: KnowledgeDoc[];
+  stories: KnowledgeDoc[]; // Erinnerungen + Zeitkapseln
+  sources: HistorianSource[];
+}
+
+/** „Erinnerungsreise" zu einem Thema – gruppierte, quellengebundene Inhalte. */
+export function memoryJourney(kb: KnowledgeBase, query: string): MemoryJourney {
+  const docs = retrieve(kb, query, 40).map((r) => r.doc);
+  const photos = docs.filter((d) => d.kind === 'photo');
+  const audios = docs.filter((d) => d.kind === 'audio');
+  const stories = docs.filter((d) => d.kind === 'memory' || d.kind === 'time_capsule');
+  return { query, total: docs.length, photos, audios, stories, sources: docs.map((d) => d.source) };
+}
 
 export function detectGaps(kb: KnowledgeBase): KnowledgeGap[] {
   const gaps: KnowledgeGap[] = [];

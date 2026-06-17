@@ -9,10 +9,10 @@ import { ExpoConfig, ConfigContext } from 'expo/config';
  */
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
-  name: 'Foreverly',
+  name: 'FAMII',
   slug: 'foreverly',
   scheme: process.env.EXPO_PUBLIC_APP_SCHEME ?? 'foreverly',
-  version: '1.0.0',
+  version: '1.0.0-rc1',
   orientation: 'portrait',
   userInterfaceStyle: 'light',
   newArchEnabled: true,
@@ -28,11 +28,11 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     bundleIdentifier: 'app.foreverly.mobile',
     infoPlist: {
       NSMicrophoneUsageDescription:
-        'Foreverly benötigt Zugriff auf dein Mikrofon, um Audio-Erinnerungen aufzunehmen.',
+        'FAMII benötigt Zugriff auf dein Mikrofon, um Audio-Erinnerungen aufzunehmen.',
       NSPhotoLibraryUsageDescription:
-        'Foreverly benötigt Zugriff auf deine Fotos, um Familienerinnerungen hochzuladen.',
+        'FAMII benötigt Zugriff auf deine Fotos, um Familienerinnerungen hochzuladen.',
       NSCameraUsageDescription:
-        'Foreverly benötigt Zugriff auf deine Kamera, um Fotos für Erinnerungen aufzunehmen.',
+        'FAMII benötigt Zugriff auf deine Kamera, um Fotos für Erinnerungen aufzunehmen.',
     },
   },
   android: {
@@ -70,5 +70,8 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     inviteBaseUrl:
       process.env.EXPO_PUBLIC_INVITE_BASE_URL ?? 'https://foreverly.app/invite',
     demoMode: process.env.EXPO_PUBLIC_DEMO_MODE,
+    // Release-Kennzeichnung (interner Test).
+    releaseName: 'FAMII RC1',
+    releaseStatus: 'Interner Test',
   },
 });

@@ -121,8 +121,9 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     gap: spacing.sm,
   },
-  title: { flex: 1 },
+  title: { flex: 1, minWidth: 0 },
   badge: {
+    flexShrink: 0,
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.xs,

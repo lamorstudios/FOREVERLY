@@ -20,7 +20,7 @@ export async function registerForNotifications(): Promise<boolean> {
   if (!NOTIFICATIONS_SUPPORTED) return false;
   if (Platform.OS === 'android') {
     await Notifications.setNotificationChannelAsync('default', {
-      name: 'Foreverly',
+      name: 'FAMII',
       importance: Notifications.AndroidImportance.DEFAULT,
     });
   }
