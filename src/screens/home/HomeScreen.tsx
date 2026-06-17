@@ -523,81 +523,6 @@ export function HomeScreen({ navigation }: Props) {
         </Appear>
       ) : null}
 
-      {/* Heute in deiner Familie – emotionale Zusammenfassung */}
-      {todayItems.length > 0 ? (
-        <Appear delay={40}>
-          <View style={styles.section}>
-            <SectionHeader title="Heute in deiner Familie" />
-            <Card padded={false} style={styles.todayCard}>
-              {todayItems.map((it, i) => (
-                <TodayRow
-                  key={it.id}
-                  item={it}
-                  showDivider={i > 0}
-                  onPress={it.route ? () => navigation.navigate(it.route as QuickRoute) : undefined}
-                />
-              ))}
-            </Card>
-          </View>
-        </Appear>
-      ) : null}
-
-      {/* Familien-Sicherheit */}
-      <Appear delay={60}>
-        <View style={styles.section}>
-          <SectionHeader title="Familien-Sicherheit" actionLabel="Karte" onAction={() => navigation.navigate('LiveMap')} />
-          {activeAlerts.length > 0 ? (
-            <Card onPress={() => navigation.navigate('Sos')} style={styles.alertCard}>
-              <View style={styles.row}>
-                <View style={[styles.iconCircle, { backgroundColor: withAlpha(colors.error, 0.16) }]}>
-                  <Ionicons name="warning" size={22} color={colors.error} />
-                </View>
-                <View style={styles.rowText}>
-                  <AppText variant="bodyStrong" color={colors.error}>SOS aktiv</AppText>
-                  <AppText variant="caption" color={colors.textSecondary} numberOfLines={1}>
-                    {fullName(activeAlerts[0]!.person?.first_name, activeAlerts[0]!.person?.last_name) || 'Jemand'} braucht Hilfe
-                  </AppText>
-                </View>
-              </View>
-            </Card>
-          ) : null}
-          {activeTrips.map((t) => (
-            <Card key={t.id} onPress={() => navigation.navigate('TripDetail', { tripId: t.id })}>
-              <View style={styles.row}>
-                <View style={[styles.iconCircle, { backgroundColor: withAlpha(colors.relationMarried, 0.16) }]}>
-                  <Ionicons name="navigate" size={20} color={colors.relationMarried} />
-                </View>
-                <View style={styles.rowText}>
-                  <AppText variant="bodyStrong" numberOfLines={1}>
-                    {fullName(t.person?.first_name, t.person?.last_name) || 'Familienmitglied'} ist unterwegs
-                  </AppText>
-                  <AppText variant="caption" color={colors.textSecondary} numberOfLines={1}>
-                    Heimweg → {t.destination_label}
-                  </AppText>
-                </View>
-                <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
-              </View>
-            </Card>
-          ))}
-          {activeAlerts.length === 0 && activeTrips.length === 0 ? (
-            <Card onPress={() => navigation.navigate('LiveMap')}>
-              <View style={styles.row}>
-                <View style={[styles.iconCircle, { backgroundColor: withAlpha(colors.relationMarried, 0.16) }]}>
-                  <Ionicons name="location-outline" size={20} color={colors.relationMarried} />
-                </View>
-                <View style={styles.rowText}>
-                  <AppText variant="bodyStrong">Familienkarte</AppText>
-                  <AppText variant="caption" color={colors.textSecondary}>
-                    {sharingCount > 0 ? `${sharingCount} teilen gerade ihren Standort` : 'Niemand teilt gerade – alles ruhig'}
-                  </AppText>
-                </View>
-                <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
-              </View>
-            </Card>
-          ) : null}
-        </View>
-      </Appear>
-
       {/* Heute in der Familiengeschichte */}
       {onThisDayItems.length > 0 ? (
         <Appear delay={70}>
@@ -674,6 +599,81 @@ export function HomeScreen({ navigation }: Props) {
           </View>
         </Appear>
       ) : null}
+
+      {/* Heute in deiner Familie – emotionale Zusammenfassung */}
+      {todayItems.length > 0 ? (
+        <Appear delay={40}>
+          <View style={styles.section}>
+            <SectionHeader title="Heute in deiner Familie" />
+            <Card padded={false} style={styles.todayCard}>
+              {todayItems.map((it, i) => (
+                <TodayRow
+                  key={it.id}
+                  item={it}
+                  showDivider={i > 0}
+                  onPress={it.route ? () => navigation.navigate(it.route as QuickRoute) : undefined}
+                />
+              ))}
+            </Card>
+          </View>
+        </Appear>
+      ) : null}
+
+      {/* Familien-Sicherheit */}
+      <Appear delay={60}>
+        <View style={styles.section}>
+          <SectionHeader title="Familien-Sicherheit" actionLabel="Karte" onAction={() => navigation.navigate('LiveMap')} />
+          {activeAlerts.length > 0 ? (
+            <Card onPress={() => navigation.navigate('Sos')} style={styles.alertCard}>
+              <View style={styles.row}>
+                <View style={[styles.iconCircle, { backgroundColor: withAlpha(colors.error, 0.16) }]}>
+                  <Ionicons name="warning" size={22} color={colors.error} />
+                </View>
+                <View style={styles.rowText}>
+                  <AppText variant="bodyStrong" color={colors.error}>SOS aktiv</AppText>
+                  <AppText variant="caption" color={colors.textSecondary} numberOfLines={1}>
+                    {fullName(activeAlerts[0]!.person?.first_name, activeAlerts[0]!.person?.last_name) || 'Jemand'} braucht Hilfe
+                  </AppText>
+                </View>
+              </View>
+            </Card>
+          ) : null}
+          {activeTrips.map((t) => (
+            <Card key={t.id} onPress={() => navigation.navigate('TripDetail', { tripId: t.id })}>
+              <View style={styles.row}>
+                <View style={[styles.iconCircle, { backgroundColor: withAlpha(colors.relationMarried, 0.16) }]}>
+                  <Ionicons name="navigate" size={20} color={colors.relationMarried} />
+                </View>
+                <View style={styles.rowText}>
+                  <AppText variant="bodyStrong" numberOfLines={1}>
+                    {fullName(t.person?.first_name, t.person?.last_name) || 'Familienmitglied'} ist unterwegs
+                  </AppText>
+                  <AppText variant="caption" color={colors.textSecondary} numberOfLines={1}>
+                    Heimweg → {t.destination_label}
+                  </AppText>
+                </View>
+                <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
+              </View>
+            </Card>
+          ))}
+          {activeAlerts.length === 0 && activeTrips.length === 0 ? (
+            <Card onPress={() => navigation.navigate('LiveMap')}>
+              <View style={styles.row}>
+                <View style={[styles.iconCircle, { backgroundColor: withAlpha(colors.relationMarried, 0.16) }]}>
+                  <Ionicons name="location-outline" size={20} color={colors.relationMarried} />
+                </View>
+                <View style={styles.rowText}>
+                  <AppText variant="bodyStrong">Familienkarte</AppText>
+                  <AppText variant="caption" color={colors.textSecondary}>
+                    {sharingCount > 0 ? `${sharingCount} teilen gerade ihren Standort` : 'Niemand teilt gerade – alles ruhig'}
+                  </AppText>
+                </View>
+                <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
+              </View>
+            </Card>
+          ) : null}
+        </View>
+      </Appear>
 
       {/* Familienschatz-Karten */}
       {treasures.length > 0 ? (
