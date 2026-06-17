@@ -99,7 +99,7 @@ export type FamilyStackParamList = {
   Network: undefined;
   PersonProfile: { personId: string };
   MemorialProfile: { personId: string };
-  PersonForm: { personId?: string };
+  PersonForm: { personId?: string; memorial?: boolean };
   AddRelationship: { personId: string };
   Members: undefined;
   Invite: undefined;

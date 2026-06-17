@@ -211,10 +211,20 @@ export const demoStore = {
     if (person) return [person.first_name, person.last_name].filter(Boolean).join(' ');
     return 'Familienmitglied';
   },
+  /** Profilbild zu einer Nutzer-ID (für Autor-Avatare). */
+  avatarForUser(userId: string | null): string | null {
+    if (!userId) return null;
+    if (userId === data.profile.id || userId === DEMO_USER_ID) return data.profile.avatar_url;
+    const person = data.persons.find((p) => p.user_id === userId);
+    return person?.avatar_url ?? null;
+  },
   listQuotes(personId: string): PersonQuote[] {
     return data.quotes
       .filter((q) => q.person_id === personId)
       .sort((a, b) => a.created_at.localeCompare(b.created_at));
+  },
+  listFamilyQuotes(familyId: string): PersonQuote[] {
+    return data.quotes.filter((q) => q.family_id === familyId);
   },
   addQuote(input: {
     familyId: string;
@@ -243,6 +253,9 @@ export const demoStore = {
     return data.tributes
       .filter((t) => t.person_id === personId)
       .sort((a, b) => b.created_at.localeCompare(a.created_at));
+  },
+  listFamilyTributes(familyId: string): PersonTribute[] {
+    return data.tributes.filter((t) => t.family_id === familyId);
   },
   addTribute(input: {
     familyId: string;

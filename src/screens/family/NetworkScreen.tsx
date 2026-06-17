@@ -126,6 +126,25 @@ export function NetworkScreen({ navigation }: Props) {
           <InviteFamilyButton />
         </View>
 
+        <View style={styles.addRow}>
+          <View style={styles.addCell}>
+            <Button
+              label="Familienmitglied einladen"
+              icon="person-add-outline"
+              variant="secondary"
+              onPress={() => navigation.navigate('SmartInvite', {})}
+            />
+          </View>
+          <View style={styles.addCell}>
+            <Button
+              label="Ehrenmitglied hinzufügen"
+              icon="heart-outline"
+              variant="secondary"
+              onPress={() => navigation.navigate('PersonForm', { memorial: true })}
+            />
+          </View>
+        </View>
+
         <View style={styles.legendChips}>
           {LEGEND.map((item) => (
             <View key={item.category} style={styles.legendChip}>
@@ -178,6 +197,25 @@ export function NetworkScreen({ navigation }: Props) {
 
       <View style={styles.inviteRow}>
         <InviteFamilyButton />
+      </View>
+
+      <View style={styles.addRow}>
+        <View style={styles.addCell}>
+          <Button
+            label="Familienmitglied einladen"
+            icon="person-add-outline"
+            variant="secondary"
+            onPress={() => navigation.navigate('SmartInvite', {})}
+          />
+        </View>
+        <View style={styles.addCell}>
+          <Button
+            label="Ehrenmitglied hinzufügen"
+            icon="heart-outline"
+            variant="secondary"
+            onPress={() => navigation.navigate('PersonForm', { memorial: true })}
+          />
+        </View>
       </View>
 
       <View style={styles.headerButtons}>
@@ -293,6 +331,8 @@ const styles = StyleSheet.create({
   treeContent: { flex: 1 },
   hint: { marginTop: 2 },
   inviteRow: { marginVertical: spacing.xs },
+  addRow: { flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm, marginBottom: spacing.xs },
+  addCell: { flexGrow: 1, flexBasis: '47%' },
   treeHeader: {
     flexDirection: 'row',
     alignItems: 'center',

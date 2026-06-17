@@ -113,6 +113,14 @@ export function buildFamilyBook(
     ];
     const mems = data.memories.filter((m) => m.person_id === p.id);
     mems.forEach((m) => blocks.push({ type: 'paragraph', text: `${m.title}${m.description ? ` – ${m.description}` : ''}` }));
+    // Phase 16: gemeinsame Erinnerungen der Familie an dieses (Ehren-)Mitglied.
+    (data.tributes ?? [])
+      .filter((t) => t.person_id === p.id)
+      .forEach((t) => blocks.push({ type: 'paragraph', text: `„${t.text}" – ${t.author_name}` }));
+    // Phase 16: oft gesagte Sätze als Zitate.
+    (data.quotes ?? [])
+      .filter((q) => q.person_id === p.id)
+      .forEach((q) => blocks.push({ type: 'quote', text: q.text, attribution: q.context ? `${fullName(p.first_name, p.last_name)} – ${q.context}` : fullName(p.first_name, p.last_name) }));
     const photos = data.photos.filter((ph) => ph.person_id === p.id);
     if (photos.length) blocks.push({ type: 'photoGrid', photos: photos.map((ph) => ({ path: ph.storage_path, caption: ph.caption ?? undefined })) });
     data.audios.filter((a) => a.person_id === p.id).forEach((a) => blocks.push({ type: 'audio', title: a.title ?? 'Audioaufnahme', personName: fullName(p.first_name, p.last_name) }));

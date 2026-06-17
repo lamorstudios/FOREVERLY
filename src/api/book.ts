@@ -8,6 +8,7 @@ import { listMemories } from './memories';
 import { listPhotos, listAudios } from './media';
 import { listMyCapsules } from './timeCapsules';
 import { listCalendarEvents } from './calendar';
+import { listFamilyQuotes, listFamilyTributes } from './memorial';
 import { buildFamilyBook, applyProjectOverrides } from '@/book/generator';
 import { buildPrintableHtml } from '@/book/print';
 import type { FamilyData } from '@/historian/engine';
@@ -21,7 +22,7 @@ import type {
 } from '@/types/models';
 
 async function gather(familyId: string): Promise<{ data: FamilyData; familyName: string }> {
-  const [family, persons, relationships, memories, photos, audios, capsules, calendarEvents] =
+  const [family, persons, relationships, memories, photos, audios, capsules, calendarEvents, quotes, tributes] =
     await Promise.all([
       getFamily(familyId),
       listPersons(familyId),
@@ -31,10 +32,12 @@ async function gather(familyId: string): Promise<{ data: FamilyData; familyName:
       listAudios(familyId),
       listMyCapsules(familyId),
       listCalendarEvents(familyId),
+      listFamilyQuotes(familyId),
+      listFamilyTributes(familyId),
     ]);
   return {
     familyName: family?.name ?? 'Familie',
-    data: { persons, memories, photos, audios, capsules, calendarEvents, relationships },
+    data: { persons, memories, photos, audios, capsules, calendarEvents, relationships, quotes, tributes },
   };
 }
 

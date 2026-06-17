@@ -20,6 +20,8 @@ import type {
   TimeCapsule,
   CalendarEvent,
   Relationship,
+  PersonQuote,
+  PersonTribute,
 } from '@/types/models';
 
 export type KnowledgeKind =
@@ -104,6 +106,9 @@ export interface FamilyData {
   capsules: TimeCapsule[];
   calendarEvents: CalendarEvent[];
   relationships: Relationship[];
+  /** Phase 16: Zitate & Erinnerungen von Ehrenmitgliedern (für Buch/Historiker). */
+  quotes?: PersonQuote[];
+  tributes?: PersonTribute[];
 }
 
 export interface KnowledgeBase {

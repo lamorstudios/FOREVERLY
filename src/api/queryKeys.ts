@@ -121,4 +121,6 @@ export const qk = {
   // Phase 16 · Ehrenmitglieder & Familienerbe
   personQuotes: (personId: string) => ['personQuotes', personId] as const,
   personTributes: (personId: string) => ['personTributes', personId] as const,
+  personAudios: (familyId: string, personId: string) => ['personAudios', familyId, personId] as const,
+  memorialStory: (familyId: string, personId: string) => ['memorialStory', familyId, personId] as const,
 };
