@@ -7,18 +7,21 @@
 
 ## Automatischer Test
 
-`scripts/test_persistence.mjs` legt mit einem echten Konto Familie, Erinnerung,
-**Foto (echter Storage-Upload)**, Zeitkapsel und Ehrenmitglied (inkl. Zitat &
-Erinnerung) an, simuliert dann **Reload + erneuten Login** (frischer Client) und
-prüft, ob alles erhalten bleibt – inkl. signierter Foto-URL.
+`scripts/test_persistence.mjs` deckt das **vollständige A+B-Szenario** ab:
+Konto A erstellt Familie, lädt **B** ein (Smart-Invite), **B tritt bei**; A
+erstellt **Erinnerung, Foto (echter Storage-Upload), Zeitkapsel, Ehrenmitglied
+(+Zitat/Erinnerung) und Dokument-Hinweis**; danach **Reload + erneuter Login für
+A UND B** (frische Clients) und Prüfung, ob alles erhalten bleibt, **B dieselben
+Inhalte sieht**, B im Baum erscheint, Rollen stimmen und ein Drittkonto **nichts**
+sieht (RLS).
 
 ```bash
 EXPO_PUBLIC_SUPABASE_URL=https://cuptlowskwcukyqrmbnb.supabase.co \
 EXPO_PUBLIC_SUPABASE_ANON_KEY=sb_publishable_… \
 node scripts/test_persistence.mjs
 ```
-Voraussetzungen: Schema+RLS angewandt; „Confirm email" für den Test AUS; nur
-Staging. Erfolg = `Ergebnis: 11/11 Prüfungen bestanden`, Exit-Code 0.
+Voraussetzungen: Schema+RLS + Fix-Migration 0003 angewandt; „Confirm email" für
+den Test AUS; nur Staging. Erfolg = alle Prüfungen `JA`, Exit-Code 0.
 
 ## Welche Daten bleiben erhalten (Supabase) ✅
 
