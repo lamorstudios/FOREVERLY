@@ -17,3 +17,4 @@ export { SelectField } from './SelectField';
 export type { SelectOption } from './SelectField';
 export { TextField } from './TextField';
 export { TourOverlay } from './TourOverlay';
+export { VoiceRecorder } from './VoiceRecorder';

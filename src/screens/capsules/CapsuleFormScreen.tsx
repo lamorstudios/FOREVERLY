@@ -16,7 +16,7 @@ import {
 import { useFamily } from '@/context/FamilyContext';
 import { useAuth } from '@/context/AuthContext';
 import { useImagePicker } from '@/hooks/useImagePicker';
-import { useAudioRecorder } from '@/hooks/useAudioRecorder';
+import { VoiceRecorder } from '@/components';
 import { createCapsule } from '@/api/timeCapsules';
 import type { CapsuleRecipientInput } from '@/api/timeCapsules';
 import { listMembers } from '@/api/families';
@@ -49,7 +49,6 @@ export function CapsuleFormScreen({ navigation }: Props) {
   const familyId = activeFamily!.id;
   const queryClient = useQueryClient();
   const { pickFromLibrary } = useImagePicker();
-  const recorder = useAudioRecorder();
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -78,13 +77,6 @@ export function CapsuleFormScreen({ navigation }: Props) {
     if (picked) setImageUri(picked.uri);
   }
 
-  async function handleStopRecording() {
-    const result = await recorder.stop();
-    if (result) {
-      setAudioUri(result.uri);
-      setAudioDuration(result.durationSeconds);
-    }
-  }
 
   function toggleMember(id: string) {
     setSelectedMembers((prev) =>
@@ -266,40 +258,13 @@ export function CapsuleFormScreen({ navigation }: Props) {
 
         {contentType === 'audio' ? (
           <View style={styles.mediaBlock}>
-            <Card style={styles.audioCard}>
-              <Ionicons
-                name={recorder.isRecording ? 'mic' : 'mic-outline'}
-                size={40}
-                color={recorder.isRecording ? colors.error : colors.primary}
-              />
-              <AppText variant="heading">
-                {recorder.isRecording
-                  ? formatDuration(recorder.durationSeconds)
-                  : audioUri
-                    ? formatDuration(audioDuration)
-                    : '0:00'}
-              </AppText>
-              {audioUri && !recorder.isRecording ? (
-                <AppText variant="caption" color={colors.success}>
-                  Aufnahme gespeichert
-                </AppText>
-              ) : null}
-            </Card>
-            {recorder.isRecording ? (
-              <Button
-                label="Stopp"
-                icon="stop-circle-outline"
-                variant="danger"
-                onPress={handleStopRecording}
-              />
-            ) : (
-              <Button
-                label={audioUri ? 'Neu aufnehmen' : 'Aufnahme starten'}
-                icon="mic-outline"
-                variant="secondary"
-                onPress={recorder.start}
-              />
-            )}
+            <VoiceRecorder
+              value={audioUri ? { uri: audioUri, durationSeconds: audioDuration ?? 0 } : null}
+              onChange={(v) => {
+                setAudioUri(v?.uri ?? null);
+                setAudioDuration(v?.durationSeconds ?? null);
+              }}
+            />
           </View>
         ) : null}
 
