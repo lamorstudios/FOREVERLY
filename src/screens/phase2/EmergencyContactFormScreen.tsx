@@ -69,7 +69,7 @@ export function EmergencyContactFormScreen({
           label="Name"
           value={name}
           onChangeText={setName}
-          placeholder="z. B. Anna Mielke"
+          placeholder="z. B. Oma"
           error={!name.trim() && error ? error : undefined}
         />
 

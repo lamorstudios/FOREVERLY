@@ -71,7 +71,7 @@ function buildDemoDashboard(): AdminDashboard {
       members: 4820,
       avgSize: 4820 / totalFamilies,
       largest: [
-        { name: 'Familie Mielke', members: 21 },
+        { name: 'Beispiel-Familie', members: 21 },
         { name: 'Familie Weber', members: 18 },
         { name: 'Familie Schneider', members: 16 },
         { name: 'Familie Koch', members: 14 },
@@ -84,7 +84,7 @@ function buildDemoDashboard(): AdminDashboard {
       invitesAccepted,
       conversionRate: invitesAccepted / invitesSent,
       topFamilies: [
-        { name: 'Familie Mielke', invites: 42 },
+        { name: 'Beispiel-Familie', invites: 42 },
         { name: 'Familie Weber', invites: 35 },
         { name: 'Familie Hoffmann', invites: 29 },
         { name: 'Familie Schneider', invites: 24 },
@@ -107,7 +107,7 @@ function buildDemoDashboard(): AdminDashboard {
       videosGb: 372.8,
       audiosGb: 41.5,
       perFamily: [
-        { name: 'Familie Mielke', gb: 24.8 },
+        { name: 'Beispiel-Familie', gb: 24.8 },
         { name: 'Familie Weber', gb: 19.3 },
         { name: 'Familie Schneider', gb: 15.1 },
         { name: 'Familie Koch', gb: 11.6 },

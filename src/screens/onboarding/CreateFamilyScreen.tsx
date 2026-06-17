@@ -52,7 +52,7 @@ export function CreateFamilyScreen({ navigation }: Props) {
     <Screen contentStyle={styles.content}>
       <AppText variant="title">Familie erstellen</AppText>
       <AppText variant="body" color={colors.textSecondary}>
-        Gib deiner Familie einen Namen, zum Beispiel „Familie Mielke".
+        Gib deiner Familie einen Namen, zum Beispiel „Familie Schmidt".
       </AppText>
 
       <Pressable style={styles.imagePicker} onPress={pickImage}>

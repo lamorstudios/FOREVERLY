@@ -15,7 +15,7 @@ import type { AssistantAction } from '@/assistant/engine';
 type Props = NativeStackScreenProps<HomeStackParamList, 'Assistant'>;
 
 const EXAMPLES = [
-  'Wer ist Oma Erika?',
+  'Wer ist die Oma?',
   'Wann hat Oma Geburtstag?',
   'Welche Zeitkapseln öffnen sich?',
   'Welche Familienfilme gibt es?',

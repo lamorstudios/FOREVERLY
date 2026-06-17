@@ -16,8 +16,8 @@ import type { HomeStackParamList } from '@/navigation/types';
 type Props = NativeStackScreenProps<HomeStackParamList, 'HistorianHome'>;
 
 const EXAMPLE_QUESTIONS = [
-  'Wer ist Oma Erika?',
-  'Welche Geschichten gibt es über Oma Erika?',
+  'Wer ist die Oma?',
+  'Welche Geschichten gibt es über die Oma?',
   'Welche Rezepte hat Oma hinterlassen?',
   'Welche Familienurlaube gab es?',
   'Wer war Uropa Karl?',

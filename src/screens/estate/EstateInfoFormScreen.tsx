@@ -141,7 +141,7 @@ export function EstateInfoFormScreen({ navigation }: Props) {
       </Card>
 
       <View style={styles.form}>
-        <TextField label="Zuständige Kontaktperson" value={contact} onChangeText={setContact} placeholder="z.B. Sabine Mielke" />
+        <TextField label="Zuständige Kontaktperson" value={contact} onChangeText={setContact} placeholder="z. B. Mutter" />
         <TextField
           label="Persönliche Hinweise"
           value={notes}

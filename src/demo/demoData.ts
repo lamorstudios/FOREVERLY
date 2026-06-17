@@ -120,22 +120,22 @@ export interface DemoDataset {
   feedback: Feedback[];
 }
 
-/** Erzeugt einen frischen Demo-Datensatz (Familie Mielke). */
+/** Erzeugt einen frischen Demo-Datensatz (Beispiel-Familie). */
 export function createSeedData(): DemoDataset {
   const profile: Profile = {
     id: DEMO_USER_ID,
     email: 'nick@famii.demo',
-    full_name: 'Nick Mielke',
-    avatar_url: portraitImage('NM'),
-    bio: 'Sammelt die Erinnerungen der Familie Mielke. 💛',
+    full_name: 'Beispiel-Profil',
+    avatar_url: portraitImage('DU'),
+    bio: 'Beispiel-Profil – ersetze es später durch dein eigenes. 💛',
     created_at: daysFromNow(-400),
     updated_at: daysFromNow(-10),
   };
 
   const family: Family = {
     id: DEMO_FAMILY_ID,
-    name: 'Familie Mielke',
-    image_url: coverImage('Familie Mielke'),
+    name: 'Beispiel-Familie',
+    image_url: coverImage('Beispiel-Familie'),
     created_by: DEMO_USER_ID,
     created_at: daysFromNow(-400),
     updated_at: daysFromNow(-30),
@@ -154,40 +154,42 @@ export function createSeedData(): DemoDataset {
 
   // --- Personen im Familiennetzwerk ---
   const persons: Person[] = [
-    person('p-nick', 'Nick', 'Mielke', '1995-04-12', 'Hamburg', null, 'NM', DEMO_USER_ID),
-    person('p-mutter', 'Sabine', 'Mielke', '1968-08-03', 'Lübeck', null, 'SM'),
-    person('p-vater', 'Thomas', 'Mielke', '1965-02-20', 'Hamburg', null, 'TM'),
-    person('p-oma', 'Erika', 'Mielke', '1942-11-30', 'Rostock', null, 'EM'),
-    person('p-opa', 'Hans', 'Mielke', '1940-05-17', 'Rostock', '2018-03-02', 'HM'),
-    person('p-uroma', 'Anna', 'Krüger', '1918-07-09', 'Stettin', '1999-12-24', 'AK'),
-    person('p-uropa', 'Karl', 'Krüger', '1915-01-22', 'Stettin', '1991-06-15', 'KK'),
-    person('p-stief', 'Peter', 'Hoffmann', '1962-09-09', 'Bremen', null, 'PH'),
-    person('p-pflege', 'Mia', 'Mielke', '2012-03-15', 'Hamburg', null, 'MM'),
+    // Beispiel-/Demo-Personen: klare Rollen-Platzhalter statt echter Namen,
+    // damit neue Nutzer sofort erkennen, dass dies Beispiele sind.
+    person('p-nick', 'Du', null, '1995-04-12', 'Beispielstadt', null, 'DU', DEMO_USER_ID),
+    person('p-mutter', 'Mutter', null, '1968-08-03', 'Beispielstadt', null, 'MU'),
+    person('p-vater', 'Vater', null, '1965-02-20', 'Beispielstadt', null, 'VA'),
+    person('p-oma', 'Oma', null, '1942-11-30', 'Beispielstadt', null, 'OM'),
+    person('p-opa', 'Opa', null, '1940-05-17', 'Beispielstadt', '2018-03-02', 'OP'),
+    person('p-uroma', 'Uroma', null, '1918-07-09', 'Beispielstadt', '1999-12-24', 'UO'),
+    person('p-uropa', 'Uropa', null, '1915-01-22', 'Beispielstadt', '1991-06-15', 'UP'),
+    person('p-stief', 'Stiefvater', null, '1962-09-09', 'Beispielstadt', null, 'SV'),
+    person('p-pflege', 'Pflegekind', null, '2012-03-15', 'Beispielstadt', null, 'PK'),
     // Phase 4.5: zusätzliche Personen für „Beziehung ≠ Nähe"
-    person('p-halb', 'Jonas', 'Mielke', '2000-05-05', 'Hamburg', null, 'JM'),
-    person('p-stiefmutter', 'Claudia', 'Mielke', '1970-03-03', 'Kiel', null, 'CM'),
-    person('p-cousin', 'Max', 'Krüger', '1996-08-08', 'Berlin', null, 'MK'),
-    person('p-schwager', 'Peter', 'Wagner', '1985-01-01', 'Hamburg', null, 'PW'),
-    // Stiefgeschwister: Tochter des Stiefvaters Peter Hoffmann
-    person('p-stiefschwester', 'Lena', 'Hoffmann', '1998-10-10', 'Bremen', null, 'LH'),
-    // Phase 5 · Smart Invites: Nick lud Bruder Max ein; Max fügte Tochter Lea hinzu
-    person('p-max', 'Max', 'Mielke', '1992-02-02', 'Hamburg', null, 'MX', 'demo-user-max'),
-    person('p-lea', 'Lea', 'Mielke', '2018-06-06', 'Hamburg', null, 'LE'),
+    person('p-halb', 'Halbbruder', null, '2000-05-05', 'Beispielstadt', null, 'HB'),
+    person('p-stiefmutter', 'Stiefmutter', null, '1970-03-03', 'Beispielstadt', null, 'SM'),
+    person('p-cousin', 'Cousin', null, '1996-08-08', 'Beispielstadt', null, 'CO'),
+    person('p-schwager', 'Schwager', null, '1985-01-01', 'Beispielstadt', null, 'SW'),
+    // Stiefgeschwister
+    person('p-stiefschwester', 'Stiefschwester', null, '1998-10-10', 'Beispielstadt', null, 'SS'),
+    // Phase 5 · Smart Invites (Beispiel): „Du" lud „Bruder" ein; „Bruder" fügte „Nichte" hinzu
+    person('p-max', 'Bruder', null, '1992-02-02', 'Beispielstadt', null, 'BR', 'demo-user-max'),
+    person('p-lea', 'Nichte', null, '2018-06-06', 'Beispielstadt', null, 'NI'),
   ];
 
   // Biografien (vorhandene Daten – Grundlage für Kurzbiografien & Lebensweisheiten)
   const biographies: Record<string, string> = {
-    'p-nick': 'Nick sammelt die Erinnerungen der Familie Mielke.',
-    'p-mutter': 'Sabine arbeitet als Krankenschwester in Lübeck.',
-    'p-vater': 'Thomas ist Ingenieur und begeisterter Hobbygärtner.',
+    'p-nick': 'Beispiel-Profil – hier sammelst du später die Erinnerungen deiner Familie.',
+    'p-mutter': 'Beispiel: Die Mutter arbeitet als Krankenschwester.',
+    'p-vater': 'Beispiel: Der Vater ist Ingenieur und begeisterter Hobbygärtner.',
     'p-oma':
-      'Erika wuchs in Rostock auf und arbeitete viele Jahre als Lehrerin. Sie sagte oft: Familie ist wichtiger als Geld.',
+      'Beispiel: Die Oma war viele Jahre Lehrerin. Sie sagte oft: Familie ist wichtiger als Geld.',
     'p-opa':
-      'Hans war Tischler und liebte die Seefahrt. Seine Lebensweisheit war: Ehrliche Arbeit bringt Zufriedenheit.',
+      'Beispiel: Der Opa war Tischler und liebte die Seefahrt. Seine Lebensweisheit war: Ehrliche Arbeit bringt Zufriedenheit.',
     'p-uroma':
-      'Anna war bekannt für ihren Streuselkuchen und ihre Gastfreundschaft. Sie sagte: Wahres Glück liegt in der Familie.',
+      'Beispiel: Die Uroma war bekannt für ihren Streuselkuchen und ihre Gastfreundschaft. Sie sagte: Wahres Glück liegt in der Familie.',
     'p-uropa':
-      'Karl stammte aus Stettin und führte einen kleinen Handwerksbetrieb.',
+      'Beispiel: Der Uropa führte einen kleinen Handwerksbetrieb.',
   };
   for (const person of persons) {
     if (biographies[person.id]) person.biography = biographies[person.id]!;
@@ -201,7 +203,7 @@ export function createSeedData(): DemoDataset {
   const memorialTraits: Record<string, string> = {
     'p-opa': 'Tischler aus Leidenschaft, liebte die Seefahrt und sonntägliche Spaziergänge am Hafen. Immer mit einer Geschichte auf den Lippen.',
     'p-uroma': 'Bekannt für ihren Streuselkuchen, ihre Gastfreundschaft und ihr herzliches Lachen. Bei ihr war die ganze Familie willkommen.',
-    'p-uropa': 'Handwerker aus Stettin, fleißig und bescheiden. Er legte den Grundstein für die Familiengeschichte der Krügers.',
+    'p-uropa': 'Handwerker, fleißig und bescheiden. Er legte den Grundstein für die Familiengeschichte.',
   };
   for (const person of persons) {
     // Verstorbene Angehörige sind standardmäßig Familienerbe-Profile.
@@ -260,7 +262,7 @@ export function createSeedData(): DemoDataset {
       inviter_person_id: 'p-nick',
       relationship_type: 'bruder',
       suggested_closeness: 'inner',
-      message: 'Nick lädt dich ein, Teil der Familiengeschichte auf FAMII zu werden.',
+      message: 'Beispiel-Einladung: So lädt ein Familienmitglied weitere zu FAMII ein.',
     },
   ];
 
@@ -273,7 +275,7 @@ export function createSeedData(): DemoDataset {
       to_person_id: 'p-lea',
       suggested_type: 'nichte',
       suggested_category: 'biological',
-      reason: 'Lea ist das Kind von Max (deinem Bruder).',
+      reason: 'Beispiel: Die Nichte ist das Kind deines Bruders.',
       status: 'pending',
       created_by: DEMO_USER_ID,
       created_at: daysFromNow(-2),
@@ -291,7 +293,7 @@ export function createSeedData(): DemoDataset {
     closeness('cl7', 'p-vater', 'inner'),
     closeness('cl8', 'p-max', 'inner'), // Nick stuft Bruder Max als Inner Circle ein
     closeness('cl9', 'p-stiefschwester', 'familie'), // Stiefschwester Lena 💙
-    closeness('cl10', 'p-pflege', 'inner'),          // Pflegekind Mia ❤️
+    closeness('cl10', 'p-pflege', 'inner'),          // Pflegekind das Kind ❤️
     closeness('cl11', 'p-stief', 'sehr_nah'),         // Stiefvater 💛
   ];
 
@@ -305,15 +307,15 @@ export function createSeedData(): DemoDataset {
 
   // --- Erinnerungen ---
   const memories: Memory[] = [
-    memory('m1', 'Unser Sommerurlaub 2006', 'Drei Wochen an der Ostsee – Sandburgen, Eis und endlose Sonnentage. Das war unser schönster Familienurlaub.', 'photo', 'p-nick', '2006-07-20', -45),
-    memory('m2', 'Hier haben Oma und Opa geheiratet', 'Erika und Hans gaben sich 1963 in der kleinen Kirche in Rostock das Ja-Wort.', 'photo', 'p-oma', '1963-06-08', -120),
-    memory('m3', 'Opas Geschichten', 'Opa Hans erzählt von seiner Kindheit in Rostock. Diese Aufnahme ist ein kleiner Schatz.', 'audio', 'p-opa', '2015-11-01', -200),
-    memory('m4', 'Mias erster Schultag', 'Mit Schultüte und einem riesigen Lächeln – Mia konnte es kaum erwarten.', 'photo', 'p-pflege', '2018-09-01', -7),
-    memory('m5', 'Sonntagskaffee bei Uroma Anna', 'Jeden Sonntag gab es selbstgebackenen Streuselkuchen. Den Duft vergisst man nie.', 'text', 'p-uroma', '1997-05-11', -300),
-    memory('m6', 'Oma Erikas 80. Geburtstag', 'Die ganze Familie feierte Erika zum 80. Geburtstag – mit Streuselkuchen, alten Fotos und vielen Geschichten aus Rostock.', 'photo', 'p-oma', '2022-11-30', -60),
+    memory('m1', 'Beispiel: Sommerurlaub an der Ostsee', 'Drei Wochen am Meer – Sandburgen, Eis und endlose Sonnentage. So könnte eine Erinnerung aussehen.', 'photo', 'p-nick', '2006-07-20', -45),
+    memory('m2', 'Beispiel: Hochzeit von Oma & Opa', 'Oma und Opa gaben sich 1963 in einer kleinen Kirche das Ja-Wort.', 'photo', 'p-oma', '1963-06-08', -120),
+    memory('m3', 'Beispiel: Opas Geschichten', 'Der Opa erzählt von seiner Kindheit. Diese Aufnahme ist ein kleiner Schatz.', 'audio', 'p-opa', '2015-11-01', -200),
+    memory('m4', 'Beispiel: Erster Schultag', 'Mit Schultüte und einem riesigen Lächeln – kaum zu erwarten.', 'photo', 'p-pflege', '2018-09-01', -7),
+    memory('m5', 'Beispiel: Sonntagskaffee bei der Uroma', 'Jeden Sonntag gab es selbstgebackenen Streuselkuchen. Den Duft vergisst man nie.', 'text', 'p-uroma', '1997-05-11', -300),
+    memory('m6', 'Beispiel: Omas 80. Geburtstag', 'Die ganze Familie feierte gemeinsam – mit Kuchen, alten Fotos und vielen Geschichten.', 'photo', 'p-oma', '2022-11-30', -60),
     // „Heute in der Familiengeschichte": gleicher Tag/Monat, frühere Jahre
-    memory('m7', 'Familienurlaub in Italien', 'Im Sommer waren wir gemeinsam am Gardasee – Eis, Sonne und lange Abende mit der ganzen Familie.', 'photo', 'p-nick', new Date(now.getFullYear() - 12, now.getMonth(), now.getDate()).toISOString().slice(0, 10), -90),
-    memory('m8', 'Oma Erikas Kindheit in Rostock', 'Erika wuchs nach dem Krieg in Rostock auf. Sie erzählte oft von der Schule, vom Garten ihrer Mutter und davon, wie wichtig Zusammenhalt in schweren Zeiten war.', 'audio', 'p-oma', '1955-04-10', -140),
+    memory('m7', 'Beispiel: Familienurlaub am See', 'Im Sommer gemeinsam am See – Eis, Sonne und lange Abende mit der ganzen Familie.', 'photo', 'p-nick', new Date(now.getFullYear() - 12, now.getMonth(), now.getDate()).toISOString().slice(0, 10), -90),
+    memory('m8', 'Beispiel: Omas Kindheit', 'Die Oma erzählte oft von der Schule, vom Garten ihrer Mutter und davon, wie wichtig Zusammenhalt in schweren Zeiten war.', 'audio', 'p-oma', '1955-04-10', -140),
   ];
 
   // Phase 4.5: Sichtbarkeit einzelner Erinnerungen (Demo)
@@ -329,26 +331,26 @@ export function createSeedData(): DemoDataset {
 
   // --- Fotos (Platzhalter) ---
   const photos: Photo[] = [
-    photo('ph1', 'Strandtag 2006', 'p-nick', 'm1', '#4A78A8'),
-    photo('ph2', 'Hochzeit 1963', 'p-oma', 'm2', '#B07D4B'),
-    photo('ph3', 'Mias Einschulung', 'p-pflege', 'm4', '#8A6BB0'),
-    photo('ph4', 'Familienfest im Garten', null, null, '#5B8A5A'),
-    photo('ph5', 'Weihnachten bei Oma Erika', 'p-oma', null, '#C8A24A'),
-    photo('ph6', 'Nick & Mia am See', 'p-nick', null, '#4A78A8'),
-    // Phase 16: Galerie der Familienerbe-Profile
-    photo('ph7', 'Opa Hans in seiner Werkstatt', 'p-opa', null, '#8A6F4B'),
-    photo('ph8', 'Hans an der Ostsee', 'p-opa', null, '#4A78A8'),
-    photo('ph9', 'Uroma Anna beim Backen', 'p-uroma', null, '#C8A24A'),
-    photo('ph10', 'Anna & Karl in Stettin', 'p-uroma', null, '#B07D4B'),
-    photo('ph11', 'Uropa Karl in seinem Handwerksbetrieb', 'p-uropa', null, '#5B8A5A'),
+    photo('ph1', 'Beispiel: Strandtag', 'p-nick', 'm1', '#4A78A8'),
+    photo('ph2', 'Beispiel: Hochzeit', 'p-oma', 'm2', '#B07D4B'),
+    photo('ph3', 'Beispiel: Einschulung', 'p-pflege', 'm4', '#8A6BB0'),
+    photo('ph4', 'Beispiel: Familienfest im Garten', null, null, '#5B8A5A'),
+    photo('ph5', 'Beispiel: Weihnachten bei der Oma', 'p-oma', null, '#C8A24A'),
+    photo('ph6', 'Beispiel: Am See', 'p-nick', null, '#4A78A8'),
+    // Phase 16: Galerie der Familienerbe-Profile (Beispiel)
+    photo('ph7', 'Beispiel: Opa in seiner Werkstatt', 'p-opa', null, '#8A6F4B'),
+    photo('ph8', 'Beispiel: Opa an der Ostsee', 'p-opa', null, '#4A78A8'),
+    photo('ph9', 'Beispiel: Uroma beim Backen', 'p-uroma', null, '#C8A24A'),
+    photo('ph10', 'Beispiel: Uroma & Uropa', 'p-uroma', null, '#B07D4B'),
+    photo('ph11', 'Beispiel: Uropa in seinem Handwerksbetrieb', 'p-uropa', null, '#5B8A5A'),
   ];
 
   // --- Audios (Platzhalter) ---
   const audios: Audio[] = [
-    audio('a1', 'Opas Kriegserinnerungen', 'p-opa', 'm3', 184, -200),
-    audio('a2', 'Annas Lieblingsrezept', 'p-uroma', null, 95, -260),
-    audio('a3', 'Nicks Geburtstagsständchen', 'p-nick', null, 42, -3),
-    audio('a4', 'Oma Erika erzählt von früher', 'p-oma', null, 132, -150),
+    audio('a1', 'Beispiel: Opas Erinnerungen', 'p-opa', 'm3', 184, -200),
+    audio('a2', 'Beispiel: Uromas Lieblingsrezept', 'p-uroma', null, 95, -260),
+    audio('a3', 'Beispiel: Geburtstagsständchen', 'p-nick', null, 42, -3),
+    audio('a4', 'Beispiel: Die Oma erzählt von früher', 'p-oma', null, 132, -150),
   ];
   // Phase 12: Transkripte (durchsuchbar, Originalstimmen für Filme/Legacy)
   const transcripts: Record<string, string> = {
@@ -367,11 +369,11 @@ export function createSeedData(): DemoDataset {
 
   // --- Zeitkapseln ---
   const capsules: TimeCapsule[] = [
-    capsule('tc1', 'Für dich zum 30. Geburtstag, Nick', 'Eine kleine Nachricht aus der Vergangenheit für deinen großen Tag.', 'text', 'Lieber Nick, wenn du das liest, bist du 30 …', daysFromNow(92), false),
-    capsule('tc2', 'Eine Überraschung', 'Bald darfst du sie öffnen!', 'text', 'Du hast es fast geschafft – nur noch ein paar Tage Geduld. 💛', daysFromNow(5), false),
-    capsule('tc3', 'Für meine Tochter zur Hochzeit', 'Worte voller Liebe für Mias großen Tag in der Zukunft.', 'text', 'Meine liebe Mia …', '2035-06-01T09:00:00.000Z', false),
-    capsule('tc4', 'Für meinen Enkel zum 18. Geburtstag', 'Damit ein Stück Familiengeschichte weiterlebt.', 'text', 'Willkommen im Erwachsenenleben …', '2042-01-01T09:00:00.000Z', false),
-    capsule('tc5', 'Brief an die Familie – Weihnachten 2020', 'Geschrieben im besonderen Jahr 2020.', 'text', 'Auch wenn dieses Jahr anders war: Wir halten zusammen. In Liebe, Nick.', daysFromNow(-540), true),
+    capsule('tc1', 'Beispiel: Zeitkapsel zum 30. Geburtstag', 'Eine kleine Nachricht aus der Vergangenheit für einen großen Tag.', 'text', 'Wenn du das liest, bist du 30 …', daysFromNow(92), false),
+    capsule('tc2', 'Beispiel: Eine Überraschung', 'Bald darfst du sie öffnen!', 'text', 'Du hast es fast geschafft – nur noch ein paar Tage Geduld. 💛', daysFromNow(5), false),
+    capsule('tc3', 'Beispiel: Für die Tochter zur Hochzeit', 'Worte voller Liebe für einen großen Tag in der Zukunft.', 'text', 'Meine liebe Tochter …', '2035-06-01T09:00:00.000Z', false),
+    capsule('tc4', 'Beispiel: Für den Enkel zum 18. Geburtstag', 'Damit ein Stück Familiengeschichte weiterlebt.', 'text', 'Willkommen im Erwachsenenleben …', '2042-01-01T09:00:00.000Z', false),
+    capsule('tc5', 'Beispiel: Brief an die Familie', 'Geschrieben in einem besonderen Jahr.', 'text', 'Auch wenn dieses Jahr anders war: Wir halten zusammen. In Liebe.', daysFromNow(-540), true),
   ];
 
   const recipients: TimeCapsuleRecipient[] = [
@@ -384,10 +386,10 @@ export function createSeedData(): DemoDataset {
 
   // --- Aktivitäts-Feed ---
   const activities: Activity[] = [
-    activity('ac1', 'memory.created', 'memory', 'm4', 'Mias erster Schultag', -7, profile),
-    activity('ac2', 'audio.created', 'audio', 'a3', 'Nicks Geburtstagsständchen', -3, profile),
-    activity('ac3', 'photo.uploaded', 'photo', 'ph6', 'Nick & Mia am See', -2, profile),
-    activity('ac4', 'time_capsule.created', 'time_capsule', 'tc2', 'Eine Überraschung', -1, profile),
+    activity('ac1', 'memory.created', 'memory', 'm4', 'Beispiel: Erster Schultag', -7, profile),
+    activity('ac2', 'audio.created', 'audio', 'a3', 'Beispiel: Geburtstagsständchen', -3, profile),
+    activity('ac3', 'photo.uploaded', 'photo', 'ph6', 'Beispiel: Am See', -2, profile),
+    activity('ac4', 'time_capsule.created', 'time_capsule', 'tc2', 'Beispiel: Eine Überraschung', -1, profile),
   ];
 
   // --- Phase 2: Familienstatus ---
@@ -399,20 +401,20 @@ export function createSeedData(): DemoDataset {
 
   // --- Phase 2: Benachrichtigungen (emotional, antippbar) ---
   const notifications: AppNotification[] = [
-    notify('nt1', 'status', '💛 Oma Erika fühlt sich gerade etwas allein.', 'Schau doch mal nach – eine Nachricht tut gut.', 0, { type: 'status', route: 'Status' }),
-    notify('nt2', 'info', '📸 Sabine hat neue Fotos geteilt.', 'Frische Momente vom Sommergrillen.', 0, { type: 'photo', tab: 'MemoriesTab', screen: 'PhotoGallery' }),
-    notify('nt3', 'info', '🎤 Opa Hans hat eine neue Sprachnachricht aufgenommen.', 'Hör dir die Originalstimme an.', -1, { type: 'audio', route: 'MomentsHome' }),
-    notify('nt4', 'info', '🎉 Max ist eurer Familie beigetreten.', 'Heißt das neue Familienmitglied willkommen.', -1, { type: 'member_joined', tab: 'FamilyTab', screen: 'Network' }),
-    notify('nt5', 'calendar', '⏳ Eure Zeitkapsel für Nick öffnet sich in 7 Tagen.', 'Bald gibt es etwas zu entdecken.', -2, { type: 'capsule_opening', tab: 'CapsulesTab', screen: 'CapsuleList' }),
-    notify('nt6', 'calendar', '🎂 Morgen hat Papa Geburtstag.', 'Vergiss nicht zu gratulieren.', -2, { type: 'event_soon', route: 'Calendar' }),
-    notify('nt7', 'info', '📍 Nick teilt gerade seinen Heimweg.', 'Du kannst den Weg live verfolgen.', -3, { type: 'location', route: 'LiveMap' }),
-    notify('nt8', 'info', '🎙️ Zeit, eine Geschichte zu bewahren.', 'Nimm dir einen Moment für Oma Erika.', -4, { type: 'interview_reminder', route: 'LegacyHub' }),
+    notify('nt1', 'status', '💛 Beispiel: Die Oma fühlt sich gerade etwas allein.', 'Schau doch mal nach – eine Nachricht tut gut.', 0, { type: 'status', route: 'Status' }),
+    notify('nt2', 'info', '📸 Beispiel: Die Mutter hat neue Fotos geteilt.', 'Frische Momente vom Sommergrillen.', 0, { type: 'photo', tab: 'MemoriesTab', screen: 'PhotoGallery' }),
+    notify('nt3', 'info', '🎤 Beispiel: Der Opa hat eine Sprachnachricht aufgenommen.', 'Hör dir die Originalstimme an.', -1, { type: 'audio', route: 'MomentsHome' }),
+    notify('nt4', 'info', '🎉 Beispiel: Der Bruder ist eurer Familie beigetreten.', 'Heißt das neue Familienmitglied willkommen.', -1, { type: 'member_joined', tab: 'FamilyTab', screen: 'Network' }),
+    notify('nt5', 'calendar', '⏳ Beispiel: Eine Zeitkapsel öffnet sich in 7 Tagen.', 'Bald gibt es etwas zu entdecken.', -2, { type: 'capsule_opening', tab: 'CapsulesTab', screen: 'CapsuleList' }),
+    notify('nt6', 'calendar', '🎂 Beispiel: Morgen hat der Vater Geburtstag.', 'Vergiss nicht zu gratulieren.', -2, { type: 'event_soon', route: 'Calendar' }),
+    notify('nt7', 'info', '📍 Beispiel: Der Bruder teilt gerade seinen Heimweg.', 'Du kannst den Weg live verfolgen.', -3, { type: 'location', route: 'LiveMap' }),
+    notify('nt8', 'info', '🎙️ Beispiel: Zeit, eine Geschichte zu bewahren.', 'Nimm dir einen Moment für die Oma.', -4, { type: 'interview_reminder', route: 'LegacyHub' }),
   ];
 
   // --- Phase 2: Notfallkontakte ---
   const emergencyContacts: EmergencyContact[] = [
-    contact('ec1', 'Sabine Mielke', 'Tochter', '+49 170 1234567', 'p-mutter', 0),
-    contact('ec2', 'Dr. Wagner (Hausarzt)', 'Hausarzt', '+49 451 998877', null, 1),
+    contact('ec1', 'Mutter', 'Tochter', '+49 170 1234567', 'p-mutter', 0),
+    contact('ec2', 'Dr. Beispiel (Hausarzt)', 'Hausarzt', '+49 451 998877', null, 1),
     contact('ec3', 'Notruf', 'Rettungsdienst', '112', null, 2),
   ];
 
@@ -435,34 +437,34 @@ export function createSeedData(): DemoDataset {
 
   // --- Phase 2: Familienkalender ---
   const calendarEvents: CalendarEvent[] = [
-    cal('cal1', 'geburtstag', 'Geburtstag Oma Erika', '1942-11-30', true, ['p-oma']),
-    cal('cal2', 'jahrestag', 'Hochzeitstag Erika & Hans', '1963-06-08', true, ['p-oma', 'p-opa']),
-    calRel('cal3', 'arzttermin', 'Arzttermin Opa Hans', 3, ['p-opa'], '10:30'),
+    cal('cal1', 'geburtstag', 'Geburtstag der Oma', '1942-11-30', true, ['p-oma']),
+    cal('cal2', 'jahrestag', 'Hochzeitstag Oma & Opa', '1963-06-08', true, ['p-oma', 'p-opa']),
+    calRel('cal3', 'arzttermin', 'Arzttermin des Opas', 3, ['p-opa'], '10:30'),
     calRel('cal4', 'familienereignis', 'Großes Familienfest im Garten', 21, [], null, true),
-    calRel('cal5', 'erinnerung', 'Mia für Schwimmkurs anmelden', 9, ['p-pflege'], null),
-    calRel('cal6', 'geburtstag', 'Geburtstag Mia', 5, ['p-pflege'], null),
+    calRel('cal5', 'erinnerung', 'das Kind für Schwimmkurs anmelden', 9, ['p-pflege'], null),
+    calRel('cal6', 'geburtstag', 'Geburtstag das Kind', 5, ['p-pflege'], null),
   ];
 
   // --- Phase 2: Dokumentenübersicht (nur Metadaten) ---
   const documents: FamilyDocument[] = [
-    doc('doc1', 'testament', 'Testament', true, 'Liegt beim Notar', 'Notar Dr. Berger', 'Beglaubigte Abschrift bei Sabine.'),
-    doc('doc2', 'patientenverfuegung', 'Patientenverfügung', true, 'Ordner im Schlafzimmerschrank', 'Sabine Mielke', null),
+    doc('doc1', 'testament', 'Testament', true, 'Liegt beim Notar', 'Notar Dr. Berger', 'Beglaubigte Abschrift bei der Mutter.'),
+    doc('doc2', 'patientenverfuegung', 'Patientenverfügung', true, 'Ordner im Schlafzimmerschrank', 'Mutter', null),
     doc('doc3', 'vorsorgevollmacht', 'Vorsorgevollmacht', false, null, null, 'Muss noch erstellt werden.'),
-    doc('doc4', 'versicherung', 'Versicherungsunterlagen', true, 'Versicherungsordner im Wohnzimmer', 'Max Mustermann', null),
+    doc('doc4', 'versicherung', 'Versicherungsunterlagen', true, 'Versicherungsordner im Wohnzimmer', 'Beispiel-Kontakt', null),
   ];
 
-  // --- Trusted Circle: Vertrauenspersonen (Opa Hans wohnt 700 km entfernt) ---
+  // --- Trusted Circle: Vertrauenspersonen (der Opa wohnt 700 km entfernt) ---
   const trustedContacts: TrustedContact[] = [
     trusted('tc-mueller', 'p-opa', 'Herr Müller', 'nachbar', '+49 381 5550101',
       'Wohnt im selben Haus und kann im Notfall nachsehen.', true),
     trusted('tc-peter', 'p-opa', 'Peter Schneider', 'freund', '+49 381 5550202',
-      'Kennt Opa Hans seit 30 Jahren.', false),
+      'Kennt den Opa seit 30 Jahren.', false),
     trusted('tc-berger', 'p-opa', 'Frau Berger', 'pflegekontakt', '+49 381 5550303',
       'Kommt zweimal pro Woche vorbei.', true),
     trusted('tc-schneiderin', 'p-oma', 'Frau Schneider', 'nachbar', '+49 451 5550404',
-      'Nachbarin von Oma Erika, immer erreichbar.', false),
+      'Nachbarin der Oma, immer erreichbar.', false),
     trusted('tc-pflege-oma', 'p-oma', 'Pflegedienst Lübeck', 'pflegekontakt', '+49 451 5550505',
-      'Betreut Oma Erika werktags.', true),
+      'Betreut die Oma werktags.', true),
   ];
 
   // --- Phase 4: Beispiel-Familienbuch ---
@@ -471,7 +473,7 @@ export function createSeedData(): DemoDataset {
       id: 'book1',
       family_id: DEMO_FAMILY_ID,
       type: 'komplett',
-      title: 'Die Geschichte der Familie Mielke',
+      title: 'Die Geschichte der Beispiel-Familie',
       subtitle: 'Ein Familienbuch',
       cover_photo_path: family.image_url,
       hidden_chapters: [],
@@ -490,11 +492,11 @@ export function createSeedData(): DemoDataset {
       id: 'ev-grill',
       family_id: DEMO_FAMILY_ID,
       type: 'grillfest',
-      title: 'Sommergrillen bei Nick',
+      title: 'Beispiel: Sommergrillen',
       description: 'Großes Grillfest im Garten – die ganze Familie ist eingeladen!',
       event_date: daysFromNow(-3).slice(0, 10),
       event_time: '16:00',
-      location: 'Nicks Garten, Hamburg',
+      location: 'Garten (Beispiel)',
       host_user_id: DEMO_USER_ID,
       host_person_id: 'p-nick',
       visibility: 'family',
@@ -506,11 +508,11 @@ export function createSeedData(): DemoDataset {
       id: 'ev-fest',
       family_id: DEMO_FAMILY_ID,
       type: 'feier',
-      title: 'Sommerfest der Familie Mielke',
+      title: 'Sommerfest der Beispiel-Familie',
       description: 'Ein lauer Sommerabend mit der ganzen Familie – kommt vorbei!',
       event_date: daysFromNow(14).slice(0, 10),
       event_time: '15:00',
-      location: 'Garten bei Oma Erika, Lübeck',
+      location: 'Garten der Oma (Beispiel)',
       host_user_id: DEMO_USER_ID,
       host_person_id: 'p-nick',
       visibility: 'family',
@@ -544,9 +546,9 @@ export function createSeedData(): DemoDataset {
 
   // --- Vertrauenspersonen (Trustees) von Nick ---
   const trustees: Trustee[] = [
-    trustee('tr-max', 'Max Mielke', 'Bruder', 'p-max', '+49 170 2223344'),
-    trustee('tr-sabine', 'Sabine Mielke', 'Mutter', 'p-mutter', '+49 170 1234567'),
-    trustee('tr-thomas', 'Thomas Mielke', 'Vater', 'p-vater', '+49 170 5556677'),
+    trustee('tr-max', 'Bruder', 'Bruder', 'p-max', '+49 170 2223344'),
+    trustee('tr-sabine', 'Mutter', 'Mutter', 'p-mutter', '+49 170 1234567'),
+    trustee('tr-thomas', 'Vater', 'Vater', 'p-vater', '+49 170 5556677'),
   ];
 
   // --- Nachlasshinweise von Nick (keine sensiblen Zugangsdaten) ---
@@ -562,11 +564,11 @@ export function createSeedData(): DemoDataset {
       has_power_of_attorney: false,
       power_of_attorney_location: null,
       has_insurance: true,
-      insurance_location: 'Versicherungsordner im Wohnzimmer · Ansprechpartnerin: Sabine',
-      contact_person: 'Sabine Mielke',
+      insurance_location: 'Versicherungsordner im Wohnzimmer · Ansprechpartnerin: die Mutter',
+      contact_person: 'Mutter',
       contact_person_id: 'p-mutter',
       personal_notes:
-        'Bitte kümmert euch zuerst um Oma Erika. Die Familienfotos sind mir am wichtigsten – sie sollen bei euch bleiben. 💛',
+        'Bitte kümmert euch zuerst um die Oma. Die Familienfotos sind mir am wichtigsten – sie sollen bei euch bleiben. 💛',
       farewell_message:
         'Wenn ihr das lest, denkt an die schönen Momente. Ich bin dankbar für jeden Tag mit euch.',
       media_path: null,
@@ -581,21 +583,21 @@ export function createSeedData(): DemoDataset {
   const estateCases: EstateCase[] = [
     {
       id: 'case-demo', family_id: DEMO_FAMILY_ID, subject_user_id: DEMO_USER_ID, subject_person_id: 'p-nick',
-      reported_by_user_id: 'demo-user-max', reported_by_trustee_id: 'tr-max', reported_by_name: 'Max Mielke',
+      reported_by_user_id: 'demo-user-max', reported_by_trustee_id: 'tr-max', reported_by_name: 'Bruder',
       status: 'released', required_confirmations: 2, note: null,
       created_at: daysFromNow(-1), updated_at: daysFromNow(-1), released_at: daysFromNow(-1),
     },
   ];
   const estateConfirmations: EstateConfirmation[] = [
-    { id: 'conf-sabine', case_id: 'case-demo', trustee_id: 'tr-sabine', confirmer_name: 'Sabine Mielke', decision: 'confirm', note: null, created_at: daysFromNow(-1) },
-    { id: 'conf-thomas', case_id: 'case-demo', trustee_id: 'tr-thomas', confirmer_name: 'Thomas Mielke', decision: 'confirm', note: null, created_at: daysFromNow(-1) },
+    { id: 'conf-sabine', case_id: 'case-demo', trustee_id: 'tr-sabine', confirmer_name: 'Mutter', decision: 'confirm', note: null, created_at: daysFromNow(-1) },
+    { id: 'conf-thomas', case_id: 'case-demo', trustee_id: 'tr-thomas', confirmer_name: 'Vater', decision: 'confirm', note: null, created_at: daysFromNow(-1) },
   ];
 
   // --- Family Vault · Dokumente, Vermächtnisse, Abschiedsnachrichten ---
   const vaultEntries: VaultEntry[] = [
     vault('v-test', 'testament', 'Testament', 'Notariell beglaubigtes Testament.', 'Beim Notar Dr. Berger hinterlegt', 'Notar Dr. Berger', 'trustees'),
-    vault('v-pv', 'patientenverfuegung', 'Patientenverfügung', 'Regelt medizinische Wünsche.', 'Ordner „Wichtiges" im Schlafzimmerschrank', 'Sabine Mielke', 'inner'),
-    vault('v-vers', 'versicherung', 'Versicherungsunterlagen', 'Lebens-, Haftpflicht- und Hausratversicherung.', 'Versicherungsordner im Wohnzimmer', 'Sabine Mielke', 'children'),
+    vault('v-pv', 'patientenverfuegung', 'Patientenverfügung', 'Regelt medizinische Wünsche.', 'Ordner „Wichtiges" im Schlafzimmerschrank', 'Mutter', 'inner'),
+    vault('v-vers', 'versicherung', 'Versicherungsunterlagen', 'Lebens-, Haftpflicht- und Hausratversicherung.', 'Versicherungsordner im Wohnzimmer', 'Mutter', 'children'),
     vault('v-immo', 'immobilie', 'Wohnungsunterlagen', 'Kaufvertrag & Grundbuchauszug der Wohnung.', 'Aktenschrank im Büro, Fach 2', null, 'trustees'),
     vault('v-notar', 'notar', 'Notar-Kontakt', 'Zuständiger Notar für Testament & Vollmachten.', 'Kanzlei Berger, Hamburg', 'Dr. Berger · +49 40 998877', 'trustees'),
     vault('v-kfz', 'fahrzeug', 'Fahrzeugunterlagen', 'Fahrzeugbrief & Versicherung VW Passat.', 'Handschuhfach / Ordner Auto', null, 'inner'),
@@ -603,29 +605,29 @@ export function createSeedData(): DemoDataset {
 
   const legacyItems: LegacyItem[] = [
     legacy('lg-wert', 'wert', 'Zusammenhalt', 'Familie ist wichtiger als alles andere. Haltet zusammen, besonders in schweren Zeiten.', 'children'),
-    legacy('lg-lektion', 'lektion', 'Ehrliche Arbeit', 'Opa Hans sagte immer: Ehrliche Arbeit bringt Zufriedenheit. Das hat mich mein Leben lang begleitet.', 'inner'),
+    legacy('lg-lektion', 'lektion', 'Ehrliche Arbeit', 'der Opa sagte immer: Ehrliche Arbeit bringt Zufriedenheit. Das hat mich mein Leben lang begleitet.', 'inner'),
     legacy('lg-rezept', 'rezept', 'Omas Streuselkuchen', 'Das Geheimnis: doppelt so viele Streusel wie man denkt – und mit Liebe backen. 🥧', 'children'),
     legacy('lg-ort', 'ort', 'Unser Ostsee-Strand', 'Der Strand bei Rostock, wo wir jeden Sommer waren. Geht dort hin, wenn ihr an mich denken wollt.', 'inner'),
   ];
 
   const farewellMessages: FarewellMessage[] = [
     farewell('fw-fam', 'text', 'Für meine Familie', 'inner', 'Wenn ihr das lest: Ich bin dankbar für jeden Tag mit euch. Denkt an die schönen Momente.'),
-    farewell('fw-mia', 'audio', 'Für Mia', 'children', 'Eine kurze Sprachnachricht für dich, kleine Mia. 💛'),
+    farewell('fw-mia', 'audio', 'Für das Kind', 'children', 'Eine kurze Sprachnachricht für dich, kleine das Kind. 💛'),
   ];
 
   // --- Familienfilme (Storyboards aus echten Inhalten) ---
   const filmYear = now.getFullYear();
   const filmProjects: FilmProject[] = [
     film('film-grill', 'event', 'Sommergrillen', 'Ein Tag voller Lachen, Grillduft und Familie', 'froehlich', 'none', { eventId: 'ev-grill' }, true),
-    film('film-oma', 'documentary', 'Die Geschichte von Oma Erika', 'Ein Leben in Rostock, Lübeck und der ganzen Familie', 'nostalgisch', 'none', { personId: 'p-oma' }, true),
+    film('film-oma', 'documentary', 'Die Geschichte der Oma', 'Ein Leben in Rostock, Lübeck und der ganzen Familie', 'nostalgisch', 'none', { personId: 'p-oma' }, true),
     film('film-year', 'year', `Familienjahr ${filmYear}`, 'Die schönsten Momente des Jahres', 'feierlich', 'none', { year: filmYear }, true),
     film('film-legacy', 'legacy', 'Mein Vermächtnis', 'Für meine Familie – zu öffnen, wenn es soweit ist', 'emotional', 'death', { personId: 'p-nick' }, false),
   ];
 
-  // --- Legacy AI · Lebensinterview Oma Erika ---
+  // --- Legacy AI · Lebensinterview die Oma ---
   const lifeStories: LifeStory[] = [
     life('ls-kindheit', 'p-oma', 'Wie war deine Kindheit?', 'audio', 'Ich bin in Rostock aufgewachsen, nach dem Krieg. Wir hatten wenig, aber viel Zusammenhalt.', false),
-    life('ls-hans', 'p-oma', 'Wie hast du Opa Hans kennengelernt?', 'text', 'Auf einem Tanzabend 1962 in Rostock. Er konnte überhaupt nicht tanzen – aber er hat mich zum Lachen gebracht.', false),
+    life('ls-hans', 'p-oma', 'Wie hast du der Opa kennengelernt?', 'text', 'Auf einem Tanzabend 1962 in Rostock. Er konnte überhaupt nicht tanzen – aber er hat mich zum Lachen gebracht.', false),
     life('ls-enkel', 'p-oma', 'Was möchtest du deinen Enkeln mitgeben?', 'text', 'Haltet zusammen und seid dankbar für die kleinen Dinge. Familie ist wichtiger als Geld.', true),
   ];
 
@@ -638,10 +640,10 @@ export function createSeedData(): DemoDataset {
 
   // --- Familienmuseum · Artefakte ---
   const artifacts: Artifact[] = [
-    artifact('art-album', 'fotoalbum', 'Das alte Familienalbum', 'Ledergebundenes Fotoalbum mit Aufnahmen ab 1955.', 'Begonnen von Uroma Anna, weitergegeben an Oma Erika.', 'p-oma', 'Wohnzimmerschrank, Rostock', 1955),
-    artifact('art-uhr', 'uhr', 'Opas Taschenuhr', 'Silberne Taschenuhr, ein Geschenk zur Hochzeit 1963.', 'Von Opa Hans an Nick vererbt.', 'p-opa', 'Vitrine', 1963),
+    artifact('art-album', 'fotoalbum', 'Das alte Familienalbum', 'Ledergebundenes Fotoalbum mit Aufnahmen ab 1955.', 'Begonnen von die Uroma, weitergegeben an die Oma.', 'p-oma', 'Wohnzimmerschrank, Rostock', 1955),
+    artifact('art-uhr', 'uhr', 'Opas Taschenuhr', 'Silberne Taschenuhr, ein Geschenk zur Hochzeit 1963.', 'Vom Opa weitervererbt.', 'p-opa', 'Vitrine', 1963),
     artifact('art-haus', 'haus', 'Das Familienhaus in Rostock', 'Das Haus, in dem Oma und Opa viele Jahrzehnte lebten.', 'Mehrere Generationen sind hier aufgewachsen.', 'p-oma', 'Rostock', 1958),
-    artifact('art-firma', 'unternehmen', 'Krügers Handwerksbetrieb', 'Kleiner Handwerksbetrieb in Stettin.', 'Gegründet von Uropa Karl.', 'p-uropa', 'Stettin', 1938),
+    artifact('art-firma', 'unternehmen', 'Beispiel-Handwerksbetrieb', 'Kleiner Handwerksbetrieb in Stettin.', 'Gegründet von der Uropa.', 'p-uropa', 'Stettin', 1938),
   ];
 
   // Eine Zeitkapsel „erst nach meinem Tod öffnen".
@@ -658,7 +660,7 @@ export function createSeedData(): DemoDataset {
     },
     {
       id: 'ls-oma', family_id: DEMO_FAMILY_ID, user_id: 'u-oma', person_id: 'p-oma',
-      active: true, status: 'doctor', status_label: null, place_label: 'Praxis Dr. Wagner, Lübeck',
+      active: true, status: 'doctor', status_label: null, place_label: 'Praxis Dr. Beispiel, Lübeck',
       latitude: 53.8655, longitude: 10.6866, battery: 45, audience: 'trusted', recipient_person_ids: [],
       duration: '1h', expires_at: minsFromNow(40), updated_at: minsFromNow(-9),
     },
@@ -673,7 +675,7 @@ export function createSeedData(): DemoDataset {
     },
     {
       id: 'trip-oma', family_id: DEMO_FAMILY_ID, user_id: 'u-oma', person_id: 'p-oma',
-      kind: 'safe_arrival', destination_label: 'Praxis Dr. Wagner', eta: null, status: 'arrived',
+      kind: 'safe_arrival', destination_label: 'Praxis Dr. Beispiel', eta: null, status: 'arrived',
       audience: 'inner', recipient_person_ids: [], battery: 45,
       started_at: minsFromNow(-50), arrived_at: minsFromNow(-8), updated_at: minsFromNow(-8),
     },
@@ -690,19 +692,19 @@ export function createSeedData(): DemoDataset {
 
   // Phase 16: Zitate („Was sie oft gesagt haben")
   const quotes: PersonQuote[] = [
-    quote('q1', 'p-opa', 'Wer rastet, der rostet.', 'sagte er jeden Morgen vor der Arbeit', 'Oma Erika'),
-    quote('q2', 'p-opa', 'Ehrliche Arbeit bringt Zufriedenheit.', null, 'Nick Mielke'),
-    quote('q3', 'p-uroma', 'Wahres Glück liegt in der Familie.', 'beim Sonntagskaffee', 'Oma Erika'),
-    quote('q4', 'p-uroma', 'Ein Stück Kuchen geht immer noch.', null, 'Sabine Mielke'),
-    quote('q5', 'p-uropa', 'Was du heute kannst besorgen, das verschiebe nicht auf morgen.', null, 'Oma Erika'),
+    quote('q1', 'p-opa', 'Wer rastet, der rostet.', 'sagte er jeden Morgen vor der Arbeit', 'Oma'),
+    quote('q2', 'p-opa', 'Ehrliche Arbeit bringt Zufriedenheit.', null, 'Du'),
+    quote('q3', 'p-uroma', 'Wahres Glück liegt in der Familie.', 'beim Sonntagskaffee', 'Oma'),
+    quote('q4', 'p-uroma', 'Ein Stück Kuchen geht immer noch.', null, 'Mutter'),
+    quote('q5', 'p-uropa', 'Was du heute kannst besorgen, das verschiebe nicht auf morgen.', null, 'Oma'),
   ];
 
-  // Phase 16: Erinnerungen an die Person (von Familienmitgliedern hinterlassen)
+  // Phase 16: Erinnerungen an die Person (von Familienmitgliedern hinterlassen) – Beispiel
   const tributes: PersonTribute[] = [
-    tribute('t1', 'p-opa', 'Ich erinnere mich noch daran, wie Opa Hans mir in seiner Werkstatt gezeigt hat, wie man ein Vogelhäuschen baut. Wir haben den ganzen Nachmittag gewerkelt.', 'Nick Mielke', -30),
-    tribute('t2', 'p-opa', 'Seine Geschichten von der Seefahrt habe ich geliebt. Jeden Sommer nahm er uns mit zum Hafen.', 'Sabine Mielke', -50),
-    tribute('t3', 'p-uroma', 'Der Duft ihres Streuselkuchens hängt mir bis heute in der Nase. Bei Uroma Anna fühlte man sich immer zuhause.', 'Oma Erika', -80),
-    tribute('t4', 'p-uroma', 'Sie hatte für jeden ein offenes Ohr und ein warmes Lächeln. Niemand ging hungrig aus ihrem Haus.', 'Nick Mielke', -20),
+    tribute('t1', 'p-opa', 'Ich erinnere mich noch daran, wie der Opa mir in seiner Werkstatt gezeigt hat, wie man ein Vogelhäuschen baut. Wir haben den ganzen Nachmittag gewerkelt.', 'Du', -30),
+    tribute('t2', 'p-opa', 'Seine Geschichten von der Seefahrt habe ich geliebt. Jeden Sommer nahm er uns mit zum Hafen.', 'Mutter', -50),
+    tribute('t3', 'p-uroma', 'Der Duft ihres Streuselkuchens hängt mir bis heute in der Nase. Bei der Uroma fühlte man sich immer zuhause.', 'Oma', -80),
+    tribute('t4', 'p-uroma', 'Sie hatte für jeden ein offenes Ohr und ein warmes Lächeln. Niemand ging hungrig aus ihrem Haus.', 'Du', -20),
   ];
 
   return {
@@ -863,7 +865,7 @@ export function createSeedData(): DemoDataset {
   function person(
     id: string,
     first: string,
-    last: string,
+    last: string | null,
     birth: string | null,
     birthPlace: string | null,
     death: string | null,
@@ -963,7 +965,7 @@ export function createSeedData(): DemoDataset {
       person_id: personId,
       text,
       context,
-      added_by_user_id: addedByName === 'Nick Mielke' ? DEMO_USER_ID : null,
+      added_by_user_id: addedByName === 'Du' ? DEMO_USER_ID : null,
       added_by_name: addedByName,
       created_at: daysFromNow(-40),
     };
@@ -981,7 +983,7 @@ export function createSeedData(): DemoDataset {
       family_id: DEMO_FAMILY_ID,
       person_id: personId,
       text,
-      author_user_id: authorName === 'Nick Mielke' ? DEMO_USER_ID : null,
+      author_user_id: authorName === 'Du' ? DEMO_USER_ID : null,
       author_name: authorName,
       created_at: daysFromNow(createdOffset),
     };

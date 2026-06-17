@@ -81,7 +81,7 @@ export function VaultEntryFormScreen({ navigation, route }: Props) {
         <TextField label="Titel" value={title} onChangeText={setTitle} placeholder="z.B. Testament" />
         <TextField label="Beschreibung" value={description} onChangeText={setDescription} placeholder="Worum geht es?" multiline numberOfLines={3} style={styles.multiline} />
         <TextField label="Aufbewahrungsort" value={location} onChangeText={setLocation} placeholder="z.B. Ordner im Büro / beim Notar" />
-        <TextField label="Ansprechpartner" value={contact} onChangeText={setContact} placeholder="z.B. Sabine Mielke" />
+        <TextField label="Ansprechpartner" value={contact} onChangeText={setContact} placeholder="z. B. Mutter" />
         <SelectField label="Sichtbar nach Freigabe für" value={audience} options={audienceOptions} onChange={setAudience} />
       </View>
 

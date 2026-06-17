@@ -97,7 +97,7 @@ export function TrusteeFormScreen({ navigation, route }: Props) {
             onChange={onPickPerson}
           />
         ) : null}
-        <TextField label="Name" value={name} onChangeText={setName} placeholder="z.B. Max Mielke" />
+        <TextField label="Name" value={name} onChangeText={setName} placeholder="z. B. Bruder" />
         <TextField label="Beziehung" value={relation} onChangeText={setRelation} placeholder="z.B. Bruder, Mutter, Notar-Kontakt" />
         <TextField label="Telefon (optional)" value={phone} onChangeText={setPhone} keyboardType="phone-pad" />
         <TextField label="E-Mail (optional)" value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" />

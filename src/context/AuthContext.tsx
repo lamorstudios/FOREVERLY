@@ -22,7 +22,7 @@ const demoSession = {
     id: DEMO_USER_ID,
     email: 'nick@famii.demo',
     app_metadata: {},
-    user_metadata: { full_name: 'Nick Mielke' },
+    user_metadata: { full_name: 'Beispiel-Profil' },
     aud: 'authenticated',
     created_at: new Date().toISOString(),
   },
