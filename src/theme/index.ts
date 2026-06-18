@@ -14,12 +14,14 @@ export const theme = { colors, typography, spacing, radius, touch } as const;
  * Google Photos / Airbnb). Tupel aus Hex-Stops für expo-linear-gradient.
  */
 export const gradients = {
-  // Hauptverlauf / Primary-Buttons (135°): Royal-Blau -> Periwinkle -> Apricot
-  brand: ['#5B7CFF', '#8A7DFF', '#FFB86C'] as const,
-  // Hover/Active-Variante (etwas kräftiger)
-  brandActive: ['#4E6FFF', '#7A6FFF', '#FFAC4F'] as const,
-  // Hero-Karte (135°): warmes Gold -> Bronze
-  hero: ['#EBD3A4', '#D5B06A', '#8A6A42'] as const,
+  // Hauptverlauf / Primary-Buttons & Hero: Blau -> Lila -> Lila -> Apricot
+  brand: ['#5D7CFF', '#7C6CFF', '#A46CFF', '#FFB46A'] as const,
+  // Hover/Active-Variante
+  brandActive: ['#5172FF', '#7060FF', '#9A5FFF', '#FFAC57'] as const,
+  // Sekundärverlauf (Blau -> Lila)
+  secondary: ['#6A84FF', '#7F72FF', '#A57EFF'] as const,
+  // Hero-Karte (135°): identischer Premium-Verlauf Blau -> Lila -> Apricot
+  hero: ['#5D7CFF', '#7C6CFF', '#A46CFF', '#FFB46A'] as const,
   heroIndigo: ['#5B6CFF', '#7B74FF'] as const,
   heroViolet: ['#8C7BFF', '#6473FF'] as const,
   // Heller, ruhiger Seitenhintergrund – flach (#FAFAFC), kein Seiten-Gradient.

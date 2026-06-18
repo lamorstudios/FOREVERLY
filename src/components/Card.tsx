@@ -17,7 +17,7 @@ interface CardProps {
 // Weicher Premium-Schatten lt. Mockup (nur Web; nativ über styles.card).
 const webLayeredShadow =
   Platform.OS === 'web'
-    ? ({ boxShadow: '0 10px 30px rgba(20,20,40,0.06)' } as unknown as ViewStyle)
+    ? ({ boxShadow: '0 10px 30px rgba(0,0,0,0.06)' } as unknown as ViewStyle)
     : null;
 
 // Weicher Glas-Blur (nur Web).
@@ -69,7 +69,7 @@ export function Card({ children, onPress, style, padded = true, gradient, glass 
       accessibilityRole="button"
       onPressIn={() => animate(0.97)}
       onPressOut={() => animate(1)}
-      onHoverIn={() => animate(1.015)}
+      onHoverIn={() => animate(1.02)}
       onHoverOut={() => animate(1)}
     >
       <Animated.View style={{ transform: [{ scale }] }}>{inner}</Animated.View>
@@ -83,7 +83,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#FFFFFF',
     borderRadius: 28,
     // Weicher Schatten (nativ); Web exakt via webLayeredShadow.
-    shadowColor: '#141428',
+    shadowColor: '#000000',
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.06,
     shadowRadius: 30,

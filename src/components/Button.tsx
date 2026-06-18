@@ -40,7 +40,7 @@ const VARIANTS: Record<
 const webGlowPrimary =
   Platform.OS === 'web'
     ? ({
-        boxShadow: '0 10px 30px rgba(91,124,255,0.20), 0 6px 18px rgba(255,184,108,0.18)',
+        boxShadow: '0 8px 24px rgba(93,124,255,0.25), 0 8px 24px rgba(255,180,106,0.15)',
       } as unknown as ViewStyle)
     : null;
 
@@ -81,7 +81,7 @@ export function Button({
     <LinearGradient
       colors={palette.gradient as unknown as readonly [string, string, ...string[]]}
       start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 1 }}
+      end={{ x: 1, y: 0 }}
       style={[styles.base, { borderColor: palette.border }]}
     >
       {body}
@@ -132,10 +132,10 @@ const styles = StyleSheet.create({
   },
   // Weicher, farbpassender Glow (nativ – Blau). Web nutzt den dualen Glow oben.
   glowPrimary: {
-    shadowColor: '#5B7CFF',
-    shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.2,
-    shadowRadius: 30,
+    shadowColor: '#5D7CFF',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.25,
+    shadowRadius: 24,
     elevation: 8,
   },
   glowDanger: {

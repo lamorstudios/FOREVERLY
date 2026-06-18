@@ -37,20 +37,20 @@ export const colors = {
   softBlue: '#E9EEFF',
 
   // Bottom-Navigation
-  navActive: '#5B7CFF',
+  navActive: '#5D7CFF',
   navInactive: '#9CA3AF',
 
   // Icon-Kategoriefarben (eindeutige Wiedererkennung)
   iconBirthday: '#F6B44C',
-  iconCapsule: '#8A7DFF', // Zeitkapseln – Periwinkle
+  iconCapsule: '#A46CFF', // Zeitkapseln – Lila
   iconAudio: '#E86ACD',
-  iconDocument: '#5B7CFF', // Dokumente – Blau
-  iconLegacy: '#FFB86C', // Nachlass – Apricot
-  iconMemories: '#FF7FB2', // Erinnerungen – Rosa
-  iconFamily: '#58C48A', // Familie – Grün
+  iconDocument: '#5D7CFF', // Dokumente – Blau
+  iconLegacy: '#FF8DBE', // Nachlass – Rosa
+  iconMemories: '#FF7FB2', // Erinnerungen – Pink/Lila
+  iconFamily: '#7C6CFF', // Familie – Blau-Lila
   iconPlaces: '#49B38A',
   iconContacts: '#4FC3F7', // Kontakte – Türkis
-  iconVorsorge: '#F0B14A',
+  iconVorsorge: '#F0B14A', // Vorsorge – Orange
 
   // Bestehende Akzent-Tokens beibehalten, auf die neue Welt gemappt
   gold: '#FFB86C', // Highlight (z. B. Premium) -> warmer Akzent

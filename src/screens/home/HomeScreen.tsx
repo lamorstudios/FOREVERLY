@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { View, ScrollView, Pressable, StyleSheet, type NativeSyntheticEvent, type NativeScrollEvent } from 'react-native';
+import { View, ScrollView, Pressable, StyleSheet, Platform, type TextStyle, type NativeSyntheticEvent, type NativeScrollEvent } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useQuery } from '@tanstack/react-query';
@@ -451,8 +451,8 @@ export function HomeScreen({ navigation }: Props) {
               end={{ x: 1, y: 1 }}
               style={[styles.heroImage, styles.heroPlaceholder]}
             >
-              {/* Großes, gläsernes Herz als Tiefen-Element (~16% Deckkraft) */}
-              <Ionicons name="heart" size={150} color="rgba(255,255,255,0.16)" />
+              {/* Großes, gläsernes Herz rechts als Tiefen-Element (~18% Deckkraft) */}
+              <Ionicons name="heart" size={170} color="rgba(255,255,255,0.18)" style={styles.heroHeart} />
             </LinearGradient>
           )}
           {/* Weiche, organische Lichtflecken für emotionale Tiefe */}
@@ -947,10 +947,22 @@ export function HomeScreen({ navigation }: Props) {
   );
 }
 
+// Verlaufstext (nur Web): Zahl im Farbverlauf #5D7CFF -> #A46CFF.
+const webGradientNumber =
+  Platform.OS === 'web'
+    ? ({
+        backgroundImage: 'linear-gradient(90deg,#5D7CFF,#A46CFF)',
+        backgroundClip: 'text',
+        WebkitBackgroundClip: 'text',
+        WebkitTextFillColor: 'transparent',
+        color: 'transparent',
+      } as unknown as TextStyle)
+    : null;
+
 function GrowthStat({ value, label }: { value: number; label: string }) {
   return (
     <View style={styles.growthStat}>
-      <AppText variant="title" color={colors.primaryDark}>{value}</AppText>
+      <AppText variant="title" color={colors.primaryDark} style={webGradientNumber}>{value}</AppText>
       <AppText variant="caption" color={colors.textSecondary} center>{label}</AppText>
     </View>
   );
@@ -1089,6 +1101,7 @@ const styles = StyleSheet.create({
     left: -30,
     backgroundColor: 'rgba(255,184,108,0.16)',
   },
+  heroHeart: { position: 'absolute', right: -6, top: 24 },
   heroOverlay: { padding: spacing.lg, gap: 2 },
   section: { gap: spacing.sm },
   flex: { flex: 1 },
