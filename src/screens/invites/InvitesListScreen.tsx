@@ -39,10 +39,10 @@ const STATUS_LABEL: Record<InvitationStatus, string> = {
   expired: 'Abgelaufen',
 };
 const STATUS_COLOR: Record<InvitationStatus, string> = {
-  pending: '#CC9A3F',
-  accepted: '#5B8A5A',
-  revoked: '#9C8F7E',
-  expired: '#9C8F7E',
+  pending: colors.warning,
+  accepted: colors.success,
+  revoked: colors.textMuted,
+  expired: colors.textMuted,
 };
 
 export function InvitesListScreen({ navigation }: Props) {

@@ -1,59 +1,65 @@
 /**
- * Foreverly Farbwelt 2.0
+ * FAMII Farbwelt 2026 – „Premium Family App"
  *
- * Ruhig, hochwertig und emotional. Helle, warme Cremetöne als Basis,
- * dezentes Gold/Bronze als Akzent. Weniger Braun, mehr Weißraum-Gefühl –
- * im Geist moderner Premium-Apps (Apple, Headspace, Airbnb).
+ * Reines Skin-Update: dieselben Token-Namen, neue Werte. Kühle, moderne
+ * Indigo/Violett-Basis mit warmem Orange-Akzent, viel Weißraum, klare Karten.
+ * Strukturen, Layouts und Logik bleiben unverändert – nur die Optik.
  */
 export const colors = {
-  // Hintergründe – heller, luftiger
-  background: '#FAF7F2', // warmes Cremeweiß
-  surface: '#FFFFFF',
-  surfaceAlt: '#F4EFE7', // sehr helles Sand
-  surfaceMuted: '#EFE8DC', // dezente Tönung für Chips/Felder
-  warmWhite: '#FFFDF9',
-  sand: '#EDE5D7',
-  overlay: 'rgba(34, 28, 22, 0.42)',
+  // Hintergründe – hell, kühl, luftig
+  background: '#FAFAF8', // sehr helles Off-White
+  surface: '#FFFFFF', // Karten
+  surfaceAlt: '#F2F3FB', // sehr helles Indigo-Grau
+  surfaceMuted: '#E9EBF6', // dezente Tönung für Chips/Felder
+  warmWhite: '#FDFDFF',
+  sand: '#ECEEF7',
+  overlay: 'rgba(30, 34, 54, 0.45)',
 
-  // Schrift – warmes Anthrazit statt Braun
-  textPrimary: '#2B2620',
-  textSecondary: '#6E6557',
-  textMuted: '#A69C8C',
+  // Schrift – kühles Slate statt Braun
+  textPrimary: '#1E2233',
+  textSecondary: '#5A6175',
+  textMuted: '#9499AE',
   textOnAccent: '#FFFFFF',
 
-  // Akzente – warmes Gold & Bronze
-  primary: '#BE8A4E', // warmes Bronze-Gold
-  primaryDark: '#9A6B38',
-  primarySoft: '#F1E6D4',
-  gold: '#D4A95C', // leuchtendes, dezentes Gold
-  goldSoft: '#F4E8CC',
-  bronze: '#A9763F',
+  // Akzente – Indigo / Violett / Warm-Orange
+  primary: '#5B6CFF', // Indigo
+  primaryDark: '#4151E6', // dunkleres Indigo (Druck/Kontrast)
+  primarySoft: '#E8EAFF', // helle Indigo-Tönung
+  secondary: '#8C7BFF', // Violett
+  secondarySoft: '#EFEBFF',
+  accent: '#FFB86C', // warmes Orange
+  accentSoft: '#FFF0DF',
+
+  // Bestehende Akzent-Tokens beibehalten, auf die neue Welt gemappt
+  gold: '#FFB86C', // Highlight (z. B. Premium) -> warmer Akzent
+  goldSoft: '#FFF0DF',
+  bronze: '#E89B4F',
 
   // Status
-  success: '#5E9C7B', // ruhiges Salbeigrün
-  error: '#C25B52',
-  warning: '#D6A24A',
+  success: '#4CAF86', // frisches Grün
+  error: '#ED5A6B',
+  warning: '#F2A33C',
 
   // Beziehungs-Kategorien (farbliche Verbindungen im Stammbaum)
-  relationBiological: '#5B8A5A', // Grün  – biologische Verwandtschaft
-  relationMarried: '#4A78A8', // Blau  – angeheiratete Familie
-  relationPatchwork: '#D6A93B', // Gelb  – Patchwork / Stieffamilie
-  relationAdoption: '#8A6BB0', // Lila  – Adoption / Pflegefamilie
+  relationBiological: '#4CAF86', // Grün    – biologische Verwandtschaft
+  relationMarried: '#5B6CFF', // Indigo  – angeheiratete Familie
+  relationPatchwork: '#FFB86C', // Orange  – Patchwork / Stieffamilie
+  relationAdoption: '#8C7BFF', // Violett – Adoption / Pflegefamilie
 
-  // Sehr dezente Bereichs-Tönungen (Orientierung je App-Bereich, seniorengerecht)
-  tintHome: '#FAF7F2', // warmes Beige (Standard)
-  tintFamily: '#EEF3F8', // leichtes Blau – Familienwelt
-  tintMemories: '#FAF3E6', // warmes Gold – Erinnerungen
-  tintCapsules: '#F4F0F8', // sanftes Violett – Zeitkapseln
-  tintHistorian: '#EEF4EE', // dezentes Grün – Historiker
+  // Sehr dezente Bereichs-Tönungen (Orientierung je App-Bereich)
+  tintHome: '#FAFAF8',
+  tintFamily: '#EEF0FF', // Indigo  – Familienwelt
+  tintMemories: '#FFF3E7', // Orange  – Erinnerungen
+  tintCapsules: '#F1ECFF', // Violett – Zeitkapseln
+  tintHistorian: '#E9F7F0', // Grün    – Historiker
 
-  // Linien & Ränder – weicher, kaum sichtbar
-  border: '#ECE4D6',
-  borderStrong: '#E0D6C4',
-  divider: '#F1EBE0',
+  // Linien & Ränder – weich, kühl, kaum sichtbar
+  border: '#ECEDF4',
+  borderStrong: '#DCDEEC',
+  divider: '#F0F1F8',
 
-  // Schatten
-  shadow: '#2B2620',
+  // Schatten – kühles Tintenblau (premium Tiefe)
+  shadow: '#1E2233',
 } as const;
 
 export type ColorName = keyof typeof colors;

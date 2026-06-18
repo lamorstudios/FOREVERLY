@@ -2,7 +2,7 @@ import { View, StyleSheet } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { Screen, AppText, Button, GoogleSignInButton, AppleSignInButton } from '@/components';
 import { BrandHeader } from './BrandHeader';
-import { spacing } from '@/theme';
+import { spacing, colors } from '@/theme';
 import type { AuthStackParamList } from '@/navigation/types';
 
 type Props = NativeStackScreenProps<AuthStackParamList, 'Welcome'>;
@@ -12,7 +12,7 @@ export function WelcomeScreen({ navigation }: Props) {
     <Screen contentStyle={styles.content}>
       <View style={styles.top}>
         <BrandHeader subtitle="Bewahrt eure Familiengeschichte – für kommende Generationen." />
-        <AppText variant="body" center color="#6F6253">
+        <AppText variant="body" center color={colors.textSecondary}>
           Erinnerungen, Fotos, Audios und Zeitkapseln an einem warmen,
           sicheren Ort für die ganze Familie.
         </AppText>

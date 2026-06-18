@@ -9,27 +9,27 @@ export type { ResponsiveInfo } from './responsive';
 
 export const theme = { colors, typography, spacing, radius, touch } as const;
 
-/** Weiche, großzügige Schatten für ein hochwertiges, ruhiges Gefühl. */
+/** Weiche, großzügige Schatten (kühles Tintenblau) für ein hochwertiges Gefühl. */
 export const shadow = {
   soft: {
     shadowColor: colors.shadow,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 10,
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.06,
+    shadowRadius: 12,
     elevation: 2,
   },
   card: {
     shadowColor: colors.shadow,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.08,
-    shadowRadius: 24,
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.09,
+    shadowRadius: 28,
     elevation: 5,
   },
   floating: {
     shadowColor: colors.shadow,
-    shadowOffset: { width: 0, height: 16 },
-    shadowOpacity: 0.12,
-    shadowRadius: 36,
+    shadowOffset: { width: 0, height: 18 },
+    shadowOpacity: 0.14,
+    shadowRadius: 40,
     elevation: 10,
   },
 } as const;

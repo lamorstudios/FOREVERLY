@@ -1,5 +1,6 @@
 import React, { ReactNode } from 'react';
-import { ScrollView, Text, View, StyleSheet } from 'react-native';
+import { ScrollView, Text, StyleSheet } from 'react-native';
+import { colors } from '@/theme/colors';
 
 interface State {
   error: Error | null;
@@ -43,10 +44,10 @@ export class ErrorBoundary extends React.Component<{ children: ReactNode }, Stat
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#FBF6EE' },
+  container: { flex: 1, backgroundColor: colors.background },
   content: { padding: 24, gap: 12 },
-  title: { fontSize: 22, fontWeight: '700', color: '#B4524A' },
-  label: { fontSize: 16, fontWeight: '700', color: '#3A2F24', marginTop: 8 },
-  message: { fontSize: 16, color: '#3A2F24' },
-  stack: { fontSize: 12, color: '#6F6253', fontFamily: 'monospace' },
+  title: { fontSize: 22, fontWeight: '700', color: colors.error },
+  label: { fontSize: 16, fontWeight: '700', color: colors.textPrimary, marginTop: 8 },
+  message: { fontSize: 16, color: colors.textPrimary },
+  stack: { fontSize: 12, color: colors.textMuted, fontFamily: 'monospace' },
 });
