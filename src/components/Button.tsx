@@ -7,6 +7,7 @@ import {
   Text,
   ViewStyle,
   Animated,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -34,6 +35,14 @@ const VARIANTS: Record<
   ghost: { bg: 'transparent', text: colors.primaryDark, border: 'transparent' },
   danger: { gradient: gradients.danger, bg: colors.error, text: colors.textOnAccent, border: 'transparent' },
 };
+
+// Zweischichtiger, farbpassender Glow (nur Web): Blau + Apricot, kein Gelb.
+const webGlowPrimary =
+  Platform.OS === 'web'
+    ? ({
+        boxShadow: '0 10px 30px rgba(91,124,255,0.20), 0 6px 18px rgba(255,184,108,0.18)',
+      } as unknown as ViewStyle)
+    : null;
 
 /** Moderne, gut tippbare Schaltfläche mit Verlauf, weichem Glow und Press-Animation. */
 export function Button({
@@ -72,7 +81,7 @@ export function Button({
     <LinearGradient
       colors={palette.gradient as unknown as readonly [string, string, ...string[]]}
       start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 0 }}
+      end={{ x: 1, y: 1 }}
       style={[styles.base, { borderColor: palette.border }]}
     >
       {body}
@@ -97,6 +106,7 @@ export function Button({
         style={[
           styles.wrapper,
           variant === 'primary' && styles.glowPrimary,
+          variant === 'primary' && webGlowPrimary,
           variant === 'danger' && styles.glowDanger,
           isDisabled && styles.disabled,
           { transform: [{ scale }] },
@@ -120,11 +130,11 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     overflow: 'hidden',
   },
-  // Weicher, farbpassender Glow (Mockup): 0 10px 30px rgba(180,143,255,0.25).
+  // Weicher, farbpassender Glow (nativ – Blau). Web nutzt den dualen Glow oben.
   glowPrimary: {
-    shadowColor: '#B48FFF',
+    shadowColor: '#5B7CFF',
     shadowOffset: { width: 0, height: 10 },
-    shadowOpacity: 0.25,
+    shadowOpacity: 0.2,
     shadowRadius: 30,
     elevation: 8,
   },

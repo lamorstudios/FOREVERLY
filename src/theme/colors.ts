@@ -9,7 +9,7 @@ export const colors = {
   // Hintergründe – hell, ruhig, neutral (kein starker Seiten-Gradient)
   background: '#FAFAFC', // sehr helles Off-White
   surface: '#FFFFFF', // Karten
-  surfaceAlt: '#F4F0FF', // sehr helles Lila
+  surfaceAlt: '#EEF1F8', // sehr helles Kühlgrau-Blau
   surfaceMuted: '#EEF0F6', // dezente Tönung für Chips/Felder
   warmWhite: '#FFFFFF',
   sand: '#EEF0F6',
@@ -21,33 +21,35 @@ export const colors = {
   textMuted: '#9CA3AF',
   textOnAccent: '#FFFFFF',
 
-  // Akzente – Pink / Lila / Blau (Premium-Familienpalette)
-  primary: '#B48FFF', // Lila (zentrale Markenfarbe)
-  primaryDark: '#7C5FE0', // dunkleres Lila (Text/Kontrast)
-  primarySoft: '#F4F0FF', // Soft Purple
-  secondary: '#F28FD6', // Pink
-  secondarySoft: '#FCE7F6', // Soft Pink
-  tertiary: '#6F8CFF', // Blau
-  accent: '#F28FD6', // Pink-Akzent
-  accentSoft: '#FCE7F6',
+  // Akzente – Royal-Blau / Periwinkle / Apricot (Premium-Familienpalette)
+  primary: '#5B7CFF', // Royal-Blau (zentrale Markenfarbe)
+  primaryDark: '#4457D9', // tieferes Blau (Text/Kontrast)
+  primarySoft: '#E9EEFF', // Soft Blue
+  secondary: '#8A7DFF', // Periwinkle/Violett
+  secondarySoft: '#EFECFF',
+  tertiary: '#FFB86C', // Apricot
+  accent: '#FFB86C', // Apricot-Akzent
+  accentSoft: '#FFEFDD',
 
   // Soft-Flächen (Chips, Icon-Hintergründe)
   softPink: '#FCE7F6',
-  softPurple: '#F4F0FF',
-  softBlue: '#EEF4FF',
+  softPurple: '#EFECFF',
+  softBlue: '#E9EEFF',
 
   // Bottom-Navigation
-  navActive: '#7D8BFF',
+  navActive: '#5B7CFF',
   navInactive: '#9CA3AF',
 
   // Icon-Kategoriefarben (eindeutige Wiedererkennung)
   iconBirthday: '#F6B44C',
-  iconCapsule: '#7D8BFF',
+  iconCapsule: '#8A7DFF', // Zeitkapseln – Periwinkle
   iconAudio: '#E86ACD',
-  iconDocument: '#5E92FF',
-  iconLegacy: '#FF7AA5',
+  iconDocument: '#5B7CFF', // Dokumente – Blau
+  iconLegacy: '#FFB86C', // Nachlass – Apricot
+  iconMemories: '#FF7FB2', // Erinnerungen – Rosa
+  iconFamily: '#58C48A', // Familie – Grün
   iconPlaces: '#49B38A',
-  iconContacts: '#4DB6FF',
+  iconContacts: '#4FC3F7', // Kontakte – Türkis
   iconVorsorge: '#F0B14A',
 
   // Bestehende Akzent-Tokens beibehalten, auf die neue Welt gemappt

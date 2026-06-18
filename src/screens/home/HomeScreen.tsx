@@ -95,7 +95,7 @@ const QUICK_ACTIONS: QuickAction[] = [
   { label: 'Suche', icon: 'search-outline', color: colors.relationAdoption, route: 'GlobalSearch' },
   { label: 'Familienkarte', icon: 'location-outline', color: colors.relationMarried, route: 'LiveMap' },
   { label: 'SOS-Notruf', icon: 'warning-outline', color: colors.error, route: 'Sos' },
-  { label: 'Familienmomente', icon: 'images-outline', color: colors.sectionMemories, route: 'MomentsHome' },
+  { label: 'Familienmomente', icon: 'images-outline', color: colors.iconMemories, route: 'MomentsHome' },
   { label: 'Familienfilm', icon: 'film-outline', color: colors.bronze, route: 'FilmGallery' },
   { label: 'Familienstimmen', icon: 'mic-outline', color: colors.iconAudio, route: 'LegacyHub' },
   { label: 'Euer Familienjahr', icon: 'calendar-number-outline', color: colors.gold, route: 'FamilyYear' },
@@ -109,7 +109,7 @@ const QUICK_ACTIONS: QuickAction[] = [
   { label: 'Familienbuch', icon: 'book-outline', color: colors.primaryDark, route: 'BookHome' },
   { label: 'Vertrauenskreis', icon: 'shield-checkmark-outline', color: colors.relationMarried, route: 'TrustedCircle' },
   { label: 'Familiennähe', icon: 'heart-circle-outline', color: colors.error, route: 'Closeness' },
-  { label: 'Familienzweige', icon: 'git-branch-outline', color: colors.success, route: 'Branches' },
+  { label: 'Familienzweige', icon: 'git-branch-outline', color: colors.iconFamily, route: 'Branches' },
   { label: 'Seniorenmodus', icon: 'accessibility-outline', color: colors.gold, route: 'SeniorMode' },
 ];
 

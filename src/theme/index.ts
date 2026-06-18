@@ -14,10 +14,12 @@ export const theme = { colors, typography, spacing, radius, touch } as const;
  * Google Photos / Airbnb). Tupel aus Hex-Stops für expo-linear-gradient.
  */
 export const gradients = {
-  // Hauptverlauf / Primary-Buttons (Mockup): Pink -> Lila -> Blau (sichtbar, 90°)
-  brand: ['#F28FD6', '#B48FFF', '#6F8CFF'] as const,
-  // Hero-Karte (Mockup, 135°): Pink -> Lila -> Blau
-  hero: ['#F7A8D8', '#B48FFF', '#7EA2FF'] as const,
+  // Hauptverlauf / Primary-Buttons (135°): Royal-Blau -> Periwinkle -> Apricot
+  brand: ['#5B7CFF', '#8A7DFF', '#FFB86C'] as const,
+  // Hover/Active-Variante (etwas kräftiger)
+  brandActive: ['#4E6FFF', '#7A6FFF', '#FFAC4F'] as const,
+  // Hero-Karte (135°): warmes Gold -> Bronze
+  hero: ['#EBD3A4', '#D5B06A', '#8A6A42'] as const,
   heroIndigo: ['#5B6CFF', '#7B74FF'] as const,
   heroViolet: ['#8C7BFF', '#6473FF'] as const,
   // Heller, ruhiger Seitenhintergrund – flach (#FAFAFC), kein Seiten-Gradient.

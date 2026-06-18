@@ -360,11 +360,11 @@ const styles = StyleSheet.create({
   // Premium-Trigger
   glowWrap: {
     borderRadius: 30,
-    backgroundColor: '#6F88FF',
-    // Weicher, farbpassender Glow (Mockup): rgba(111,136,255,0.25–0.35).
-    shadowColor: '#6F88FF',
+    backgroundColor: '#5B7CFF',
+    // Weicher, farbpassender Glow (Blau) – passend zum Verlauf, kein Gelb.
+    shadowColor: '#5B7CFF',
     shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.3,
+    shadowOpacity: 0.28,
     shadowRadius: 34,
     elevation: 8,
   },
