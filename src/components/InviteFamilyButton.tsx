@@ -352,7 +352,7 @@ const styles = StyleSheet.create({
   glowWrap: {
     borderRadius: radius.pill,
     backgroundColor: colors.primary,
-    shadowColor: colors.gold,
+    shadowColor: colors.primary,
     shadowOffset: { width: 0, height: 6 },
     shadowOpacity: 0.55,
     shadowRadius: 20,

@@ -1,5 +1,6 @@
 import { ReactNode, useRef } from 'react';
-import { Pressable, View, StyleSheet, ViewStyle, StyleProp, Animated } from 'react-native';
+import { Pressable, View, StyleSheet, ViewStyle, StyleProp, Animated, Platform } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 import { colors, radius, spacing, shadow } from '@/theme';
 
 interface CardProps {
@@ -7,10 +8,29 @@ interface CardProps {
   onPress?: () => void;
   style?: StyleProp<ViewStyle>;
   padded?: boolean;
+  /** Optionaler Verlaufs-Hintergrund (z. B. für Hero-Karten). Stops als Hex/RGBA. */
+  gradient?: readonly string[];
+  /** Glassmorphism: transluzentes Weiß + weicher Blur + zarte Kante. */
+  glass?: boolean;
 }
 
-/** Hochwertige, weiche Karte mit dezenter Press-/Hover-Animation. */
-export function Card({ children, onPress, style, padded = true }: CardProps) {
+// Mehrschichtiger Schatten für echte Tiefe (nur Web; nativ greift shadow.card).
+const webLayeredShadow =
+  Platform.OS === 'web'
+    ? ({
+        boxShadow:
+          '0 1px 2px rgba(30,34,51,0.04), 0 8px 18px rgba(30,34,51,0.06), 0 24px 48px rgba(30,34,51,0.10)',
+      } as unknown as ViewStyle)
+    : null;
+
+// Weicher Glas-Blur (nur Web).
+const webGlassBlur =
+  Platform.OS === 'web'
+    ? ({ backdropFilter: 'blur(18px)', WebkitBackdropFilter: 'blur(18px)' } as unknown as ViewStyle)
+    : null;
+
+/** Hochwertige, schwebende Karte mit weicher Press-/Hover-Animation. */
+export function Card({ children, onPress, style, padded = true, gradient, glass }: CardProps) {
   const scale = useRef(new Animated.Value(1)).current;
   const animate = (to: number) =>
     Animated.spring(scale, {
@@ -20,11 +40,31 @@ export function Card({ children, onPress, style, padded = true }: CardProps) {
       tension: 80,
     }).start();
 
-  const content = (
-    <View style={[styles.card, padded && styles.padded, style]}>{children}</View>
+  const inner = gradient ? (
+    <LinearGradient
+      colors={gradient as unknown as readonly [string, string, ...string[]]}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+      style={[styles.card, webLayeredShadow, styles.gradientCard, padded && styles.padded, style]}
+    >
+      {children}
+    </LinearGradient>
+  ) : (
+    <View
+      style={[
+        styles.card,
+        webLayeredShadow,
+        glass && styles.glass,
+        glass && webGlassBlur,
+        padded && styles.padded,
+        style,
+      ]}
+    >
+      {children}
+    </View>
   );
 
-  if (!onPress) return content;
+  if (!onPress) return inner;
 
   return (
     <Pressable
@@ -32,10 +72,10 @@ export function Card({ children, onPress, style, padded = true }: CardProps) {
       accessibilityRole="button"
       onPressIn={() => animate(0.97)}
       onPressOut={() => animate(1)}
-      onHoverIn={() => animate(1.01)}
+      onHoverIn={() => animate(1.015)}
       onHoverOut={() => animate(1)}
     >
-      <Animated.View style={{ transform: [{ scale }] }}>{content}</Animated.View>
+      <Animated.View style={{ transform: [{ scale }] }}>{inner}</Animated.View>
     </Pressable>
   );
 }
@@ -46,7 +86,17 @@ const styles = StyleSheet.create({
     borderRadius: radius.xl,
     borderWidth: 1,
     borderColor: colors.border,
+    // Schwebende Tiefe: weicher, großzügiger Schatten (nativ).
     ...shadow.card,
+  },
+  gradientCard: {
+    // Auf farbigem Verlauf wirkt eine helle, transluzente Kante hochwertiger.
+    borderColor: 'rgba(255,255,255,0.35)',
+    overflow: 'hidden',
+  },
+  glass: {
+    backgroundColor: 'rgba(255,255,255,0.66)',
+    borderColor: 'rgba(255,255,255,0.6)',
   },
   padded: { padding: spacing.lg, gap: spacing.sm },
 });

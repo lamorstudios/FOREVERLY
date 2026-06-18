@@ -9,7 +9,8 @@ import {
   Animated,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, radius, spacing, touch, typography, shadow } from '@/theme';
+import { LinearGradient } from 'expo-linear-gradient';
+import { colors, radius, spacing, touch, typography, gradients } from '@/theme';
 
 type Variant = 'primary' | 'secondary' | 'ghost' | 'danger';
 
@@ -24,14 +25,17 @@ interface ButtonProps {
   style?: ViewStyle;
 }
 
-const VARIANTS: Record<Variant, { bg: string; text: string; border: string }> = {
-  primary: { bg: colors.primary, text: colors.textOnAccent, border: colors.primary },
+const VARIANTS: Record<
+  Variant,
+  { gradient?: readonly string[]; bg: string; text: string; border: string }
+> = {
+  primary: { gradient: gradients.brand, bg: colors.primary, text: colors.textOnAccent, border: 'transparent' },
   secondary: { bg: colors.surface, text: colors.primaryDark, border: colors.borderStrong },
   ghost: { bg: 'transparent', text: colors.primaryDark, border: 'transparent' },
-  danger: { bg: colors.error, text: colors.textOnAccent, border: colors.error },
+  danger: { gradient: gradients.danger, bg: colors.error, text: colors.textOnAccent, border: 'transparent' },
 };
 
-/** Moderne, gut tippbare Schaltfläche mit weicher Press-Animation. */
+/** Moderne, gut tippbare Schaltfläche mit Verlauf, weichem Glow und Press-Animation. */
 export function Button({
   label,
   onPress,
@@ -53,6 +57,32 @@ export function Button({
       tension: 90,
     }).start();
 
+  const body = loading ? (
+    <ActivityIndicator color={palette.text} />
+  ) : (
+    <View style={styles.content}>
+      {icon ? (
+        <Ionicons name={icon} size={20} color={palette.text} style={styles.icon} />
+      ) : null}
+      <Text style={[typography.button, { color: palette.text }]}>{label}</Text>
+    </View>
+  );
+
+  const fill = palette.gradient ? (
+    <LinearGradient
+      colors={palette.gradient as unknown as readonly [string, string, ...string[]]}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+      style={[styles.base, { borderColor: palette.border }]}
+    >
+      {body}
+    </LinearGradient>
+  ) : (
+    <View style={[styles.base, { backgroundColor: palette.bg, borderColor: palette.border }]}>
+      {body}
+    </View>
+  );
+
   return (
     <Pressable
       onPress={onPress}
@@ -65,29 +95,21 @@ export function Button({
     >
       <Animated.View
         style={[
-          styles.base,
-          { backgroundColor: palette.bg, borderColor: palette.border },
-          variant === 'primary' && shadow.soft,
+          styles.wrapper,
+          variant === 'primary' && styles.glowPrimary,
+          variant === 'danger' && styles.glowDanger,
           isDisabled && styles.disabled,
           { transform: [{ scale }] },
         ]}
       >
-        {loading ? (
-          <ActivityIndicator color={palette.text} />
-        ) : (
-          <View style={styles.content}>
-            {icon ? (
-              <Ionicons name={icon} size={20} color={palette.text} style={styles.icon} />
-            ) : null}
-            <Text style={[typography.button, { color: palette.text }]}>{label}</Text>
-          </View>
-        )}
+        {fill}
       </Animated.View>
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
+  wrapper: { borderRadius: radius.pill },
   base: {
     minHeight: touch.minHeight,
     borderRadius: radius.pill,
@@ -95,6 +117,22 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.lg,
     alignItems: 'center',
     justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  // Farbiger, weicher Glow für die „lifted"/Premium-Optik.
+  glowPrimary: {
+    shadowColor: colors.primary,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.35,
+    shadowRadius: 18,
+    elevation: 6,
+  },
+  glowDanger: {
+    shadowColor: colors.error,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.32,
+    shadowRadius: 18,
+    elevation: 6,
   },
   fullWidth: { alignSelf: 'stretch' },
   content: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center' },

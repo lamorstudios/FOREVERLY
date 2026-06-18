@@ -9,6 +9,30 @@ export type { ResponsiveInfo } from './responsive';
 
 export const theme = { colors, typography, spacing, radius, touch } as const;
 
+/**
+ * Verlaufs-Presets für eine emotionale, hochwertige Tiefe (Apple Health /
+ * Google Photos / Airbnb). Tupel aus Hex-Stops für expo-linear-gradient.
+ */
+export const gradients = {
+  // Marken-Verlauf (Indigo -> Violett) – Primary-Buttons, Akzent-Heros
+  brand: ['#6473FF', '#8C7BFF'] as const,
+  // Emotionaler Hero (Indigo -> Violett -> warmes Orange)
+  hero: ['#5B6CFF', '#8C7BFF', '#FFB86C'] as const,
+  heroIndigo: ['#5B6CFF', '#7B74FF'] as const,
+  heroViolet: ['#8C7BFF', '#6473FF'] as const,
+  // Sehr dezenter Seiten-Hintergrund (kaum sichtbar, gibt Tiefe)
+  page: ['#FAFAF8', '#EEF0FB'] as const,
+  // Weiche, helle Hero-Fläche (Glas-Optik-Basis)
+  brandSoft: ['#EEF0FF', '#F1ECFF'] as const,
+  warm: ['#FFC58A', '#FF9F5A'] as const,
+  success: ['#5BC196', '#3F9E97'] as const,
+  danger: ['#F2697A', '#E0455A'] as const,
+  // Glas-Overlay (halbtransparentes Weiß für Glassmorphism)
+  glass: ['rgba(255,255,255,0.85)', 'rgba(255,255,255,0.55)'] as const,
+} as const;
+
+export type GradientName = keyof typeof gradients;
+
 /** Weiche, großzügige Schatten (kühles Tintenblau) für ein hochwertiges Gefühl. */
 export const shadow = {
   soft: {

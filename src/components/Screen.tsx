@@ -11,7 +11,8 @@ import {
   NativeScrollEvent,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { colors, spacing, useResponsive } from '@/theme';
+import { LinearGradient } from 'expo-linear-gradient';
+import { colors, spacing, gradients, useResponsive } from '@/theme';
 
 interface ScreenProps {
   children: ReactNode;
@@ -61,8 +62,19 @@ export function Screen({
 
   const inner = <View style={[paddedStyle, contentStyle]}>{children}</View>;
 
+  // Sehr dezenter, ganzflächiger Hintergrund-Verlauf für Tiefe (statt flacher Fläche).
+  // Eine Bereichs-Tönung (tint) wird oben weich eingeblendet.
+  const bgColors = (tint ? [tint, gradients.page[1]] : gradients.page) as readonly [string, string, ...string[]];
+
   return (
-    <SafeAreaView style={[styles.safe, tint ? { backgroundColor: tint } : null]} edges={edges}>
+    <SafeAreaView style={styles.safe} edges={edges}>
+      <LinearGradient
+        colors={bgColors}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 0.9, y: 1 }}
+        style={StyleSheet.absoluteFill}
+        pointerEvents="none"
+      />
       <KeyboardAvoidingView
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}

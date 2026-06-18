@@ -244,7 +244,7 @@ const styles = StyleSheet.create({
     borderWidth: 2.5,
     borderColor: colors.gold,
     backgroundColor: 'rgba(255, 253, 249, 0.08)',
-    shadowColor: colors.gold,
+    shadowColor: colors.primary,
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.8,
     shadowRadius: 16,

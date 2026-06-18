@@ -864,7 +864,7 @@ const styles = StyleSheet.create({
     top: 0,
     borderRadius: 999,
     backgroundColor: withAlpha(colors.gold, 0.5),
-    shadowColor: colors.gold,
+    shadowColor: colors.primary,
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.9,
     shadowRadius: 24,

@@ -1,4 +1,4 @@
-import { Text, TextProps, StyleSheet } from 'react-native';
+import { Text, TextProps, TextStyle, StyleSheet, Platform } from 'react-native';
 import { colors, typography, useResponsive } from '@/theme';
 import type { TypographyVariant } from '@/theme/typography';
 
@@ -7,6 +7,12 @@ interface AppTextProps extends TextProps {
   color?: string;
   center?: boolean;
 }
+
+// Web-Schutz: lange Wörter/URLs umbrechen, damit Text nie aus dem Container läuft.
+const webWrap =
+  Platform.OS === 'web'
+    ? ({ overflowWrap: 'break-word', wordBreak: 'break-word' } as unknown as TextStyle)
+    : null;
 
 /**
  * Zentrale Textkomponente mit großen, gut lesbaren Standardgrößen.
@@ -31,7 +37,7 @@ export function AppText({
 
   return (
     <Text
-      style={[scaled, { color }, center && styles.center, style]}
+      style={[scaled, webWrap, { color }, center && styles.center, style]}
       {...props}
     />
   );

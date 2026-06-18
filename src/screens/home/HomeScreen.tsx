@@ -4,6 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useQuery } from '@tanstack/react-query';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import {
   Screen,
   AppText,
@@ -39,7 +40,7 @@ import { listNotifications, unreadCount } from '@/api/familyNotifications';
 import { qk } from '@/api/queryKeys';
 import { STATUS_LEVELS } from '@/constants/phase2';
 import { formatRelative, openingCountdown, fullName, daysUntil } from '@/lib/format';
-import { colors, radius, spacing, shadow, withAlpha, useResponsive } from '@/theme';
+import { colors, radius, spacing, shadow, gradients, withAlpha, useResponsive } from '@/theme';
 import type { HomeStackParamList } from '@/navigation/types';
 import type { Activity, MemberStatus, Moment } from '@/types/models';
 
@@ -444,11 +445,24 @@ export function HomeScreen({ navigation }: Props) {
           {activeFamily!.image_url ? (
             <SignedImage bucket="photos" path={activeFamily!.image_url} style={styles.heroImage} />
           ) : (
-            <View style={[styles.heroImage, styles.heroPlaceholder]}>
-              <Ionicons name="heart" size={48} color={colors.gold} />
-            </View>
+            <LinearGradient
+              colors={gradients.hero}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={[styles.heroImage, styles.heroPlaceholder]}
+            >
+              <Ionicons name="heart" size={52} color={colors.textOnAccent} />
+            </LinearGradient>
           )}
-          <View style={styles.heroScrim} />
+          {/* Weiche, organische Lichtflecken für emotionale Tiefe */}
+          <View style={styles.heroBlob1} pointerEvents="none" />
+          <View style={styles.heroBlob2} pointerEvents="none" />
+          {/* Sanfter Verlaufs-Scrim (transparent -> dunkel) für Lesbarkeit & Premium-Look */}
+          <LinearGradient
+            colors={['rgba(20,22,40,0)', 'rgba(20,22,40,0.18)', 'rgba(20,22,40,0.66)'] as const}
+            style={styles.heroScrim}
+            pointerEvents="none"
+          />
           <View style={styles.heroOverlay}>
             <AppText variant="label" color={colors.goldSoft}>
               Willkommen zurück
@@ -1055,8 +1069,24 @@ const styles = StyleSheet.create({
   },
   heroScrim: {
     ...StyleSheet.absoluteFillObject,
-    top: '45%',
-    backgroundColor: colors.overlay,
+  },
+  heroBlob1: {
+    position: 'absolute',
+    width: 220,
+    height: 220,
+    borderRadius: 110,
+    top: -70,
+    right: -50,
+    backgroundColor: 'rgba(255,255,255,0.12)',
+  },
+  heroBlob2: {
+    position: 'absolute',
+    width: 170,
+    height: 170,
+    borderRadius: 85,
+    bottom: -40,
+    left: -30,
+    backgroundColor: 'rgba(255,184,108,0.16)',
   },
   heroOverlay: { padding: spacing.lg, gap: 2 },
   section: { gap: spacing.sm },
@@ -1112,13 +1142,13 @@ const styles = StyleSheet.create({
   // Familienmomente-Strip
   momentStrip: { gap: spacing.md, paddingVertical: spacing.xs, paddingRight: spacing.md },
   momentCard: {
-    width: 156,
-    height: 200,
-    borderRadius: radius.lg,
+    width: 180,
+    height: 236,
+    borderRadius: radius.xl,
     overflow: 'hidden',
     backgroundColor: colors.surfaceAlt,
     justifyContent: 'flex-end',
-    ...shadow.soft,
+    ...shadow.card,
   },
   momentImage: { ...StyleSheet.absoluteFillObject, width: '100%', height: '100%' },
   momentScrim: { backgroundColor: colors.overlay, padding: spacing.sm },
