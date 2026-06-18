@@ -24,8 +24,8 @@ export const gradients = {
   hero: ['#5B7CFF', '#8A7DFF', '#FFB86C'] as const,
   heroIndigo: ['#5B6CFF', '#7B74FF'] as const,
   heroViolet: ['#8C7BFF', '#6473FF'] as const,
-  // Heller, ruhiger Seitenhintergrund – flach (#FAFAFC), kein Seiten-Gradient.
-  page: ['#FAFAFC', '#FAFAFC'] as const,
+  // Einheitlicher heller Seitenhintergrund #F7F8FC (flach, kein Farb-Gradient).
+  page: ['#F7F8FC', '#F7F8FC'] as const,
   // Weiche, helle Hero-Fläche (Glas-Optik-Basis)
   brandSoft: ['#EEF0FF', '#F1ECFF'] as const,
   warm: ['#FFC58A', '#FF9F5A'] as const,

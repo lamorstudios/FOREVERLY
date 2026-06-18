@@ -7,7 +7,7 @@
  */
 export const colors = {
   // Hintergründe – hell, ruhig, neutral (kein starker Seiten-Gradient)
-  background: '#FAFAFC', // sehr helles Off-White
+  background: '#F7F8FC', // einheitlicher heller Seitenhintergrund
   surface: '#FFFFFF', // Karten
   surfaceAlt: '#EEF1F8', // sehr helles Kühlgrau-Blau
   surfaceMuted: '#EEF0F6', // dezente Tönung für Chips/Felder
@@ -54,7 +54,7 @@ export const colors = {
 
   // Bestehende Akzent-Tokens beibehalten, auf die neue Welt gemappt
   gold: '#FFB86C', // Highlight (z. B. Premium) -> warmer Akzent
-  goldSoft: '#FFF0DF',
+  goldSoft: '#EAEEFF', // entbeigt: sehr helles Blau statt Creme
   bronze: '#E89B4F',
 
   // Status
@@ -68,15 +68,16 @@ export const colors = {
   relationPatchwork: '#FFB86C', // Orange  – Patchwork / Stieffamilie
   relationAdoption: '#8C7BFF', // Violett – Adoption / Pflegefamilie
 
-  // Farbcodierte Bereiche – sehr dezente Ambient-Tönungen (Hintergrund)
-  tintHome: '#FFF4F6', // sanftes Rosa (warmer Empfang)
-  tintFamily: '#EEF0FF', // Periwinkle-Blau – Familienwelt (kein Gold/Beige mehr)
-  tintMemories: '#FFEDF2', // Rosé    – Erinnerungen
-  tintCapsules: '#F1ECFF', // Lila    – Zeitkapseln
-  tintHistorian: '#E7F7F0', // Mint    – Historiker / Wissen
-  tintDocuments: '#E9F1FF', // Blau    – Dokumente
-  tintHealth: '#E7F7F0', // Mint    – Gesundheit
-  tintLegacy: '#FFECE9', // Warmrot – Nachlass / Legacy
+  // Vereinheitlichter Seitenhintergrund: ALLE Bereiche nutzen #F7F8FC.
+  // Keine rosa/mint/beige/gelben Seitenflächen mehr (ein Design-System).
+  tintHome: '#F7F8FC',
+  tintFamily: '#F7F8FC',
+  tintMemories: '#F7F8FC',
+  tintCapsules: '#F7F8FC',
+  tintHistorian: '#F7F8FC',
+  tintDocuments: '#F7F8FC',
+  tintHealth: '#F7F8FC',
+  tintLegacy: '#F7F8FC',
 
   // Bereichs-Akzentfarben (Icons, CTAs, Badges) – kräftiger als die Tönungen
   sectionCapsules: '#8C7BFF', // Lila
