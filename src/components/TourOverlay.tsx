@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, useCallback } from 'react';
-import { View, StyleSheet, Modal, Pressable, Animated, Dimensions, Easing } from 'react-native';
+import { View, StyleSheet, Modal, Pressable, Animated, Dimensions, Easing, type ViewStyle } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { AppText } from './AppText';
@@ -139,7 +139,10 @@ export function TourOverlay({ onDone }: { onDone: () => void }) {
         h: rect.height + pad * 2,
       }
     : null;
-  const holeRadius = step.kind === 'tab' || step.kind === 'bell' ? (hole ? hole.h / 2 : 0) : radius.lg;
+  // Spotlight übernimmt die Form des Ziels: Tab/Bell = Kreis, Einladen-CTA = Pill,
+  // Kacheln/Karten = Karten-Radius.
+  const roundTarget = step.kind === 'tab' || step.kind === 'bell' || step.targetId === 'invite';
+  const holeRadius = roundTarget ? (hole ? hole.h / 2 : 0) : radius.lg;
 
   // Sprechblase platzieren – immer in den sichtbaren Bereich geklemmt.
   const BUBBLE_H = 188;
@@ -164,18 +167,25 @@ export function TourOverlay({ onDone }: { onDone: () => void }) {
   return (
     <Modal visible transparent animationType="fade" onRequestClose={finish}>
       <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
-        {/* Dezente Abdunklung – als 4 Flächen rund um das Loch (Karte bleibt hell) */}
+        {/* Geformter Spotlight: transparente „Lücke" in Elementform – der riesige
+            Spread-Schatten dunkelt alles ringsum ab, das Loch übernimmt die Rundung
+            (Kreis/Pill/Karte). Kein rechteckiger Bereich mehr. */}
         {hole ? (
           <>
-            <View style={[styles.dim, { left: 0, top: 0, width, height: hole.y }]} />
-            <View style={[styles.dim, { left: 0, top: hole.y + hole.h, width, height: Math.max(0, height - (hole.y + hole.h)) }]} />
-            <View style={[styles.dim, { left: 0, top: hole.y, width: hole.x, height: hole.h }]} />
-            <View style={[styles.dim, { left: hole.x + hole.w, top: hole.y, width: Math.max(0, width - (hole.x + hole.w)), height: hole.h }]} />
-            {/* Glow-Rahmen um das Element (leichte Vergrößerung) */}
+            <View
+              pointerEvents="none"
+              style={[
+                styles.spotBase,
+                spotShadow,
+                { left: hole.x, top: hole.y, width: hole.w, height: hole.h, borderRadius: holeRadius },
+              ]}
+            />
+            {/* Weicher, formgleicher Glow-Rahmen um das Element */}
             <Animated.View
               pointerEvents="none"
               style={[
                 styles.glow,
+                glowSoft,
                 { left: hole.x, top: hole.y, width: hole.w, height: hole.h, borderRadius: holeRadius, opacity: ringGlow, transform: [{ scale: ringScale }] },
               ]}
             />
@@ -231,23 +241,32 @@ export function TourOverlay({ onDone }: { onDone: () => void }) {
   );
 }
 
-const DIM = 'rgba(34, 28, 22, 0.45)';
+const DIM = 'rgba(20, 22, 40, 0.5)';
+
+// Geformtes Spotlight-Loch: riesiger Spread-Schatten dunkelt alles außerhalb der
+// (in Elementform gerundeten) View ab. Funktioniert auf Web (react-native-web)
+// und RN 0.76+. Die View selbst bleibt transparent -> Ziel-Element bleibt hell.
+const spotShadow = { boxShadow: `0 0 0 9999px ${DIM}` } as unknown as ViewStyle;
+// Weicher, runder Glow um das Ziel (nur Web; nativ über shadow* in styles.glow).
+// Kein backdrop-blur auf dem Ring, damit das hervorgehobene Element scharf bleibt.
+const glowSoft = { boxShadow: '0 0 30px rgba(91,124,255,0.20)' } as unknown as ViewStyle;
 
 const styles = StyleSheet.create({
   dim: { position: 'absolute', backgroundColor: DIM },
-  dimFull: { flex: 1, backgroundColor: 'rgba(34, 28, 22, 0.6)' },
+  dimFull: { flex: 1, backgroundColor: 'rgba(20, 22, 40, 0.6)' },
   center: { alignItems: 'center', justifyContent: 'center', padding: spacing.lg },
   flex: { flex: 1 },
 
+  spotBase: { position: 'absolute', backgroundColor: 'transparent' },
   glow: {
     position: 'absolute',
-    borderWidth: 2.5,
-    borderColor: colors.gold,
-    backgroundColor: 'rgba(255, 253, 249, 0.08)',
+    borderWidth: 2,
+    borderColor: colors.primary,
+    backgroundColor: 'rgba(255, 255, 255, 0.06)',
     shadowColor: colors.primary,
     shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.8,
-    shadowRadius: 16,
+    shadowOpacity: 0.6,
+    shadowRadius: 18,
   },
 
   topBar: { position: 'absolute', left: 0, right: 0, top: 0, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: spacing.lg, paddingBottom: spacing.sm },
@@ -269,7 +288,7 @@ const styles = StyleSheet.create({
   arrowDown: { position: 'absolute', bottom: -8, width: 16, height: 16, backgroundColor: colors.surface, transform: [{ rotate: '45deg' }] },
 
   finishCard: { backgroundColor: colors.surface, borderRadius: radius.xl, padding: spacing.xl, gap: spacing.sm, width: '100%', maxWidth: 420, ...shadow.floating },
-  finishEmoji: { alignSelf: 'center', width: 80, height: 80, borderRadius: 40, backgroundColor: colors.goldSoft, alignItems: 'center', justifyContent: 'center', marginBottom: spacing.xs },
+  finishEmoji: { alignSelf: 'center', width: 80, height: 80, borderRadius: 40, backgroundColor: colors.primarySoft, alignItems: 'center', justifyContent: 'center', marginBottom: spacing.xs },
   bigEmoji: { fontSize: 40, lineHeight: 48 },
   finishRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   finishBtn: { marginTop: spacing.md, alignSelf: 'stretch', alignItems: 'center' },
