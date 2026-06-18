@@ -371,8 +371,7 @@ const styles = StyleSheet.create({
   premiumBtn: {
     minHeight: touch.minHeight,
     borderRadius: 30,
-    borderWidth: 1.5,
-    borderColor: 'rgba(255,255,255,0.35)',
+    // Keine Border: der Verlauf (absoluteFill) füllt randlos bis zur Rundung.
     backgroundColor: 'transparent',
     paddingHorizontal: spacing.lg,
     flexDirection: 'row',

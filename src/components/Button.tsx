@@ -82,12 +82,12 @@ export function Button({
       colors={palette.gradient as unknown as readonly [string, string, ...string[]]}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 0 }}
-      style={[styles.base, { borderColor: palette.border }]}
+      style={styles.base}
     >
       {body}
     </LinearGradient>
   ) : (
-    <View style={[styles.base, { backgroundColor: palette.bg, borderColor: palette.border }]}>
+    <View style={[styles.base, styles.solidBorder, { backgroundColor: palette.bg, borderColor: palette.border }]}>
       {body}
     </View>
   );
@@ -119,17 +119,21 @@ export function Button({
 }
 
 const styles = StyleSheet.create({
-  // Button-Radius lt. Mockup: voll abgerundet (pill). Höhe unverändert.
+  // Button-Radius: voll abgerundet (pill). Höhe unverändert.
   wrapper: { borderRadius: radius.pill },
   base: {
     minHeight: touch.minHeight,
     borderRadius: radius.pill,
-    borderWidth: 1.5,
     paddingHorizontal: spacing.lg,
     alignItems: 'center',
     justifyContent: 'center',
+    // Verlauf läuft randlos bis zur Rundung (keine transparente Border, die
+    // in react-native-web nur die padding-box füllen würde -> Randabbrüche).
     overflow: 'hidden',
+    width: '100%',
   },
+  // Border nur für solide Varianten (Secondary/Ghost) – nie auf Verlaufs-Buttons.
+  solidBorder: { borderWidth: 1.5 },
   // Weicher, farbpassender Glow (nativ – Blau). Web nutzt den dualen Glow oben.
   glowPrimary: {
     shadowColor: '#5D7CFF',
