@@ -69,6 +69,11 @@ jobs:
           # index.html NICHT cachen, damit Browser/CDN nie auf ein bereits
           # ersetztes, gehashtes JS-Bundle zeigen (Ursache für weißen Screen).
           sed -i 's#<head>#<head><meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate" /><meta http-equiv="Pragma" content="no-cache" /><meta http-equiv="Expires" content="0" />#' dist/index.html
+          # Browser-Zoom deaktivieren (native Mobile-App-Verhalten): strikter
+          # Viewport ersetzt den permissiven Expo-Default. Scrollen bleibt erlaubt.
+          sed -i 's#<meta name="viewport"[^>]*>#<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />#' dist/index.html
+          # Touch-Gesten: nur Scrollen (pan), kein Pinch-/Doppeltipp-Zoom; kein Text-Autozoom.
+          sed -i 's|</head>|<style>html,body,#root{touch-action:pan-x pan-y;}html{-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%;}</style></head>|' dist/index.html
           # Sichtbarer Fallback im Root: Falls das JS-Bundle (noch) nicht lädt,
           # erscheint Text statt eines weißen Bildschirms. React ersetzt ihn beim Start.
           sed -i 's|<div id="root"></div>|<div id="root"><div style="font-family:sans-serif;padding:48px 24px;text-align:center;color:#6F6253">Foreverly wird geladen \&hellip;<br/><br/>Falls dies länger dauert, bitte die Seite neu laden und ggf. den Browser-Cache leeren.</div></div>|' dist/index.html
