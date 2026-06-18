@@ -20,8 +20,8 @@ export const gradients = {
   brandActive: ['#5172FF', '#7060FF', '#9A5FFF', '#FFAC57'] as const,
   // Sekundärverlauf (Blau -> Lila)
   secondary: ['#6A84FF', '#7F72FF', '#A57EFF'] as const,
-  // Hero-Karte (135°): identischer Premium-Verlauf Blau -> Lila -> Apricot
-  hero: ['#5D7CFF', '#7C6CFF', '#A46CFF', '#FFB46A'] as const,
+  // Hero-Karte (135°): Blau -> Periwinkle -> Apricot (passend zur Buttonwelt)
+  hero: ['#5B7CFF', '#8A7DFF', '#FFB86C'] as const,
   heroIndigo: ['#5B6CFF', '#7B74FF'] as const,
   heroViolet: ['#8C7BFF', '#6473FF'] as const,
   // Heller, ruhiger Seitenhintergrund – flach (#FAFAFC), kein Seiten-Gradient.

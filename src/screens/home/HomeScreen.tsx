@@ -1,5 +1,5 @@
 import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
-import { View, ScrollView, Pressable, StyleSheet, Platform, type TextStyle, type NativeSyntheticEvent, type NativeScrollEvent } from 'react-native';
+import { View, ScrollView, Pressable, StyleSheet, Platform, type TextStyle, type ViewStyle, type NativeSyntheticEvent, type NativeScrollEvent } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useQuery } from '@tanstack/react-query';
@@ -441,7 +441,7 @@ export function HomeScreen({ navigation }: Props) {
 
       {/* Emotionaler Held: Familienbild & warme Begrüßung */}
       <Appear>
-        <View style={styles.hero}>
+        <View style={[styles.hero, webHeroShadow]}>
           {activeFamily!.image_url ? (
             <SignedImage bucket="photos" path={activeFamily!.image_url} style={styles.heroImage} />
           ) : (
@@ -455,9 +455,10 @@ export function HomeScreen({ navigation }: Props) {
               <Ionicons name="heart" size={170} color="rgba(255,255,255,0.18)" style={styles.heroHeart} />
             </LinearGradient>
           )}
-          {/* Weiche, organische Lichtflecken für emotionale Tiefe */}
+          {/* Weiche, transparente Lichtflächen für emotionale Tiefe */}
           <View style={styles.heroBlob1} pointerEvents="none" />
           <View style={styles.heroBlob2} pointerEvents="none" />
+          <View style={styles.heroBlob3} pointerEvents="none" />
           {/* Sanfter Verlaufs-Scrim (transparent -> dunkel) für Lesbarkeit & Premium-Look */}
           <LinearGradient
             colors={['rgba(20,22,40,0)', 'rgba(20,22,40,0.18)', 'rgba(20,22,40,0.66)'] as const}
@@ -465,13 +466,13 @@ export function HomeScreen({ navigation }: Props) {
             pointerEvents="none"
           />
           <View style={styles.heroOverlay}>
-            <AppText variant="label" color={colors.goldSoft}>
+            <AppText variant="label" color="rgba(255,255,255,0.85)">
               Willkommen zurück
             </AppText>
-            <AppText variant="title" color={colors.textOnAccent}>
+            <AppText variant="title" color="#FFFFFF">
               {activeFamily!.name}
             </AppText>
-            <AppText variant="body" color={colors.surfaceAlt}>
+            <AppText variant="body" color="rgba(255,255,255,0.92)">
               Schön, dass du da bist. 💛
             </AppText>
           </View>
@@ -947,6 +948,16 @@ export function HomeScreen({ navigation }: Props) {
   );
 }
 
+// Weicher Premium-Schatten + leichter Blur für die Hero-Karte (nur Web).
+const webHeroShadow =
+  Platform.OS === 'web'
+    ? ({
+        boxShadow: '0 20px 50px rgba(138,125,255,0.18)',
+        backdropFilter: 'blur(2px)',
+        WebkitBackdropFilter: 'blur(2px)',
+      } as unknown as ViewStyle)
+    : null;
+
 // Verlaufstext (nur Web): Zahl im Farbverlauf #5D7CFF -> #A46CFF.
 const webGradientNumber =
   Platform.OS === 'web'
@@ -1072,7 +1083,12 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     height: 240,
     justifyContent: 'flex-end',
-    ...shadow.card,
+    // Weicher Premium-Schatten (nativ); Web ergänzt Blur via webHeroShadow.
+    shadowColor: '#8A7DFF',
+    shadowOffset: { width: 0, height: 20 },
+    shadowOpacity: 0.18,
+    shadowRadius: 50,
+    elevation: 6,
   },
   heroImage: { ...StyleSheet.absoluteFillObject, width: '100%', height: '100%' },
   heroPlaceholder: {
@@ -1083,23 +1099,35 @@ const styles = StyleSheet.create({
   heroScrim: {
     ...StyleSheet.absoluteFillObject,
   },
+  // Links oben – sanftes Weiß
   heroBlob1: {
     position: 'absolute',
-    width: 220,
-    height: 220,
-    borderRadius: 110,
+    width: 200,
+    height: 200,
+    borderRadius: 100,
     top: -70,
-    right: -50,
-    backgroundColor: 'rgba(255,255,255,0.12)',
+    left: -50,
+    backgroundColor: 'rgba(255,255,255,0.10)',
   },
+  // Rechts oben – Apricot
   heroBlob2: {
     position: 'absolute',
-    width: 170,
-    height: 170,
-    borderRadius: 85,
-    bottom: -40,
-    left: -30,
-    backgroundColor: 'rgba(255,184,108,0.16)',
+    width: 200,
+    height: 200,
+    borderRadius: 100,
+    top: -60,
+    right: -50,
+    backgroundColor: 'rgba(255,184,108,0.12)',
+  },
+  // Links unten – Blau
+  heroBlob3: {
+    position: 'absolute',
+    width: 180,
+    height: 180,
+    borderRadius: 90,
+    bottom: -50,
+    left: -40,
+    backgroundColor: 'rgba(91,124,255,0.10)',
   },
   heroHeart: { position: 'absolute', right: -6, top: 24 },
   heroOverlay: { padding: spacing.lg, gap: 2 },
