@@ -74,23 +74,22 @@ export function photoImage(label: string, color = '#C8A24A'): string {
 }
 
 /** Breites Familien-Coverbild mit warmem Verlauf. */
-export function coverImage(label: string): string {
+export function coverImage(_label: string): string {
+  // Premium-Verlauf passend zur Buttonwelt: Blau -> Periwinkle -> Apricot (135°).
   const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="520">
     <defs>
       <linearGradient id="cg" x1="0" y1="0" x2="1" y2="1">
-        <stop offset="0" stop-color="#F0DCC0"/>
-        <stop offset="0.55" stop-color="#D4A95C"/>
-        <stop offset="1" stop-color="#A9763F"/>
+        <stop offset="0" stop-color="#5B7CFF"/>
+        <stop offset="0.45" stop-color="#8A7DFF"/>
+        <stop offset="1" stop-color="#FFB86C"/>
       </linearGradient>
     </defs>
     <rect width="1000" height="520" fill="url(#cg)"/>
     <circle cx="820" cy="120" r="220" fill="#FFFFFF" opacity="0.10"/>
-    <circle cx="140" cy="430" r="180" fill="#000000" opacity="0.06"/>
+    <circle cx="140" cy="430" r="180" fill="#FFFFFF" opacity="0.06"/>
     <path d="M500 175 C 545 130, 625 152, 625 212 C 625 268, 545 305, 500 338
       C 455 305, 375 268, 375 212 C 375 152, 455 130, 500 175 Z"
-      fill="#FFFFFF" opacity="0.92"/>
-    <text x="500" y="455" font-family="Georgia, serif" font-size="52" font-weight="700"
-      fill="#FFFFFF" fill-opacity="0.96" text-anchor="middle">${escapeText(label)}</text>
+      fill="#FFFFFF" opacity="0.18"/>
   </svg>`;
   return svgToUri(svg);
 }
