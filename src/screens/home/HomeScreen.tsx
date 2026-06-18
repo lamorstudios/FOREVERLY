@@ -592,9 +592,7 @@ export function HomeScreen({ navigation }: Props) {
           {activeAlerts.length > 0 ? (
             <Card onPress={() => navigation.navigate('Sos')} style={styles.alertCard}>
               <View style={styles.row}>
-                <View style={[styles.iconCircle, { backgroundColor: withAlpha(colors.error, 0.16) }]}>
-                  <Ionicons name="warning" size={22} color={colors.error} />
-                </View>
+                <IconChip name="warning" color={colors.error} />
                 <View style={styles.rowText}>
                   <AppText variant="bodyStrong" color={colors.error}>SOS aktiv</AppText>
                   <AppText variant="caption" color={colors.textSecondary} numberOfLines={1}>
@@ -607,9 +605,7 @@ export function HomeScreen({ navigation }: Props) {
           {activeTrips.map((t) => (
             <Card key={t.id} onPress={() => navigation.navigate('TripDetail', { tripId: t.id })}>
               <View style={styles.row}>
-                <View style={[styles.iconCircle, { backgroundColor: withAlpha(colors.relationMarried, 0.16) }]}>
-                  <Ionicons name="navigate" size={20} color={colors.relationMarried} />
-                </View>
+                <IconChip name="navigate" color={colors.relationMarried} />
                 <View style={styles.rowText}>
                   <AppText variant="bodyStrong" numberOfLines={1}>
                     {fullName(t.person?.first_name, t.person?.last_name) || 'Familienmitglied'} ist unterwegs
@@ -625,9 +621,7 @@ export function HomeScreen({ navigation }: Props) {
           {activeAlerts.length === 0 && activeTrips.length === 0 ? (
             <Card onPress={() => navigation.navigate('LiveMap')}>
               <View style={styles.row}>
-                <View style={[styles.iconCircle, { backgroundColor: withAlpha(colors.relationMarried, 0.16) }]}>
-                  <Ionicons name="location-outline" size={20} color={colors.relationMarried} />
-                </View>
+                <IconChip name="location" color={colors.relationMarried} />
                 <View style={styles.rowText}>
                   <AppText variant="bodyStrong">Familienkarte</AppText>
                   <AppText variant="caption" color={colors.textSecondary}>
@@ -648,9 +642,7 @@ export function HomeScreen({ navigation }: Props) {
             <SectionHeader title="Heute in der Familiengeschichte" actionLabel="Alle" onAction={() => navigation.navigate('OnThisDay')} />
             <Card onPress={() => navigation.navigate('OnThisDay')}>
               <View style={styles.row}>
-                <View style={[styles.iconCircle, { backgroundColor: withAlpha(colors.gold, 0.16) }]}>
-                  <Ionicons name="hourglass-outline" size={22} color={colors.bronze} />
-                </View>
+                <IconChip name="hourglass" color={colors.bronze} />
                 <View style={styles.rowText}>
                   <AppText variant="bodyStrong" numberOfLines={1}>
                     Heute vor {onThisDayItems[0]!.yearsAgo} {onThisDayItems[0]!.yearsAgo === 1 ? 'Jahr' : 'Jahren'}
@@ -696,9 +688,7 @@ export function HomeScreen({ navigation }: Props) {
           <View style={styles.section}>
             <Card style={styles.elderCard}>
               <View style={styles.row}>
-                <View style={[styles.iconCircle, { backgroundColor: withAlpha(colors.gold, 0.18) }]}>
-                  <Ionicons name="mic-outline" size={22} color={colors.bronze} />
-                </View>
+                <IconChip name="mic" color={colors.bronze} />
                 <View style={styles.rowText}>
                   <AppText variant="bodyStrong">{elder.title}</AppText>
                   <AppText variant="caption" color={colors.textSecondary}>{elder.message}</AppText>
@@ -726,9 +716,7 @@ export function HomeScreen({ navigation }: Props) {
             {treasures.map((t) => (
               <Card key={t.id} style={styles.treasureCard}>
                 <View style={styles.row}>
-                  <View style={[styles.iconCircle, { backgroundColor: withAlpha(colors.bronze, 0.14) }]}>
-                    <Ionicons name={t.icon as keyof typeof Ionicons.glyphMap} size={20} color={colors.bronze} />
-                  </View>
+                  <IconChip name={t.icon as keyof typeof Ionicons.glyphMap} color={colors.bronze} />
                   <View style={styles.rowText}>
                     <AppText variant="bodyStrong">{t.title}</AppText>
                     <AppText variant="caption" color={colors.textSecondary}>{t.message}</AppText>
@@ -752,9 +740,7 @@ export function HomeScreen({ navigation }: Props) {
         <View style={styles.section}>
           <Card onPress={() => navigation.navigate('FamilyYear')}>
             <View style={styles.row}>
-              <View style={[styles.iconCircle, { backgroundColor: withAlpha(colors.gold, 0.16) }]}>
-                <Ionicons name="calendar-number-outline" size={22} color={colors.bronze} />
-              </View>
+              <IconChip name="calendar-number" color={colors.bronze} />
               <View style={styles.rowText}>
                 <AppText variant="bodyStrong">Euer Familienjahr {new Date().getFullYear()}</AppText>
                 <AppText variant="caption" color={colors.textSecondary}>Automatischer Jahresrückblick eurer Familie</AppText>
@@ -764,9 +750,7 @@ export function HomeScreen({ navigation }: Props) {
           </Card>
           <Card onPress={() => navigation.navigate('FamilyWisdoms')}>
             <View style={styles.row}>
-              <View style={[styles.iconCircle, { backgroundColor: withAlpha(colors.success, 0.16) }]}>
-                <Ionicons name="heart-circle-outline" size={22} color={colors.success} />
-              </View>
+              <IconChip name="heart-circle" color={colors.success} />
               <View style={styles.rowText}>
                 <AppText variant="bodyStrong">Familienweisheiten</AppText>
                 <AppText variant="caption" color={colors.textSecondary}>Kurze Sätze, die ihr weitergebt – für Buch & Film</AppText>
@@ -783,9 +767,7 @@ export function HomeScreen({ navigation }: Props) {
           <SectionHeader title="Vorsorge" actionLabel="Öffnen" onAction={openVault} />
           <Card onPress={openVault}>
             <View style={styles.row}>
-              <View style={[styles.iconCircle, { backgroundColor: withAlpha(colors.primary, 0.14) }]}>
-                <Ionicons name="file-tray-full-outline" size={22} color={colors.primary} />
-              </View>
+              <IconChip name="file-tray-full" color={colors.primary} />
               <View style={styles.rowText}>
                 {vorsorgeMissing.length === 0 ? (
                   <>
@@ -871,9 +853,7 @@ export function HomeScreen({ navigation }: Props) {
             upcoming.data.slice(0, 3).map((c) => (
               <Card key={c.id}>
                 <View style={styles.row}>
-                  <View style={[styles.iconCircle, { backgroundColor: colors.goldSoft }]}>
-                    <Ionicons name="lock-closed-outline" size={22} color={colors.bronze} />
-                  </View>
+                  <IconChip name="lock-closed" color={colors.iconCapsule} />
                   <View style={styles.rowText}>
                     <AppText variant="bodyStrong">{c.title}</AppText>
                     <AppText variant="caption" color={colors.textSecondary}>
@@ -1022,9 +1002,7 @@ function TodayRow({
 }) {
   const Inner = (
     <View style={styles.todayRow}>
-      <View style={[styles.todayIcon, { backgroundColor: withAlpha(item.color, 0.16) }]}>
-        <Ionicons name={item.icon} size={22} color={item.color} />
-      </View>
+      <IconChip name={item.icon} color={item.color} />
       <View style={styles.rowText}>
         <AppText variant="bodyStrong" numberOfLines={1}>
           {item.title}
