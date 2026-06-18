@@ -1,7 +1,7 @@
 import { ReactNode, useRef } from 'react';
 import { Pressable, View, StyleSheet, ViewStyle, StyleProp, Animated, Platform } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { colors, radius, spacing, shadow } from '@/theme';
+import { radius, spacing, shadow } from '@/theme';
 
 interface CardProps {
   children: ReactNode;
@@ -54,8 +54,8 @@ export function Card({ children, onPress, style, padded = true, gradient, glass 
       style={[
         styles.card,
         webLayeredShadow,
-        glass && styles.glass,
-        glass && webGlassBlur,
+        webGlassBlur,
+        glass && styles.glassStrong,
         padded && styles.padded,
         style,
       ]}
@@ -82,10 +82,12 @@ export function Card({ children, onPress, style, padded = true, gradient, glass 
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: colors.surface,
+    // Weiche Glas-Karte: transluzentes Weiß, damit der Ambient-Verlauf zart
+    // durchscheint (subtiler Verlauf-Effekt) – statt flacher weißer Fläche.
+    backgroundColor: 'rgba(255,255,255,0.74)',
     borderRadius: radius.xl,
     borderWidth: 1,
-    borderColor: colors.border,
+    borderColor: 'rgba(255,255,255,0.6)',
     // Schwebende Tiefe: weicher, großzügiger Schatten (nativ).
     ...shadow.card,
   },
@@ -94,9 +96,10 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255,255,255,0.35)',
     overflow: 'hidden',
   },
-  glass: {
-    backgroundColor: 'rgba(255,255,255,0.66)',
-    borderColor: 'rgba(255,255,255,0.6)',
+  glassStrong: {
+    // Optional noch transluzenter (z. B. über Bildern/Verläufen).
+    backgroundColor: 'rgba(255,255,255,0.6)',
+    borderColor: 'rgba(255,255,255,0.7)',
   },
   padded: { padding: spacing.lg, gap: spacing.sm },
 });

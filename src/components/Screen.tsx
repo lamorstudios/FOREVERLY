@@ -62,9 +62,11 @@ export function Screen({
 
   const inner = <View style={[paddedStyle, contentStyle]}>{children}</View>;
 
-  // Sehr dezenter, ganzflächiger Hintergrund-Verlauf für Tiefe (statt flacher Fläche).
-  // Eine Bereichs-Tönung (tint) wird oben weich eingeblendet.
-  const bgColors = (tint ? [tint, gradients.page[1]] : gradients.page) as readonly [string, string, ...string[]];
+  // Ambient-Hintergrund (Rosa→Lavendel→Blau). Eine Bereichs-Tönung (tint)
+  // ersetzt weich den ersten Stop, der ruhige Verlauf darunter bleibt erhalten.
+  const bgColors = (
+    tint ? [tint, gradients.page[1], gradients.page[2]] : gradients.page
+  ) as readonly [string, string, ...string[]];
 
   return (
     <SafeAreaView style={styles.safe} edges={edges}>

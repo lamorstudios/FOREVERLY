@@ -61,7 +61,7 @@ export function DocumentsScreen({
 
   if (documentsQuery.isLoading) {
     return (
-      <Screen>
+      <Screen tint={colors.tintDocuments}>
         <Loading message="Dokumente werden geladen …" />
       </Screen>
     );
@@ -69,6 +69,7 @@ export function DocumentsScreen({
 
   return (
     <Screen
+      tint={colors.tintDocuments}
       refreshing={documentsQuery.isFetching}
       onRefresh={() => documentsQuery.refetch()}
     >

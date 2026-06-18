@@ -46,12 +46,23 @@ export const colors = {
   relationPatchwork: '#FFB86C', // Orange  – Patchwork / Stieffamilie
   relationAdoption: '#8C7BFF', // Violett – Adoption / Pflegefamilie
 
-  // Sehr dezente Bereichs-Tönungen (Orientierung je App-Bereich)
-  tintHome: '#FAFAF8',
-  tintFamily: '#EEF0FF', // Indigo  – Familienwelt
-  tintMemories: '#FFF3E7', // Orange  – Erinnerungen
-  tintCapsules: '#F1ECFF', // Violett – Zeitkapseln
-  tintHistorian: '#E9F7F0', // Grün    – Historiker
+  // Farbcodierte Bereiche – sehr dezente Ambient-Tönungen (Hintergrund)
+  tintHome: '#FFF4F6', // sanftes Rosa (warmer Empfang)
+  tintFamily: '#FFF5E2', // Gold    – Familienwelt
+  tintMemories: '#FFEDF2', // Rosé    – Erinnerungen
+  tintCapsules: '#F1ECFF', // Lila    – Zeitkapseln
+  tintHistorian: '#E7F7F0', // Mint    – Historiker / Wissen
+  tintDocuments: '#E9F1FF', // Blau    – Dokumente
+  tintHealth: '#E7F7F0', // Mint    – Gesundheit
+  tintLegacy: '#FFECE9', // Warmrot – Nachlass / Legacy
+
+  // Bereichs-Akzentfarben (Icons, CTAs, Badges) – kräftiger als die Tönungen
+  sectionCapsules: '#8C7BFF', // Lila
+  sectionMemories: '#F2789F', // Rosé
+  sectionDocuments: '#4A86E8', // Blau
+  sectionHealth: '#34C7A0', // Mint
+  sectionFamily: '#E0A33C', // Gold
+  sectionLegacy: '#E0564E', // Warmrot
 
   // Linien & Ränder – weich, kühl, kaum sichtbar
   border: '#ECEDF4',

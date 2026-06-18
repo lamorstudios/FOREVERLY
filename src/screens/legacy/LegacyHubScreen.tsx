@@ -23,7 +23,7 @@ export function LegacyHubScreen({ navigation }: Props) {
 
   if (personsQuery.isLoading) {
     return (
-      <Screen tint={colors.tintHistorian}>
+      <Screen tint={colors.tintLegacy}>
         <Loading message="Familienstimmen werden geladen …" />
       </Screen>
     );
@@ -44,7 +44,7 @@ export function LegacyHubScreen({ navigation }: Props) {
   );
 
   return (
-    <Screen tint={colors.tintHistorian} refreshing={personsQuery.isRefetching} onRefresh={() => void personsQuery.refetch()}>
+    <Screen tint={colors.tintLegacy} refreshing={personsQuery.isRefetching} onRefresh={() => void personsQuery.refetch()}>
       <View style={styles.intro}>
         <View style={styles.iconCircle}><Ionicons name="mic-outline" size={26} color={colors.primary} /></View>
         <AppText variant="title">Familienstimmen</AppText>
