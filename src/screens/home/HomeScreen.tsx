@@ -91,26 +91,26 @@ interface QuickAction {
 }
 
 const QUICK_ACTIONS: QuickAction[] = [
-  { label: 'Familienassistent', icon: 'sparkles-outline', color: colors.primary, route: 'Assistant' },
-  { label: 'Suche', icon: 'search-outline', color: colors.relationAdoption, route: 'GlobalSearch' },
-  { label: 'Familienkarte', icon: 'location-outline', color: colors.relationMarried, route: 'LiveMap' },
-  { label: 'SOS-Notruf', icon: 'warning-outline', color: colors.error, route: 'Sos' },
-  { label: 'Familienmomente', icon: 'images-outline', color: colors.iconMemories, route: 'MomentsHome' },
-  { label: 'Familienfilm', icon: 'film-outline', color: colors.bronze, route: 'FilmGallery' },
-  { label: 'Familienstimmen', icon: 'mic-outline', color: colors.iconAudio, route: 'LegacyHub' },
-  { label: 'Euer Familienjahr', icon: 'calendar-number-outline', color: colors.gold, route: 'FamilyYear' },
-  { label: 'Familienweisheiten', icon: 'heart-circle-outline', color: colors.success, route: 'FamilyWisdoms' },
-  { label: 'Familienmuseum', icon: 'business-outline', color: colors.bronze, route: 'MuseumHub' },
-  { label: 'Historiker', icon: 'sparkles-outline', color: colors.relationAdoption, route: 'HistorianHome' },
-  { label: 'Status senden', icon: 'happy-outline', color: colors.success, route: 'Status' },
-  { label: 'Kalender', icon: 'calendar-outline', color: colors.warning, route: 'Calendar' },
-  { label: 'Notfall', icon: 'alert-circle-outline', color: colors.error, route: 'Emergency' },
-  { label: 'Dokumente', icon: 'folder-outline', color: colors.iconDocument, route: 'Documents' },
-  { label: 'Familienbuch', icon: 'book-outline', color: colors.primaryDark, route: 'BookHome' },
-  { label: 'Vertrauenskreis', icon: 'shield-checkmark-outline', color: colors.relationMarried, route: 'TrustedCircle' },
-  { label: 'Familiennähe', icon: 'heart-circle-outline', color: colors.error, route: 'Closeness' },
-  { label: 'Familienzweige', icon: 'git-branch-outline', color: colors.iconFamily, route: 'Branches' },
-  { label: 'Seniorenmodus', icon: 'accessibility-outline', color: colors.gold, route: 'SeniorMode' },
+  { label: 'Familienassistent', icon: 'sparkles', color: colors.secondary, route: 'Assistant' },
+  { label: 'Suche', icon: 'search', color: colors.secondary, route: 'GlobalSearch' },
+  { label: 'Familienkarte', icon: 'location', color: colors.primary, route: 'LiveMap' },
+  { label: 'SOS-Notruf', icon: 'warning', color: colors.error, route: 'Sos' },
+  { label: 'Familienmomente', icon: 'images', color: colors.iconMemories, route: 'MomentsHome' },
+  { label: 'Familienfilm', icon: 'film', color: colors.accent, route: 'FilmGallery' },
+  { label: 'Familienstimmen', icon: 'mic', color: colors.iconAudio, route: 'LegacyHub' },
+  { label: 'Euer Familienjahr', icon: 'calendar-number', color: colors.iconBirthday, route: 'FamilyYear' },
+  { label: 'Familienweisheiten', icon: 'heart-circle', color: colors.sectionHealth, route: 'FamilyWisdoms' },
+  { label: 'Familienmuseum', icon: 'business', color: colors.iconVorsorge, route: 'MuseumHub' },
+  { label: 'Historiker', icon: 'sparkles', color: colors.secondary, route: 'HistorianHome' },
+  { label: 'Status senden', icon: 'happy', color: colors.success, route: 'Status' },
+  { label: 'Kalender', icon: 'calendar', color: colors.accent, route: 'Calendar' },
+  { label: 'Notfall', icon: 'alert-circle', color: colors.error, route: 'Emergency' },
+  { label: 'Dokumente', icon: 'folder', color: colors.iconDocument, route: 'Documents' },
+  { label: 'Familienbuch', icon: 'book', color: colors.primary, route: 'BookHome' },
+  { label: 'Vertrauenskreis', icon: 'shield-checkmark', color: colors.secondary, route: 'TrustedCircle' },
+  { label: 'Familiennähe', icon: 'heart-circle', color: colors.error, route: 'Closeness' },
+  { label: 'Familienzweige', icon: 'git-branch', color: colors.iconFamily, route: 'Branches' },
+  { label: 'Seniorenmodus', icon: 'accessibility', color: colors.iconBirthday, route: 'SeniorMode' },
 ];
 
 interface TodayItem {
@@ -905,24 +905,33 @@ export function HomeScreen({ navigation }: Props) {
                 style={({ pressed }) => [
                   styles.quickTile,
                   { width: tileBasis, maxWidth: tileBasis, flexBasis: tileBasis },
-                  pressed && styles.pressed,
+                  pressed && styles.quickTilePressed,
                 ]}
                 accessibilityRole="button"
                 accessibilityLabel={a.label}
               >
-                <View style={[styles.quickIcon, { backgroundColor: withAlpha(a.color, 0.14) }]}>
-                  <Ionicons name={a.icon} size={24} color={a.color} />
-                </View>
-                <AppText
-                  variant="label"
-                  center
-                  numberOfLines={2}
-                  adjustsFontSizeToFit
-                  minimumFontScale={0.7}
-                  style={styles.quickLabel}
-                >
-                  {a.label}
-                </AppText>
+                {({ pressed }) => (
+                  <>
+                    <LinearGradient
+                      colors={ICON_GLASS}
+                      start={{ x: 0, y: 0 }}
+                      end={{ x: 1, y: 1 }}
+                      style={[styles.quickIcon, iconContainerFx(a.color, pressed)]}
+                    >
+                      <Ionicons name={a.icon} size={28} color={a.color} />
+                    </LinearGradient>
+                    <AppText
+                      variant="label"
+                      center
+                      numberOfLines={2}
+                      adjustsFontSizeToFit
+                      minimumFontScale={0.7}
+                      style={styles.quickLabel}
+                    >
+                      {a.label}
+                    </AppText>
+                  </>
+                )}
               </Pressable>
             ))}
           </View>
@@ -957,6 +966,28 @@ const webHeroShadow =
         WebkitBackdropFilter: 'blur(2px)',
       } as unknown as ViewStyle)
     : null;
+
+// Glas-Verlauf für den Icon-Container der Feature-Kacheln (Apple/Notion-Look).
+const ICON_GLASS = ['rgba(255,255,255,0.95)', 'rgba(248,248,255,0.95)'] as const;
+
+// Premium-Icon-Container: weicher Schatten + dezenter, farbiger Glow (stärker beim Tap).
+function iconContainerFx(color: string, pressed: boolean): ViewStyle {
+  const glow = pressed ? 0.3 : 0.18;
+  if (Platform.OS === 'web') {
+    return {
+      boxShadow: `0 8px 24px rgba(91,124,255,0.10), 0 0 18px ${withAlpha(color, glow)}`,
+      backdropFilter: 'blur(12px)',
+      WebkitBackdropFilter: 'blur(12px)',
+    } as unknown as ViewStyle;
+  }
+  return {
+    shadowColor: color,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: glow,
+    shadowRadius: 12,
+    elevation: 3,
+  };
+}
 
 // Verlaufstext (nur Web): Zahl im Farbverlauf #5D7CFF -> #A46CFF.
 const webGradientNumber =
@@ -1238,13 +1269,17 @@ const styles = StyleSheet.create({
     ...shadow.soft,
   },
   quickLabel: { width: '100%' },
+  // Premium-Glas-Container (abgerundetes Quadrat) statt flachem Kreis.
   quickIcon: {
-    width: 50,
-    height: 50,
-    borderRadius: 25,
+    width: 56,
+    height: 56,
+    borderRadius: 22,
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.8)',
     alignItems: 'center',
     justifyContent: 'center',
   },
+  quickTilePressed: { transform: [{ scale: 0.98 }] },
   pressed: { opacity: 0.85 },
   // Glocke
   bell: { padding: spacing.xs, marginRight: spacing.xs },
