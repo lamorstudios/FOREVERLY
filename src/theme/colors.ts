@@ -37,7 +37,7 @@ export const colors = {
   softBlue: '#E9EEFF',
 
   // Bottom-Navigation
-  navActive: '#5D7CFF',
+  navActive: '#5B7CFF',
   navInactive: '#9CA3AF',
 
   // Icon-Kategoriefarben (eindeutige Wiedererkennung)

@@ -318,7 +318,8 @@ export function MainNavigator() {
         tabBarItemStyle: { paddingVertical: 2 },
         tabBarIcon: ({ focused, color }) => {
           const cfg = TAB_ICONS[route.name as keyof MainTabParamList];
-          // Aktives Icon etwas größer + subtiler farbiger Glow.
+          // Aktives Icon etwas größer + WEICHER, RUNDER Glow (kein eckiger Kasten):
+          // runder Container (borderRadius) ohne Hintergrund -> Glow folgt der Rundung.
           return (
             <View
               style={
@@ -326,10 +327,11 @@ export function MainNavigator() {
                   ? {
                       alignItems: 'center',
                       justifyContent: 'center',
+                      borderRadius: 999,
                       shadowColor: colors.navActive,
-                      shadowOffset: { width: 0, height: 3 },
-                      shadowOpacity: 0.45,
-                      shadowRadius: 8,
+                      shadowOffset: { width: 0, height: 8 },
+                      shadowOpacity: 0.25,
+                      shadowRadius: 22,
                     }
                   : { alignItems: 'center', justifyContent: 'center' }
               }

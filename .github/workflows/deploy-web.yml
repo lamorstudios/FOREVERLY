@@ -73,7 +73,9 @@ jobs:
           # Viewport ersetzt den permissiven Expo-Default. Scrollen bleibt erlaubt.
           sed -i 's#<meta name="viewport"[^>]*>#<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />#' dist/index.html
           # Touch-Gesten: nur Scrollen (pan), kein Pinch-/Doppeltipp-Zoom; kein Text-Autozoom.
-          sed -i 's|</head>|<style>html,body,#root{touch-action:pan-x pan-y;}html{-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%;}</style></head>|' dist/index.html
+          # Zusätzlich: kein grauer Tap-Highlight (eckiger Kasten) und kein eckiger
+          # Maus-/Touch-Fokusrahmen; Tastatur-Fokus (:focus-visible) bleibt für A11y.
+          sed -i 's|</head>|<style>html,body,#root{touch-action:pan-x pan-y;}html{-webkit-text-size-adjust:100%;-ms-text-size-adjust:100%;}*{-webkit-tap-highlight-color:transparent;}:focus:not(:focus-visible){outline:none;}</style></head>|' dist/index.html
           # Sichtbarer Fallback im Root: Falls das JS-Bundle (noch) nicht lädt,
           # erscheint Text statt eines weißen Bildschirms. React ersetzt ihn beim Start.
           sed -i 's|<div id="root"></div>|<div id="root"><div style="font-family:sans-serif;padding:48px 24px;text-align:center;color:#6F6253">Foreverly wird geladen \&hellip;<br/><br/>Falls dies länger dauert, bitte die Seite neu laden und ggf. den Browser-Cache leeren.</div></div>|' dist/index.html
