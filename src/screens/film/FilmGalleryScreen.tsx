@@ -3,7 +3,7 @@ import { View, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useQuery } from '@tanstack/react-query';
-import { Screen, AppText, Card, Button, Chip, EmptyState, Loading } from '@/components';
+import { Screen, AppText, Card, Button, Chip, EmptyState, Loading, IconChip } from '@/components';
 import { listFilmProjects, getAutoFilmSuggestions, createFilmProject } from '@/api/film';
 import { qk } from '@/api/queryKeys';
 import { useAuth } from '@/context/AuthContext';
@@ -91,7 +91,7 @@ export function FilmGalleryScreen({ navigation }: Props) {
             return (
               <Card key={`${s.kind}-${i}`} onPress={() => createFromSuggestion(s)}>
                 <View style={styles.row}>
-                  <View style={styles.iconCircle}><Ionicons name={meta.icon} size={22} color={colors.primary} /></View>
+                  <IconChip name={meta.icon} />
                   <View style={styles.rowText}>
                     <AppText variant="bodyStrong" numberOfLines={1}>{s.title}</AppText>
                     <AppText variant="caption" color={colors.textSecondary} numberOfLines={1}>{s.subtitle}</AppText>
@@ -115,7 +115,7 @@ export function FilmGalleryScreen({ navigation }: Props) {
             return (
               <Card key={p.id} onPress={() => navigation.navigate('FilmPlayer', { projectId: p.id })}>
                 <View style={styles.row}>
-                  <View style={styles.iconCircle}><Ionicons name={locked ? 'lock-closed-outline' : meta.icon} size={22} color={locked ? colors.gold : colors.primary} /></View>
+                  <IconChip name={locked ? 'lock-closed' : meta.icon} color={locked ? colors.accent : undefined} />
                   <View style={styles.rowText}>
                     <AppText variant="bodyStrong" numberOfLines={1}>{p.title}</AppText>
                     <AppText variant="caption" color={colors.textSecondary} numberOfLines={1}>

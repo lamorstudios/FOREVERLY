@@ -3,7 +3,7 @@ import { View, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useQuery } from '@tanstack/react-query';
-import { Screen, AppText, Card, Button, Chip, TextField, Loading } from '@/components';
+import { Screen, AppText, Card, Button, Chip, TextField, Loading, IconChip } from '@/components';
 import { getAssistantOverview, askAssistant } from '@/api/assistant';
 import { qk } from '@/api/queryKeys';
 import { useAuth } from '@/context/AuthContext';
@@ -77,7 +77,7 @@ export function AssistantScreen({ navigation }: Props) {
           {overview.data!.suggestions.map((s) => (
             <Card key={s.id} onPress={s.action ? () => navigateAction(s.action!) : undefined}>
               <View style={styles.row}>
-                <View style={styles.iconCircle}><Ionicons name={s.icon as keyof typeof Ionicons.glyphMap} size={22} color={colors.primary} /></View>
+                <IconChip name={s.icon as keyof typeof Ionicons.glyphMap} />
                 <View style={styles.rowText}>
                   <AppText variant="bodyStrong" numberOfLines={2}>{s.title}</AppText>
                   <AppText variant="caption" color={colors.textSecondary} numberOfLines={2}>{s.subtitle}</AppText>

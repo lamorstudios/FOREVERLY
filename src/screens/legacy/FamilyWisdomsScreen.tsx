@@ -3,7 +3,7 @@ import { View, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useQuery } from '@tanstack/react-query';
-import { Screen, AppText, Card, Button, Chip, TextField, Loading, EmptyState } from '@/components';
+import { Screen, AppText, Card, Button, Chip, TextField, Loading, EmptyState, IconChip } from '@/components';
 import { listFamilyWisdoms, addFamilyWisdom } from '@/api/legacyMoments';
 import { listPersons } from '@/api/persons';
 import { qk } from '@/api/queryKeys';
@@ -51,7 +51,7 @@ export function FamilyWisdomsScreen(_: Props) {
   return (
     <Screen tint={colors.tintMemories} refreshing={wisdomsQuery.isRefetching} onRefresh={() => void wisdomsQuery.refetch()}>
       <View style={styles.hero}>
-        <View style={styles.iconCircle}><Ionicons name="heart-circle-outline" size={26} color={colors.bronze} /></View>
+        <IconChip name="heart-circle" />
         <AppText variant="title">Familienweisheiten</AppText>
         <AppText variant="body" color={colors.textSecondary}>
           Kurze Sätze, die in eurer Familie weitergegeben werden. Sie fließen später ins

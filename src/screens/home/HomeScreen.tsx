@@ -18,6 +18,7 @@ import {
   EmptyState,
   Loading,
   InviteFamilyButton,
+  IconChip,
 } from '@/components';
 import { useFamily } from '@/context/FamilyContext';
 import { useAuth } from '@/context/AuthContext';
@@ -1090,9 +1091,7 @@ function ActivityRow({ activity }: { activity: Activity }) {
   return (
     <Card>
       <View style={styles.row}>
-        <View style={styles.iconCircle}>
-          <Ionicons name={icon} size={22} color={colors.primary} />
-        </View>
+        <IconChip name={icon} />
         <View style={styles.rowText}>
           <AppText variant="body">
             <AppText variant="bodyStrong">{actorName}</AppText>

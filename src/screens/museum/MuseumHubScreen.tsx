@@ -2,7 +2,7 @@ import { View, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useQuery } from '@tanstack/react-query';
-import { Screen, AppText, Card, Loading } from '@/components';
+import { Screen, AppText, Card, Loading, IconChip } from '@/components';
 import { getMuseumOverview } from '@/api/museum';
 import { qk } from '@/api/queryKeys';
 import { useAuth } from '@/context/AuthContext';
@@ -27,7 +27,7 @@ export function MuseumHubScreen({ navigation }: Props) {
   const Nav = ({ icon, title, subtitle, onPress, color = colors.primary }: { icon: IoniconName; title: string; subtitle: string; onPress: () => void; color?: string }) => (
     <Card onPress={onPress}>
       <View style={styles.row}>
-        <View style={[styles.iconCircle, { backgroundColor: colors.surfaceAlt }]}><Ionicons name={icon} size={24} color={color} /></View>
+        <IconChip name={icon} color={color} />
         <View style={styles.rowText}>
           <AppText variant="bodyStrong">{title}</AppText>
           <AppText variant="caption" color={colors.textSecondary}>{subtitle}</AppText>
@@ -73,7 +73,7 @@ export function MuseumHubScreen({ navigation }: Props) {
                 : navigation.navigate('MemoryJourney', { query: ex.themeQuery ?? ex.ref, title: ex.title })}
             >
               <View style={styles.row}>
-                <View style={styles.iconCircle}><Ionicons name={ex.kind === 'event' ? 'sparkles-outline' : 'albums-outline'} size={22} color={colors.primary} /></View>
+                <IconChip name={ex.kind === 'event' ? 'sparkles' : 'albums'} />
                 <View style={styles.rowText}>
                   <AppText variant="bodyStrong" numberOfLines={1}>{ex.title}</AppText>
                   <AppText variant="caption" color={colors.textSecondary} numberOfLines={1}>{ex.subtitle}</AppText>

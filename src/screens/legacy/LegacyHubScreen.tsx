@@ -2,7 +2,7 @@ import { View, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useQuery } from '@tanstack/react-query';
-import { Screen, AppText, Card, Chip, Avatar, SignedImage, Loading } from '@/components';
+import { Screen, AppText, Card, Chip, Avatar, SignedImage, Loading, IconChip } from '@/components';
 import { listPersons } from '@/api/persons';
 import { qk } from '@/api/queryKeys';
 import { useFamily } from '@/context/FamilyContext';
@@ -46,7 +46,7 @@ export function LegacyHubScreen({ navigation }: Props) {
   return (
     <Screen tint={colors.tintLegacy} refreshing={personsQuery.isRefetching} onRefresh={() => void personsQuery.refetch()}>
       <View style={styles.intro}>
-        <View style={styles.iconCircle}><Ionicons name="mic-outline" size={26} color={colors.primary} /></View>
+        <IconChip name="mic" />
         <AppText variant="title">Familienstimmen</AppText>
         <AppText variant="body" color={colors.textSecondary}>
           Stimmen, Geschichten und Lebenswege eurer Familie – für kommende Generationen bewahrt.
