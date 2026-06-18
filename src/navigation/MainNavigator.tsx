@@ -304,8 +304,8 @@ export function MainNavigator() {
     <Tab.Navigator
       screenOptions={({ route }) => ({
         headerShown: false,
-        tabBarActiveTintColor: colors.primaryDark,
-        tabBarInactiveTintColor: colors.textMuted,
+        tabBarActiveTintColor: colors.navActive,
+        tabBarInactiveTintColor: colors.navInactive,
         // Label nur beim aktiven Tab -> keine überlappenden Texte auf Mobile
         tabBarShowLabel: true,
         tabBarStyle: {
@@ -318,9 +318,23 @@ export function MainNavigator() {
         tabBarItemStyle: { paddingVertical: 2 },
         tabBarIcon: ({ focused, color }) => {
           const cfg = TAB_ICONS[route.name as keyof MainTabParamList];
+          // Aktives Icon etwas größer + subtiler farbiger Glow.
           return (
-            <View style={{ alignItems: 'center', justifyContent: 'center' }}>
-              <Ionicons name={focused ? cfg.focused : cfg.unfocused} size={24} color={color} />
+            <View
+              style={
+                focused
+                  ? {
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      shadowColor: colors.navActive,
+                      shadowOffset: { width: 0, height: 3 },
+                      shadowOpacity: 0.45,
+                      shadowRadius: 8,
+                    }
+                  : { alignItems: 'center', justifyContent: 'center' }
+              }
+            >
+              <Ionicons name={focused ? cfg.focused : cfg.unfocused} size={focused ? 28 : 24} color={color} />
             </View>
           );
         },

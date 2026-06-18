@@ -15,7 +15,7 @@ import { useFamily } from '@/context/FamilyContext';
 import { listMyCapsules, listUpcomingForMe } from '@/api/timeCapsules';
 import { qk } from '@/api/queryKeys';
 import { formatDate, openingCountdown } from '@/lib/format';
-import { colors, spacing, radius } from '@/theme';
+import { colors, spacing, radius, withAlpha } from '@/theme';
 import type { ContentType, TimeCapsule, UpcomingCapsule } from '@/types/models';
 import type { CapsulesStackParamList } from '@/navigation/types';
 
@@ -123,7 +123,7 @@ function UpcomingCapsuleCard({ capsule }: { capsule: UpcomingCapsule }) {
     <Card style={styles.card}>
       <View style={styles.cardHeader}>
         <View style={styles.lockIcon}>
-          <Ionicons name="lock-closed" size={24} color={colors.gold} />
+          <Ionicons name="lock-closed" size={24} color={colors.iconCapsule} />
         </View>
         <AppText variant="subheading" style={styles.title}>
           {capsule.title}
@@ -197,7 +197,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: radius.pill,
-    backgroundColor: colors.goldSoft,
+    backgroundColor: withAlpha(colors.iconCapsule, 0.14),
     alignItems: 'center',
     justifyContent: 'center',
   },

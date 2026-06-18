@@ -97,7 +97,7 @@ const QUICK_ACTIONS: QuickAction[] = [
   { label: 'SOS-Notruf', icon: 'warning-outline', color: colors.error, route: 'Sos' },
   { label: 'Familienmomente', icon: 'images-outline', color: colors.sectionMemories, route: 'MomentsHome' },
   { label: 'Familienfilm', icon: 'film-outline', color: colors.bronze, route: 'FilmGallery' },
-  { label: 'Familienstimmen', icon: 'mic-outline', color: colors.secondary, route: 'LegacyHub' },
+  { label: 'Familienstimmen', icon: 'mic-outline', color: colors.iconAudio, route: 'LegacyHub' },
   { label: 'Euer Familienjahr', icon: 'calendar-number-outline', color: colors.gold, route: 'FamilyYear' },
   { label: 'Familienweisheiten', icon: 'heart-circle-outline', color: colors.success, route: 'FamilyWisdoms' },
   { label: 'Familienmuseum', icon: 'business-outline', color: colors.bronze, route: 'MuseumHub' },
@@ -105,7 +105,7 @@ const QUICK_ACTIONS: QuickAction[] = [
   { label: 'Status senden', icon: 'happy-outline', color: colors.success, route: 'Status' },
   { label: 'Kalender', icon: 'calendar-outline', color: colors.warning, route: 'Calendar' },
   { label: 'Notfall', icon: 'alert-circle-outline', color: colors.error, route: 'Emergency' },
-  { label: 'Dokumente', icon: 'folder-outline', color: colors.sectionDocuments, route: 'Documents' },
+  { label: 'Dokumente', icon: 'folder-outline', color: colors.iconDocument, route: 'Documents' },
   { label: 'Familienbuch', icon: 'book-outline', color: colors.primaryDark, route: 'BookHome' },
   { label: 'Vertrauenskreis', icon: 'shield-checkmark-outline', color: colors.relationMarried, route: 'TrustedCircle' },
   { label: 'Familiennähe', icon: 'heart-circle-outline', color: colors.error, route: 'Closeness' },
@@ -451,7 +451,8 @@ export function HomeScreen({ navigation }: Props) {
               end={{ x: 1, y: 1 }}
               style={[styles.heroImage, styles.heroPlaceholder]}
             >
-              <Ionicons name="heart" size={52} color={colors.textOnAccent} />
+              {/* Großes, gläsernes Herz als Tiefen-Element (~16% Deckkraft) */}
+              <Ionicons name="heart" size={150} color="rgba(255,255,255,0.16)" />
             </LinearGradient>
           )}
           {/* Weiche, organische Lichtflecken für emotionale Tiefe */}
@@ -546,18 +547,18 @@ export function HomeScreen({ navigation }: Props) {
       {/* Admin Dashboard – nur für Admins, separater Einstieg (nicht im Profil-Tab) */}
       {isAdmin ? (
         <Appear delay={30}>
-          <Card onPress={() => navigation.navigate('AdminDashboard')} style={styles.adminCard}>
+          <Card onPress={() => navigation.navigate('AdminDashboard')} gradient={gradients.brand} style={styles.adminCard}>
             <View style={styles.row}>
-              <View style={[styles.iconCircle, { backgroundColor: withAlpha(colors.bronze, 0.16) }]}>
-                <Ionicons name="stats-chart-outline" size={22} color={colors.bronze} />
+              <View style={[styles.iconCircle, { backgroundColor: 'rgba(255,255,255,0.22)' }]}>
+                <Ionicons name="stats-chart-outline" size={22} color={colors.textOnAccent} />
               </View>
               <View style={styles.rowText}>
-                <AppText variant="bodyStrong">Admin Dashboard</AppText>
-                <AppText variant="caption" color={colors.textSecondary}>
+                <AppText variant="bodyStrong" color={colors.textOnAccent}>Admin Dashboard</AppText>
+                <AppText variant="caption" color="rgba(255,255,255,0.85)">
                   Insights & Kennzahlen · nur für Admins
                 </AppText>
               </View>
-              <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
+              <Ionicons name="chevron-forward" size={18} color={colors.textOnAccent} />
             </View>
           </Card>
         </Appear>
@@ -1096,7 +1097,13 @@ const styles = StyleSheet.create({
   stepsHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: spacing.sm, marginBottom: spacing.xs },
   stepRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingVertical: spacing.xs },
   stepDone: { textDecorationLine: 'line-through' },
-  adminCard: { borderColor: colors.bronze, borderWidth: 1.5, backgroundColor: colors.surfaceAlt },
+  adminCard: {
+    // Premium-Verlaufskarte (Glow); Hintergrund kommt vom gradient-Prop.
+    shadowColor: colors.primary,
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.25,
+    shadowRadius: 24,
+  },
   growthCard: { gap: spacing.sm },
   growthHeader: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   // 4 Spalten, wenn Platz – sonst automatisch 2x2 (flexWrap + minWidth).

@@ -72,7 +72,7 @@ export function Button({
     <LinearGradient
       colors={palette.gradient as unknown as readonly [string, string, ...string[]]}
       start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 1 }}
+      end={{ x: 1, y: 0 }}
       style={[styles.base, { borderColor: palette.border }]}
     >
       {body}
@@ -109,20 +109,20 @@ export function Button({
 }
 
 const styles = StyleSheet.create({
-  // Button-Radius lt. Mockup: 30px (28–32). Höhe unverändert (touch.minHeight).
-  wrapper: { borderRadius: 30 },
+  // Button-Radius lt. Mockup: voll abgerundet (pill). Höhe unverändert.
+  wrapper: { borderRadius: radius.pill },
   base: {
     minHeight: touch.minHeight,
-    borderRadius: 30,
+    borderRadius: radius.pill,
     borderWidth: 1.5,
     paddingHorizontal: spacing.lg,
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',
   },
-  // Weicher, farbpassender Glow (Mockup): 0 10px 30px rgba(111,136,255,0.25).
+  // Weicher, farbpassender Glow (Mockup): 0 10px 30px rgba(180,143,255,0.25).
   glowPrimary: {
-    shadowColor: '#6F88FF',
+    shadowColor: '#B48FFF',
     shadowOffset: { width: 0, height: 10 },
     shadowOpacity: 0.25,
     shadowRadius: 30,

@@ -17,7 +17,7 @@ interface CardProps {
 // Weicher Premium-Schatten lt. Mockup (nur Web; nativ über styles.card).
 const webLayeredShadow =
   Platform.OS === 'web'
-    ? ({ boxShadow: '0 12px 40px rgba(60,60,100,0.08)' } as unknown as ViewStyle)
+    ? ({ boxShadow: '0 10px 30px rgba(20,20,40,0.06)' } as unknown as ViewStyle)
     : null;
 
 // Weicher Glas-Blur (nur Web).
@@ -79,16 +79,14 @@ export function Card({ children, onPress, style, padded = true, gradient, glass 
 
 const styles = StyleSheet.create({
   card: {
-    // Premium-Karte lt. Mockup: reines Weiß, Radius 28, zarte helle Kante.
+    // Premium-Karte lt. Mockup: reines Weiß, Radius 28, keine harten Borders.
     backgroundColor: '#FFFFFF',
     borderRadius: 28,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.8)',
     // Weicher Schatten (nativ); Web exakt via webLayeredShadow.
-    shadowColor: '#3C3C64',
-    shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.08,
-    shadowRadius: 40,
+    shadowColor: '#141428',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.06,
+    shadowRadius: 30,
     elevation: 4,
   },
   gradientCard: {

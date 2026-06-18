@@ -18,11 +18,11 @@ import { DOCUMENT_KINDS } from '@/constants/phase2';
 
 // Funktionsfarben je Dokumentart (Mockup: Nachlass=Pink, Vorsorge=Orange, Dokumente=Blau).
 const KIND_COLOR: Record<string, string> = {
-  testament: colors.sectionMemories, // Nachlass -> Pink
-  patientenverfuegung: colors.warning, // Vorsorge -> Orange
-  vorsorgevollmacht: colors.warning, // Vorsorge -> Orange
-  versicherung: colors.sectionDocuments, // Dokumente -> Blau
-  sonstige: colors.sectionDocuments, // Dokumente -> Blau
+  testament: colors.iconLegacy, // Nachlass -> Pink
+  patientenverfuegung: colors.iconVorsorge, // Vorsorge -> Orange
+  vorsorgevollmacht: colors.iconVorsorge, // Vorsorge -> Orange
+  versicherung: colors.iconDocument, // Dokumente -> Blau
+  sonstige: colors.iconDocument, // Dokumente -> Blau
 };
 import { friendlyError } from '@/lib/errors';
 import { useFamily } from '@/context/FamilyContext';
@@ -116,7 +116,7 @@ export function DocumentsScreen({
         <View style={styles.list}>
           {documents.map((doc) => {
             const meta = DOCUMENT_KINDS[doc.kind];
-            const kindColor = KIND_COLOR[doc.kind] ?? colors.sectionDocuments;
+            const kindColor = KIND_COLOR[doc.kind] ?? colors.iconDocument;
             return (
               <Card
                 key={doc.id}

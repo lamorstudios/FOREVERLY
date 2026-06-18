@@ -14,15 +14,14 @@ export const theme = { colors, typography, spacing, radius, touch } as const;
  * Google Photos / Airbnb). Tupel aus Hex-Stops für expo-linear-gradient.
  */
 export const gradients = {
-  // Primary-Button-Verlauf (Mockup): Flieder -> Periwinkle -> Blau (135°)
-  brand: ['#D29BFF', '#A68CFF', '#6F88FF'] as const,
-  // Emotionaler Hero (Mockup): zartes Rosa -> Lavendel -> sanftes Blau (135°)
-  hero: ['#F4C6E8', '#C8B7FF', '#AFCBFF'] as const,
+  // Hauptverlauf / Primary-Buttons (Mockup): Pink -> Lila -> Blau (sichtbar, 90°)
+  brand: ['#F28FD6', '#B48FFF', '#6F8CFF'] as const,
+  // Hero-Karte (Mockup, 135°): Pink -> Lila -> Blau
+  hero: ['#F7A8D8', '#B48FFF', '#7EA2FF'] as const,
   heroIndigo: ['#5B6CFF', '#7B74FF'] as const,
   heroViolet: ['#8C7BFF', '#6473FF'] as const,
-  // Ruhiger, heller, neutraler Seitenhintergrund (kein blau/lavendel) –
-  // nahezu flach, nur ein Hauch Tiefe für die Glas-Karten.
-  page: ['#FAFAF8', '#F3F2F0'] as const,
+  // Heller, ruhiger Seitenhintergrund – flach (#FAFAFC), kein Seiten-Gradient.
+  page: ['#FAFAFC', '#FAFAFC'] as const,
   // Weiche, helle Hero-Fläche (Glas-Optik-Basis)
   brandSoft: ['#EEF0FF', '#F1ECFF'] as const,
   warm: ['#FFC58A', '#FF9F5A'] as const,

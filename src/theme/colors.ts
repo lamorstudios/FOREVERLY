@@ -6,29 +6,49 @@
  * Strukturen, Layouts und Logik bleiben unverändert – nur die Optik.
  */
 export const colors = {
-  // Hintergründe – hell, kühl, luftig
-  background: '#FAFAF8', // sehr helles Off-White
+  // Hintergründe – hell, ruhig, neutral (kein starker Seiten-Gradient)
+  background: '#FAFAFC', // sehr helles Off-White
   surface: '#FFFFFF', // Karten
-  surfaceAlt: '#F2F3FB', // sehr helles Indigo-Grau
-  surfaceMuted: '#E9EBF6', // dezente Tönung für Chips/Felder
-  warmWhite: '#FDFDFF',
-  sand: '#ECEEF7',
-  overlay: 'rgba(30, 34, 54, 0.45)',
+  surfaceAlt: '#F4F0FF', // sehr helles Lila
+  surfaceMuted: '#EEF0F6', // dezente Tönung für Chips/Felder
+  warmWhite: '#FFFFFF',
+  sand: '#EEF0F6',
+  overlay: 'rgba(31, 34, 48, 0.45)',
 
-  // Schrift – kühles Slate statt Braun
-  textPrimary: '#1E2233',
-  textSecondary: '#5A6175',
-  textMuted: '#9499AE',
+  // Schrift
+  textPrimary: '#1F2230',
+  textSecondary: '#6B7280',
+  textMuted: '#9CA3AF',
   textOnAccent: '#FFFFFF',
 
-  // Akzente – Indigo / Violett / Warm-Orange
-  primary: '#5B6CFF', // Indigo
-  primaryDark: '#4151E6', // dunkleres Indigo (Druck/Kontrast)
-  primarySoft: '#E8EAFF', // helle Indigo-Tönung
-  secondary: '#8C7BFF', // Violett
-  secondarySoft: '#EFEBFF',
-  accent: '#FFB86C', // warmes Orange
-  accentSoft: '#FFF0DF',
+  // Akzente – Pink / Lila / Blau (Premium-Familienpalette)
+  primary: '#B48FFF', // Lila (zentrale Markenfarbe)
+  primaryDark: '#7C5FE0', // dunkleres Lila (Text/Kontrast)
+  primarySoft: '#F4F0FF', // Soft Purple
+  secondary: '#F28FD6', // Pink
+  secondarySoft: '#FCE7F6', // Soft Pink
+  tertiary: '#6F8CFF', // Blau
+  accent: '#F28FD6', // Pink-Akzent
+  accentSoft: '#FCE7F6',
+
+  // Soft-Flächen (Chips, Icon-Hintergründe)
+  softPink: '#FCE7F6',
+  softPurple: '#F4F0FF',
+  softBlue: '#EEF4FF',
+
+  // Bottom-Navigation
+  navActive: '#7D8BFF',
+  navInactive: '#9CA3AF',
+
+  // Icon-Kategoriefarben (eindeutige Wiedererkennung)
+  iconBirthday: '#F6B44C',
+  iconCapsule: '#7D8BFF',
+  iconAudio: '#E86ACD',
+  iconDocument: '#5E92FF',
+  iconLegacy: '#FF7AA5',
+  iconPlaces: '#49B38A',
+  iconContacts: '#4DB6FF',
+  iconVorsorge: '#F0B14A',
 
   // Bestehende Akzent-Tokens beibehalten, auf die neue Welt gemappt
   gold: '#FFB86C', // Highlight (z. B. Premium) -> warmer Akzent
