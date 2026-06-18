@@ -1,7 +1,7 @@
 import { ReactNode, useRef } from 'react';
 import { Pressable, View, StyleSheet, ViewStyle, StyleProp, Animated, Platform } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { radius, spacing, shadow } from '@/theme';
+import { spacing } from '@/theme';
 
 interface CardProps {
   children: ReactNode;
@@ -14,13 +14,10 @@ interface CardProps {
   glass?: boolean;
 }
 
-// Mehrschichtiger Schatten für echte Tiefe (nur Web; nativ greift shadow.card).
+// Weicher Premium-Schatten lt. Mockup (nur Web; nativ über styles.card).
 const webLayeredShadow =
   Platform.OS === 'web'
-    ? ({
-        boxShadow:
-          '0 1px 2px rgba(30,34,51,0.04), 0 8px 18px rgba(30,34,51,0.06), 0 24px 48px rgba(30,34,51,0.10)',
-      } as unknown as ViewStyle)
+    ? ({ boxShadow: '0 12px 40px rgba(60,60,100,0.08)' } as unknown as ViewStyle)
     : null;
 
 // Weicher Glas-Blur (nur Web).
@@ -54,8 +51,8 @@ export function Card({ children, onPress, style, padded = true, gradient, glass 
       style={[
         styles.card,
         webLayeredShadow,
-        webGlassBlur,
         glass && styles.glassStrong,
+        glass && webGlassBlur,
         padded && styles.padded,
         style,
       ]}
@@ -82,14 +79,17 @@ export function Card({ children, onPress, style, padded = true, gradient, glass 
 
 const styles = StyleSheet.create({
   card: {
-    // Weiche Glas-Karte: transluzentes Weiß, damit der Ambient-Verlauf zart
-    // durchscheint (subtiler Verlauf-Effekt) – statt flacher weißer Fläche.
-    backgroundColor: 'rgba(255,255,255,0.74)',
-    borderRadius: radius.xl,
+    // Premium-Karte lt. Mockup: reines Weiß, Radius 28, zarte helle Kante.
+    backgroundColor: '#FFFFFF',
+    borderRadius: 28,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.6)',
-    // Schwebende Tiefe: weicher, großzügiger Schatten (nativ).
-    ...shadow.card,
+    borderColor: 'rgba(255,255,255,0.8)',
+    // Weicher Schatten (nativ); Web exakt via webLayeredShadow.
+    shadowColor: '#3C3C64',
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.08,
+    shadowRadius: 40,
+    elevation: 4,
   },
   gradientCard: {
     // Auf farbigem Verlauf wirkt eine helle, transluzente Kante hochwertiger.

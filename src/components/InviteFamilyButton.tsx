@@ -13,6 +13,7 @@ import {
   type LayoutChangeEvent,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useQuery } from '@tanstack/react-query';
 import { AppText } from './AppText';
 import { Button } from './Button';
@@ -25,7 +26,7 @@ import { qk } from '@/api/queryKeys';
 import { useAuth } from '@/context/AuthContext';
 import { useFamily } from '@/context/FamilyContext';
 import { fullName } from '@/lib/format';
-import { colors, spacing, radius, shadow, touch } from '@/theme';
+import { colors, spacing, radius, shadow, touch, gradients } from '@/theme';
 import type { RelationshipType, ClosenessLevel, Invitation } from '@/types/models';
 
 interface RelationOption { label: string; type: RelationshipType }
@@ -332,7 +333,15 @@ export function InviteFamilyButton({ variant }: { variant?: 'primary' | 'seconda
           accessibilityLabel="Familienmitglied einladen"
           style={styles.premiumBtn}
         >
-          {/* statischer heller Gold-Schimmer oben – hebt den Button optisch ab */}
+          {/* Verlaufsfüllung lt. Mockup (Flieder -> Periwinkle -> Blau) */}
+          <LinearGradient
+            colors={gradients.brand as unknown as readonly [string, string, ...string[]]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={StyleSheet.absoluteFill}
+            pointerEvents="none"
+          />
+          {/* statischer heller Schimmer oben – hebt den Button optisch ab */}
           <View pointerEvents="none" style={styles.sheen} />
 
           <Ionicons name="person-add-outline" size={20} color={colors.textOnAccent} style={styles.btnIcon} />
@@ -350,20 +359,21 @@ export function InviteFamilyButton({ variant }: { variant?: 'primary' | 'seconda
 const styles = StyleSheet.create({
   // Premium-Trigger
   glowWrap: {
-    borderRadius: radius.pill,
-    backgroundColor: colors.primary,
-    shadowColor: colors.primary,
-    shadowOffset: { width: 0, height: 6 },
-    shadowOpacity: 0.55,
-    shadowRadius: 20,
+    borderRadius: 30,
+    backgroundColor: '#6F88FF',
+    // Weicher, farbpassender Glow (Mockup): rgba(111,136,255,0.25–0.35).
+    shadowColor: '#6F88FF',
+    shadowOffset: { width: 0, height: 12 },
+    shadowOpacity: 0.3,
+    shadowRadius: 34,
     elevation: 8,
   },
   premiumBtn: {
     minHeight: touch.minHeight,
-    borderRadius: radius.pill,
+    borderRadius: 30,
     borderWidth: 1.5,
-    borderColor: colors.goldSoft,
-    backgroundColor: colors.primary,
+    borderColor: 'rgba(255,255,255,0.35)',
+    backgroundColor: 'transparent',
     paddingHorizontal: spacing.lg,
     flexDirection: 'row',
     alignItems: 'center',
@@ -385,7 +395,7 @@ const styles = StyleSheet.create({
     top: -24,
     bottom: -24,
     left: 0,
-    backgroundColor: 'rgba(255, 249, 234, 0.55)',
+    backgroundColor: 'rgba(255, 255, 255, 0.5)',
   },
   backdrop: { flex: 1, backgroundColor: colors.overlay, justifyContent: 'flex-end' },
   sheet: {

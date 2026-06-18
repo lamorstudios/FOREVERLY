@@ -109,30 +109,31 @@ export function Button({
 }
 
 const styles = StyleSheet.create({
-  wrapper: { borderRadius: radius.pill },
+  // Button-Radius lt. Mockup: 30px (28–32). Höhe unverändert (touch.minHeight).
+  wrapper: { borderRadius: 30 },
   base: {
     minHeight: touch.minHeight,
-    borderRadius: radius.pill,
+    borderRadius: 30,
     borderWidth: 1.5,
     paddingHorizontal: spacing.lg,
     alignItems: 'center',
     justifyContent: 'center',
     overflow: 'hidden',
   },
-  // Farbiger, weicher Glow für die „lifted"/Premium-Optik.
+  // Weicher, farbpassender Glow (Mockup): 0 10px 30px rgba(111,136,255,0.25).
   glowPrimary: {
-    shadowColor: colors.primary,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.35,
-    shadowRadius: 18,
-    elevation: 6,
+    shadowColor: '#6F88FF',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.25,
+    shadowRadius: 30,
+    elevation: 8,
   },
   glowDanger: {
     shadowColor: colors.error,
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.32,
-    shadowRadius: 18,
-    elevation: 6,
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.25,
+    shadowRadius: 26,
+    elevation: 8,
   },
   fullWidth: { alignSelf: 'stretch' },
   content: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center' },

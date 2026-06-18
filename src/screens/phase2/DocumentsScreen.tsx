@@ -11,10 +11,19 @@ import {
   EmptyState,
   Loading,
 } from '@/components';
-import { colors, spacing, radius } from '@/theme';
+import { colors, spacing, radius, withAlpha } from '@/theme';
 import { qk } from '@/api/queryKeys';
 import { listDocuments, deleteDocument } from '@/api/documents';
 import { DOCUMENT_KINDS } from '@/constants/phase2';
+
+// Funktionsfarben je Dokumentart (Mockup: Nachlass=Pink, Vorsorge=Orange, Dokumente=Blau).
+const KIND_COLOR: Record<string, string> = {
+  testament: colors.sectionMemories, // Nachlass -> Pink
+  patientenverfuegung: colors.warning, // Vorsorge -> Orange
+  vorsorgevollmacht: colors.warning, // Vorsorge -> Orange
+  versicherung: colors.sectionDocuments, // Dokumente -> Blau
+  sonstige: colors.sectionDocuments, // Dokumente -> Blau
+};
 import { friendlyError } from '@/lib/errors';
 import { useFamily } from '@/context/FamilyContext';
 import type { HomeStackParamList } from '@/navigation/types';
@@ -107,6 +116,7 @@ export function DocumentsScreen({
         <View style={styles.list}>
           {documents.map((doc) => {
             const meta = DOCUMENT_KINDS[doc.kind];
+            const kindColor = KIND_COLOR[doc.kind] ?? colors.sectionDocuments;
             return (
               <Card
                 key={doc.id}
@@ -115,8 +125,8 @@ export function DocumentsScreen({
                 }
               >
                 <View style={styles.row}>
-                  <View style={styles.iconCircle}>
-                    <Ionicons name={meta.icon} size={28} color={colors.primary} />
+                  <View style={[styles.iconCircle, { backgroundColor: withAlpha(kindColor, 0.14) }]}>
+                    <Ionicons name={meta.icon} size={28} color={kindColor} />
                   </View>
 
                   <View style={styles.body}>
