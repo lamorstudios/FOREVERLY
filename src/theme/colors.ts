@@ -70,7 +70,7 @@ export const colors = {
 
   // Farbcodierte Bereiche – sehr dezente Ambient-Tönungen (Hintergrund)
   tintHome: '#FFF4F6', // sanftes Rosa (warmer Empfang)
-  tintFamily: '#FFF5E2', // Gold    – Familienwelt
+  tintFamily: '#EEF0FF', // Periwinkle-Blau – Familienwelt (kein Gold/Beige mehr)
   tintMemories: '#FFEDF2', // Rosé    – Erinnerungen
   tintCapsules: '#F1ECFF', // Lila    – Zeitkapseln
   tintHistorian: '#E7F7F0', // Mint    – Historiker / Wissen
