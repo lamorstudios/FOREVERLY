@@ -62,10 +62,10 @@ export function Screen({
 
   const inner = <View style={[paddedStyle, contentStyle]}>{children}</View>;
 
-  // Ambient-Hintergrund (Rosa→Lavendel→Blau). Eine Bereichs-Tönung (tint)
-  // ersetzt weich den ersten Stop, der ruhige Verlauf darunter bleibt erhalten.
+  // Ruhiger, neutraler Seitenhintergrund (nahezu flach). Eine optionale
+  // Bereichs-Tönung (tint) blendet oben weich ein, sonst neutrales Off-White.
   const bgColors = (
-    tint ? [tint, gradients.page[1], gradients.page[2]] : gradients.page
+    tint ? [tint, gradients.page[1]] : gradients.page
   ) as readonly [string, string, ...string[]];
 
   return (

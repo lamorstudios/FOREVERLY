@@ -20,8 +20,9 @@ export const gradients = {
   hero: ['#5B6CFF', '#8C7BFF', '#FFB86C'] as const,
   heroIndigo: ['#5B6CFF', '#7B74FF'] as const,
   heroViolet: ['#8C7BFF', '#6473FF'] as const,
-  // Sehr dezenter Ambient-Hintergrund: Rosa -> Lavendel -> Blau (warm & ruhig)
-  page: ['#FFF1F4', '#F3EEFF', '#EAF2FF'] as const,
+  // Ruhiger, heller, neutraler Seitenhintergrund (kein blau/lavendel) –
+  // nahezu flach, nur ein Hauch Tiefe für die Glas-Karten.
+  page: ['#FAFAF8', '#F3F2F0'] as const,
   // Weiche, helle Hero-Fläche (Glas-Optik-Basis)
   brandSoft: ['#EEF0FF', '#F1ECFF'] as const,
   warm: ['#FFC58A', '#FF9F5A'] as const,
