@@ -1237,3 +1237,25 @@ export function createSeedData(): DemoDataset {
     };
   }
 }
+
+/**
+ * Leerer „normaler" Startzustand: eine Familie nur mit dir als Mitglied –
+ * KEINE vorgefertigten Personen, Erinnerungen, Fotos, Audios, Zeitkapseln usw.
+ * Dadurch greifen überall die vorbereitenden Leerzustände. Vorgefertigte
+ * Demo-Inhalte erscheinen ausschließlich im expliziten Demo-Modus (?demo=1).
+ */
+export function createEmptyData(): DemoDataset {
+  const seed = createSeedData();
+  const profile: Profile = { ...seed.profile, full_name: null, avatar_url: null, bio: null };
+  const family: Family = { ...seed.family, name: 'Meine Familie', image_url: null };
+  const member: FamilyMember = { ...seed.members[0]!, profile };
+  const empty: Record<string, unknown[]> = {};
+  for (const key of Object.keys(seed)) empty[key] = [];
+  return {
+    ...(empty as unknown as DemoDataset),
+    profile,
+    family,
+    members: [member],
+    persons: [],
+  };
+}

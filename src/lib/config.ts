@@ -5,6 +5,7 @@ type Extra = {
   supabaseAnonKey?: string;
   inviteBaseUrl?: string;
   demoMode?: string;
+  demoSeed?: string;
 };
 
 const extra = (Constants.expoConfig?.extra ?? {}) as Extra;
@@ -30,6 +31,24 @@ export const isSupabaseConfigured = !!envSupabaseUrl && !!envSupabaseAnonKey;
  */
 export const DEMO_MODE =
   extra.demoMode === 'true' || !isSupabaseConfigured;
+
+/**
+ * Vorgefertigte Demo-Inhalte (Familie Mielke etc.) werden NUR im expliziten
+ * Demo-Modus geladen – über EXPO_PUBLIC_DEMO_SEED=true oder den URL-Parameter
+ * ?demo=1. Standardmäßig startet die App leer (wie ein normales Konto) und
+ * zeigt vorbereitende Leerzustände.
+ */
+export const DEMO_SEED = (() => {
+  if (extra.demoSeed === 'true') return true;
+  if (typeof window !== 'undefined' && window.location && window.location.search) {
+    try {
+      return new URLSearchParams(window.location.search).get('demo') === '1';
+    } catch {
+      return false;
+    }
+  }
+  return false;
+})();
 
 export const config = {
   // Im Demo-Modus dienen Platzhalterwerte nur dazu, dass der Supabase-Client

@@ -69,7 +69,8 @@ import type {
   Feedback,
   FeedbackKind,
 } from '@/types/models';
-import { createSeedData, DEMO_FAMILY_ID, DEMO_USER_ID } from './demoData';
+import { createSeedData, createEmptyData, DEMO_FAMILY_ID, DEMO_USER_ID } from './demoData';
+import { DEMO_SEED } from '@/lib/config';
 
 /**
  * In-Memory-Datenspeicher für den Demo-Modus.
@@ -78,13 +79,15 @@ import { createSeedData, DEMO_FAMILY_ID, DEMO_USER_ID } from './demoData';
  * den Speicher zur Laufzeit (zurückgesetzt beim Neuladen der Seite). So fühlt
  * sich die Vorschau interaktiv an – ganz ohne Supabase.
  */
-let data = createSeedData();
+// Standard: leerer Startzustand (normales Konto). Vorgefertigte Beispieldaten
+// nur im expliziten Demo-Modus (?demo=1 oder EXPO_PUBLIC_DEMO_SEED=true).
+let data = DEMO_SEED ? createSeedData() : createEmptyData();
 let counter = 1000;
 const newId = (prefix: string) => `${prefix}-${counter++}`;
 const nowIso = () => new Date().toISOString();
 
 export function resetDemoData() {
-  data = createSeedData();
+  data = DEMO_SEED ? createSeedData() : createEmptyData();
 }
 
 export const demoStore = {

@@ -80,8 +80,8 @@ export function CapsuleListScreen({ navigation }: Props) {
       {isEmpty ? (
         <EmptyState
           icon="time-outline"
-          title="Noch keine Zeitkapseln"
-          message="Erstelle eine Zeitkapsel für einen besonderen Moment in der Zukunft."
+          title="Noch keine Zeitkapseln vorhanden"
+          message="Erstelle deine erste Zeitkapsel für zukünftige Generationen."
           actionLabel="Zeitkapsel erstellen"
           onAction={() => navigation.navigate('CapsuleForm')}
         />

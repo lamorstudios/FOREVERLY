@@ -865,8 +865,9 @@ export function HomeScreen({ navigation }: Props) {
             ))
           ) : (
             <Card>
+              <AppText variant="bodyStrong">Noch keine Zeitkapseln vorhanden</AppText>
               <AppText variant="body" color={colors.textSecondary}>
-                Aktuell warten keine Zeitkapseln auf dich.
+                Erstelle deine erste Zeitkapsel für zukünftige Generationen.
               </AppText>
             </Card>
           )}
@@ -929,7 +930,12 @@ export function HomeScreen({ navigation }: Props) {
             <EmptyState
               icon="leaf-outline"
               title="Noch keine Aktivitäten"
-              message="Fügt eure ersten Erinnerungen, Fotos oder Zeitkapseln hinzu – sie erscheinen dann hier."
+              message="Sobald deine Familie Erinnerungen, Fotos oder Nachrichten teilt, erscheinen sie hier."
+              actionLabel="Erste Erinnerung erstellen"
+              onAction={() => {
+                const parent = navigation.getParent() as { navigate: (n: string, p?: object) => void } | undefined;
+                parent?.navigate('MemoriesTab', { screen: 'MemoryForm' });
+              }}
             />
           )}
         </View>

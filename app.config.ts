@@ -97,6 +97,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     inviteBaseUrl:
       process.env.EXPO_PUBLIC_INVITE_BASE_URL ?? 'https://foreverly.app/invite',
     demoMode: process.env.EXPO_PUBLIC_DEMO_MODE,
+    demoSeed: process.env.EXPO_PUBLIC_DEMO_SEED,
     // Sichtbarer Build-Stempel (vom Deploy-Workflow gesetzt) zur Versionskontrolle.
     buildId: process.env.EXPO_PUBLIC_BUILD_ID ?? 'dev',
     buildTime: process.env.EXPO_PUBLIC_BUILD_TIME ?? 'lokal',
