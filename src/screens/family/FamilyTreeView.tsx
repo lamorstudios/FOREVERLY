@@ -31,8 +31,11 @@ interface FamilyTreeViewProps {
   onSelectPerson: (personId: string) => void;
 }
 
-const MIN_SCALE = 0.5;
-const MAX_SCALE = 2;
+const MIN_SCALE = 0.35; // weiteres Herauszoomen für mehr Übersicht
+const MAX_SCALE = 3;
+// Eigener Boden für den Start-/Center-Fit, damit der Startzoom unverändert bleibt
+// (Nutzer können danach manuell weiter bis MIN_SCALE herauszoomen).
+const FIT_MIN_SCALE = 0.5;
 const HUB_D = 118; // Durchmesser des zentralen Hubs
 const NODE_D = 88; // Durchmesser der umliegenden Kreise
 
@@ -370,7 +373,9 @@ export function FamilyTreeView({ persons, relationships, anchorId, onSelectPerso
     const pad = 56;
     const halfW = Math.max(layout.hubX, layout.width - layout.hubX);
     const halfH = Math.max(layout.hubY, layout.height - layout.hubY);
-    const s = clamp(Math.min((w / 2 - pad) / halfW, (h / 2 - pad) / halfH, 1.05));
+    // Start-/Center-Fit nutzt den eigenen Boden FIT_MIN_SCALE (= bisheriger
+    // Startzoom). MIN_SCALE/MAX_SCALE gelten weiterhin für freies Zoomen.
+    const s = Math.min(MAX_SCALE, Math.max(FIT_MIN_SCALE, Math.min((w / 2 - pad) / halfW, (h / 2 - pad) / halfH, 1.05)));
     animateCam(s, w / 2 - layout.hubX * s, h / 2 - layout.hubY * s);
   }
 
