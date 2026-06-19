@@ -63,10 +63,10 @@ export const colors = {
   warning: '#F2A33C',
 
   // Beziehungs-Kategorien (farbliche Verbindungen im Stammbaum)
-  relationBiological: '#4CAF86', // Grün    – biologische Verwandtschaft
-  relationMarried: '#5B6CFF', // Indigo  – angeheiratete Familie
+  relationBiological: '#4FB286', // Grün    – biologische Verwandtschaft
+  relationMarried: '#5B7CFF', // Blau    – angeheiratete Familie
   relationPatchwork: '#FFB86C', // Orange  – Patchwork / Stieffamilie
-  relationAdoption: '#8C7BFF', // Violett – Adoption / Pflegefamilie
+  relationAdoption: '#A16CFF', // Violett – Adoption / Pflegefamilie
 
   // Vereinheitlichter Seitenhintergrund: ALLE Bereiche nutzen #F7F8FC.
   // Keine rosa/mint/beige/gelben Seitenflächen mehr (ein Design-System).

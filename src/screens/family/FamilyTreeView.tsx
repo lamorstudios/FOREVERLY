@@ -7,6 +7,8 @@ import {
   PanResponder,
   LayoutChangeEvent,
   Easing,
+  Platform,
+  type ViewStyle,
 } from 'react-native';
 import Svg, { Line } from 'react-native-svg';
 import { Ionicons } from '@expo/vector-icons';
@@ -315,7 +317,7 @@ export function FamilyTreeView({ persons, relationships, anchorId, onSelectPerso
       const cy = cell.get(id)!.r * ROWH + offY;
       const p = parentOf.get(id);
       const cat = p ? pairCat.get(pairKey(p, id)) : undefined;
-      const color = id === anchorId ? colors.gold : id === hubId ? colors.primary : t >= 3 ? colors.textMuted : cat ? relationshipColor(cat) : colors.border;
+      const color = id === anchorId ? colors.primary : id === hubId ? colors.primary : t >= 3 ? colors.textMuted : cat ? relationshipColor(cat) : colors.border;
       const rel = id === hubId ? undefined : t <= 2 ? dirLabel.get(`${hubId}->${id}`) ?? genericLabel(id) : undefined;
       nodes.push({ id, cx, cy, size: SIZE[t]!, ring: t, color, opacity: OPACITY[t]!, rel });
       if (p) {
@@ -646,9 +648,9 @@ export function FamilyTreeView({ persons, relationships, anchorId, onSelectPerso
                   x2={b.x}
                   y2={b.y}
                   stroke={e.color}
-                  strokeWidth={e.opacity > 0.4 ? 3 : 2}
+                  strokeWidth={e.opacity > 0.4 ? 2 : 1.5}
                   strokeLinecap="round"
-                  opacity={e.opacity}
+                  opacity={Math.min(0.7, e.opacity + 0.1)}
                 />
               );
             })}
@@ -661,6 +663,7 @@ export function FamilyTreeView({ persons, relationships, anchorId, onSelectPerso
               pointerEvents="none"
               style={[
                 styles.glow,
+                webActiveGlow,
                 {
                   width: anchorSize + 26,
                   height: anchorSize + 26,
@@ -690,7 +693,7 @@ export function FamilyTreeView({ persons, relationships, anchorId, onSelectPerso
                 size={nv?.size ?? NODE_D}
                 isHub={isHub}
                 isAnchor={isAnchor}
-                color={isAnchor ? colors.gold : nv?.color ?? colors.border}
+                color={isAnchor ? colors.primary : nv?.color ?? colors.border}
                 ringOpacity={nv?.opacity ?? 1}
                 faded={(nv?.ring ?? 0) >= 3}
                 grabbed={id === grabbedId}
@@ -704,15 +707,15 @@ export function FamilyTreeView({ persons, relationships, anchorId, onSelectPerso
       </View>
 
       <View style={styles.controls}>
-        <Pressable style={styles.ctrlBtn} onPress={() => zoomBy(1.25)} hitSlop={6}>
-          <AppText variant="heading" color={colors.primaryDark}>+</AppText>
+        <Pressable style={[styles.ctrlBtn, webGlassBtn]} onPress={() => zoomBy(1.25)} hitSlop={6}>
+          <AppText variant="heading" color={colors.primary}>+</AppText>
         </Pressable>
-        <Pressable style={styles.ctrlBtn} onPress={() => zoomBy(0.8)} hitSlop={6}>
-          <AppText variant="heading" color={colors.primaryDark}>−</AppText>
+        <Pressable style={[styles.ctrlBtn, webGlassBtn]} onPress={() => zoomBy(0.8)} hitSlop={6}>
+          <AppText variant="heading" color={colors.primary}>−</AppText>
         </Pressable>
         {anchorId ? (
-          <Pressable style={styles.ctrlBtn} onPress={() => focusPerson(anchorId)} hitSlop={6}>
-            <Ionicons name="locate-outline" size={20} color={colors.primaryDark} />
+          <Pressable style={[styles.ctrlBtn, webGlassBtn]} onPress={() => focusPerson(anchorId)} hitSlop={6}>
+            <Ionicons name="locate" size={20} color={colors.primary} />
           </Pressable>
         ) : null}
       </View>
@@ -835,6 +838,20 @@ function NodeCircle({
   );
 }
 
+// Weicher, mehrschichtiger Glow für den aktiven Mittelpunkt (Web) – kein Gelb.
+const webActiveGlow =
+  Platform.OS === 'web'
+    ? ({
+        boxShadow:
+          '0 0 0 6px rgba(91,124,255,0.10), 0 12px 32px rgba(161,108,255,0.18), 0 8px 24px rgba(255,184,108,0.12)',
+      } as unknown as ViewStyle)
+    : null;
+// Glas-Effekt für die Floating-Controls (Web).
+const webGlassBtn =
+  Platform.OS === 'web'
+    ? ({ backdropFilter: 'blur(12px)', WebkitBackdropFilter: 'blur(12px)', boxShadow: '0 8px 24px rgba(20,22,40,0.10)' } as unknown as ViewStyle)
+    : null;
+
 const styles = StyleSheet.create({
   container: { flex: 1, position: 'relative', overflow: 'hidden' },
   world: { position: 'absolute', left: 0, top: 0, transformOrigin: 'left top' },
@@ -848,14 +865,14 @@ const styles = StyleSheet.create({
   duBadge: {
     position: 'absolute',
     bottom: -8,
-    backgroundColor: colors.gold,
+    backgroundColor: colors.primary,
     paddingHorizontal: spacing.sm,
     paddingVertical: 1,
     borderRadius: radius.pill,
     borderWidth: 2,
     borderColor: colors.surface,
   },
-  duText: { fontSize: 10, fontWeight: '800' },
+  duText: { fontSize: 10, fontWeight: '800', color: colors.textOnAccent },
   name: { marginTop: 8 },
   rel: { fontWeight: '600', marginTop: 1 },
   glow: {
@@ -863,22 +880,26 @@ const styles = StyleSheet.create({
     left: 0,
     top: 0,
     borderRadius: 999,
-    backgroundColor: withAlpha(colors.gold, 0.5),
+    // Kein gelber Schimmer mehr – weicher, mehrschichtiger Glow (Web via webActiveGlow).
+    backgroundColor: withAlpha(colors.primary, 0.06),
     shadowColor: colors.primary,
-    shadowOffset: { width: 0, height: 0 },
-    shadowOpacity: 0.9,
-    shadowRadius: 24,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.5,
+    shadowRadius: 28,
   },
   controls: { position: 'absolute', right: spacing.md, bottom: spacing.md, gap: spacing.sm },
   ctrlBtn: {
     width: 46,
     height: 46,
     borderRadius: 23,
-    backgroundColor: colors.surface,
-    borderWidth: 1,
-    borderColor: colors.border,
+    // Weißer Glas-Button, kein harter Rahmen, weicher Schatten.
+    backgroundColor: 'rgba(255,255,255,0.85)',
     alignItems: 'center',
     justifyContent: 'center',
-    ...shadow.card,
+    shadowColor: '#1E2233',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.12,
+    shadowRadius: 16,
+    elevation: 4,
   },
 });
