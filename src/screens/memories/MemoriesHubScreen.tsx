@@ -1,7 +1,7 @@
 import { View, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { Screen, AppText, Card } from '@/components';
+import { Screen, AppText, Card, IconChip } from '@/components';
 import { useFamily } from '@/context/FamilyContext';
 import { colors, spacing, radius } from '@/theme';
 import type { MemoriesStackParamList } from '@/navigation/types';
@@ -50,9 +50,7 @@ export function MemoriesHubScreen({ navigation }: Props) {
         {items.map((item) => (
           <Card key={item.title} onPress={item.onPress} style={styles.card}>
             <View style={styles.row}>
-              <View style={styles.iconWrap}>
-                <Ionicons name={item.icon} size={40} color={colors.primary} />
-              </View>
+              <IconChip name={item.icon} />
               <View style={styles.texts}>
                 <AppText variant="heading">{item.title}</AppText>
                 <AppText variant="body" color={colors.textSecondary}>

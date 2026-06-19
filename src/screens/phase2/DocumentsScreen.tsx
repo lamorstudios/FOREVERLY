@@ -10,6 +10,7 @@ import {
   Card,
   EmptyState,
   Loading,
+  IconChip,
 } from '@/components';
 import { colors, spacing, radius, withAlpha } from '@/theme';
 import { qk } from '@/api/queryKeys';
@@ -125,9 +126,7 @@ export function DocumentsScreen({
                 }
               >
                 <View style={styles.row}>
-                  <View style={[styles.iconCircle, { backgroundColor: withAlpha(kindColor, 0.14) }]}>
-                    <Ionicons name={meta.icon} size={28} color={kindColor} />
-                  </View>
+                  <IconChip name={meta.icon} color={kindColor} />
 
                   <View style={styles.body}>
                     <AppText variant="subheading">{doc.title}</AppText>
