@@ -8,6 +8,7 @@ import {
   TextField,
   DateField,
   Loading,
+  useSuccess,
 } from '@/components';
 import { SignedImage } from '@/components/SignedImage';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -71,6 +72,7 @@ export function PersonFormScreen({ navigation, route }: Props) {
     if (picked) setLocalImageUri(picked.uri);
   }
 
+  const { show } = useSuccess();
   const saveMutation = useMutation({
     mutationFn: async () => {
       let avatarUrl = existingAvatar;
@@ -96,6 +98,7 @@ export function PersonFormScreen({ navigation, route }: Props) {
       if (personId) {
         queryClient.invalidateQueries({ queryKey: qk.person(personId) });
       }
+      show(personId ? 'Person aktualisiert' : 'Familienmitglied hinzugefügt');
       navigation.goBack();
     },
     onError: (e) => setError(friendlyError(e)),

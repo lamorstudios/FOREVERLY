@@ -1,12 +1,12 @@
 import { View, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { AppText } from '@/components';
-import { DEMO_MODE } from '@/lib/config';
+import { DEMO_SEED } from '@/lib/config';
 import { colors, radius, spacing } from '@/theme';
 
-/** Dezenter Hinweis, dass die App im Demo-Modus mit Beispiel-Daten läuft. */
+/** Hinweis nur im expliziten Demo-Modus mit Beispiel-Daten (?demo=1). */
 export function DemoBanner() {
-  if (!DEMO_MODE) return null;
+  if (!DEMO_SEED) return null;
   return (
     <View style={styles.banner}>
       <Ionicons name="sparkles" size={18} color={colors.primaryDark} />

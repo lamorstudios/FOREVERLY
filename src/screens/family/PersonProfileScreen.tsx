@@ -172,6 +172,13 @@ export function PersonProfileScreen({ navigation, route }: Props) {
           icon="git-network-outline"
           onPress={() => navigation.navigate('AddRelationship', { personId })}
         />
+        {!person.user_id ? (
+          <Button
+            label="Einladung senden"
+            icon="person-add-outline"
+            onPress={() => navigation.navigate('SmartInvite', { personId })}
+          />
+        ) : null}
       </View>
     </Screen>
   );

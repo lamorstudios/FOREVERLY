@@ -11,6 +11,7 @@ import {
   SectionHeader,
   EmptyState,
   Loading,
+  useSuccess,
 } from '@/components';
 import { listStatuses, setStatus } from '@/api/status';
 import { listPersons } from '@/api/persons';
@@ -53,6 +54,7 @@ export function StatusScreen(_props: Props) {
     : null;
   const selectedLevel = myStatus?.level ?? null;
 
+  const { show } = useSuccess();
   const mutation = useMutation({
     mutationFn: (level: StatusLevel) => {
       if (!myPerson) {
@@ -70,6 +72,7 @@ export function StatusScreen(_props: Props) {
     onSuccess: (_data, level) => {
       queryClient.invalidateQueries({ queryKey: qk.statuses(familyId) });
       queryClient.invalidateQueries({ queryKey: qk.notifications(familyId) });
+      show('Status gesendet');
       if (STATUS_LEVELS[level].isAlert) {
         Alert.alert(
           'Familie benachrichtigt',

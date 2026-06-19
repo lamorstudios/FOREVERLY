@@ -10,7 +10,7 @@ import { qk } from '@/api/queryKeys';
 import { getKnowledgeGaps } from '@/api/historian';
 import { useFamily } from '@/context/FamilyContext';
 import type {
-  HistorianStackParamList,
+  HomeStackParamList,
   MainTabParamList,
 } from '@/navigation/types';
 import type { KnowledgeGap } from '@/historian/engine';
@@ -32,7 +32,7 @@ const ACTION_ICON: Record<
 
 export function KnowledgeGapsScreen({
   navigation,
-}: NativeStackScreenProps<HistorianStackParamList, 'KnowledgeGaps'>) {
+}: NativeStackScreenProps<HomeStackParamList, 'KnowledgeGaps'>) {
   const { activeFamily } = useFamily();
   const familyId = activeFamily!.id;
 

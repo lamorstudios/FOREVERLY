@@ -16,7 +16,7 @@ import { qk } from '@/api/queryKeys';
 import { getImportantPeople } from '@/api/historian';
 import { fullName } from '@/lib/format';
 import { useFamily } from '@/context/FamilyContext';
-import type { HistorianStackParamList } from '@/navigation/types';
+import type { HomeStackParamList } from '@/navigation/types';
 
 const AVATAR_SIZE = 64;
 
@@ -31,7 +31,7 @@ function countsSummary(memory: number, photo: number, audio: number): string {
 
 export function ImportantPeopleScreen({
   navigation,
-}: NativeStackScreenProps<HistorianStackParamList, 'ImportantPeople'>) {
+}: NativeStackScreenProps<HomeStackParamList, 'ImportantPeople'>) {
   const { activeFamily } = useFamily();
   const familyId = activeFamily!.id;
 

@@ -1,3 +1,4 @@
+import { useRef } from 'react';
 import {
   Pressable,
   StyleSheet,
@@ -5,9 +6,12 @@ import {
   View,
   Text,
   ViewStyle,
+  Animated,
+  Platform,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { colors, radius, spacing, touch, typography } from '@/theme';
+import { LinearGradient } from 'expo-linear-gradient';
+import { colors, radius, spacing, touch, typography, gradients } from '@/theme';
 
 type Variant = 'primary' | 'secondary' | 'ghost' | 'danger';
 
@@ -22,14 +26,25 @@ interface ButtonProps {
   style?: ViewStyle;
 }
 
-const VARIANTS: Record<Variant, { bg: string; text: string; border: string }> = {
-  primary: { bg: colors.primary, text: colors.textOnAccent, border: colors.primary },
-  secondary: { bg: colors.surface, text: colors.primaryDark, border: colors.border },
+const VARIANTS: Record<
+  Variant,
+  { gradient?: readonly string[]; bg: string; text: string; border: string }
+> = {
+  primary: { gradient: gradients.brand, bg: colors.primary, text: colors.textOnAccent, border: 'transparent' },
+  secondary: { bg: colors.surface, text: colors.primaryDark, border: colors.borderStrong },
   ghost: { bg: 'transparent', text: colors.primaryDark, border: 'transparent' },
-  danger: { bg: colors.error, text: colors.textOnAccent, border: colors.error },
+  danger: { gradient: gradients.danger, bg: colors.error, text: colors.textOnAccent, border: 'transparent' },
 };
 
-/** Große, gut tippbare Schaltfläche (seniorenfreundlich). */
+// Zweischichtiger, farbpassender Glow (nur Web): Blau + Apricot, kein Gelb.
+const webGlowPrimary =
+  Platform.OS === 'web'
+    ? ({
+        boxShadow: '0 8px 24px rgba(93,124,255,0.25), 0 8px 24px rgba(255,180,106,0.15)',
+      } as unknown as ViewStyle)
+    : null;
+
+/** Moderne, gut tippbare Schaltfläche mit Verlauf, weichem Glow und Press-Animation. */
 export function Button({
   label,
   onPress,
@@ -42,6 +57,40 @@ export function Button({
 }: ButtonProps) {
   const isDisabled = disabled || loading;
   const palette = VARIANTS[variant];
+  const scale = useRef(new Animated.Value(1)).current;
+  const animate = (to: number) =>
+    Animated.spring(scale, {
+      toValue: to,
+      useNativeDriver: true,
+      friction: 7,
+      tension: 90,
+    }).start();
+
+  const body = loading ? (
+    <ActivityIndicator color={palette.text} />
+  ) : (
+    <View style={styles.content}>
+      {icon ? (
+        <Ionicons name={icon} size={20} color={palette.text} style={styles.icon} />
+      ) : null}
+      <Text style={[typography.button, { color: palette.text }]}>{label}</Text>
+    </View>
+  );
+
+  const fill = palette.gradient ? (
+    <LinearGradient
+      colors={palette.gradient as unknown as readonly [string, string, ...string[]]}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 0 }}
+      style={styles.base}
+    >
+      {body}
+    </LinearGradient>
+  ) : (
+    <View style={[styles.base, styles.solidBorder, { backgroundColor: palette.bg, borderColor: palette.border }]}>
+      {body}
+    </View>
+  );
 
   return (
     <Pressable
@@ -49,41 +98,59 @@ export function Button({
       disabled={isDisabled}
       accessibilityRole="button"
       accessibilityLabel={label}
-      style={({ pressed }) => [
-        styles.base,
-        { backgroundColor: palette.bg, borderColor: palette.border },
-        fullWidth && styles.fullWidth,
-        pressed && !isDisabled && styles.pressed,
-        isDisabled && styles.disabled,
-        style,
-      ]}
+      onPressIn={() => !isDisabled && animate(0.97)}
+      onPressOut={() => animate(1)}
+      style={[fullWidth && styles.fullWidth, style]}
     >
-      {loading ? (
-        <ActivityIndicator color={palette.text} />
-      ) : (
-        <View style={styles.content}>
-          {icon ? (
-            <Ionicons name={icon} size={22} color={palette.text} style={styles.icon} />
-          ) : null}
-          <Text style={[typography.button, { color: palette.text }]}>{label}</Text>
-        </View>
-      )}
+      <Animated.View
+        style={[
+          styles.wrapper,
+          variant === 'primary' && styles.glowPrimary,
+          variant === 'primary' && webGlowPrimary,
+          variant === 'danger' && styles.glowDanger,
+          isDisabled && styles.disabled,
+          { transform: [{ scale }] },
+        ]}
+      >
+        {fill}
+      </Animated.View>
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
+  // Button-Radius: voll abgerundet (pill). Höhe unverändert.
+  wrapper: { borderRadius: radius.pill },
   base: {
     minHeight: touch.minHeight,
-    borderRadius: radius.lg,
-    borderWidth: 1.5,
+    borderRadius: radius.pill,
     paddingHorizontal: spacing.lg,
     alignItems: 'center',
     justifyContent: 'center',
+    // Verlauf läuft randlos bis zur Rundung (keine transparente Border, die
+    // in react-native-web nur die padding-box füllen würde -> Randabbrüche).
+    overflow: 'hidden',
+    width: '100%',
+  },
+  // Border nur für solide Varianten (Secondary/Ghost) – nie auf Verlaufs-Buttons.
+  solidBorder: { borderWidth: 1.5 },
+  // Weicher, farbpassender Glow (nativ – Blau). Web nutzt den dualen Glow oben.
+  glowPrimary: {
+    shadowColor: '#5D7CFF',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.25,
+    shadowRadius: 24,
+    elevation: 8,
+  },
+  glowDanger: {
+    shadowColor: colors.error,
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.25,
+    shadowRadius: 26,
+    elevation: 8,
   },
   fullWidth: { alignSelf: 'stretch' },
   content: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center' },
   icon: { marginRight: spacing.sm },
-  pressed: { opacity: 0.85, transform: [{ scale: 0.99 }] },
   disabled: { opacity: 0.5 },
 });

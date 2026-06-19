@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
-import { View, StyleSheet, Image, Pressable, Alert } from 'react-native';
+import { View, StyleSheet, Image, Pressable } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
-import { Screen, AppText, Button, TextField, Avatar, Loading } from '@/components';
+import { Screen, AppText, Button, TextField, Avatar, Loading, useSuccess } from '@/components';
 import { SignedImage } from '@/components/SignedImage';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getProfile, updateProfile, uploadAvatar } from '@/api/profiles';
@@ -44,6 +44,7 @@ export function EditProfileScreen({ navigation }: Props) {
     if (picked) setLocalImageUri(picked.uri);
   }
 
+  const { show } = useSuccess();
   const saveMutation = useMutation({
     mutationFn: async () => {
       let avatarUrl = existingAvatar;
@@ -59,9 +60,8 @@ export function EditProfileScreen({ navigation }: Props) {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: qk.profile(userId!) });
-      Alert.alert('Gespeichert', 'Dein Profil wurde aktualisiert.', [
-        { text: 'OK', onPress: () => navigation.goBack() },
-      ]);
+      show('Profil aktualisiert');
+      navigation.goBack();
     },
     onError: (e) => setError(friendlyError(e)),
   });

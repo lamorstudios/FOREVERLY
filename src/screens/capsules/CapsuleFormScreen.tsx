@@ -12,21 +12,23 @@ import {
   DateField,
   Card,
   Loading,
+  AudioRecorder,
+  useSuccess,
 } from '@/components';
 import { useFamily } from '@/context/FamilyContext';
 import { useAuth } from '@/context/AuthContext';
 import { useImagePicker } from '@/hooks/useImagePicker';
-import { useAudioRecorder } from '@/hooks/useAudioRecorder';
 import { createCapsule } from '@/api/timeCapsules';
 import type { CapsuleRecipientInput } from '@/api/timeCapsules';
 import { listMembers } from '@/api/families';
 import { listPersons } from '@/api/persons';
 import { qk } from '@/api/queryKeys';
 import { scheduleCapsuleReminder } from '@/lib/notifications';
-import { formatDuration, fullName } from '@/lib/format';
+import { fullName } from '@/lib/format';
 import { friendlyError } from '@/lib/errors';
+import { VISIBILITY_LEVELS } from '@/constants/closeness';
 import { colors, spacing, radius } from '@/theme';
-import type { ContentType, FamilyMember, Person } from '@/types/models';
+import type { ContentType, FamilyMember, Person, VisibilityLevel } from '@/types/models';
 import type { SelectOption } from '@/components';
 import type { CapsulesStackParamList } from '@/navigation/types';
 
@@ -38,13 +40,16 @@ const CONTENT_TYPE_OPTIONS: SelectOption<ContentType>[] = [
   { value: 'audio', label: 'Audio' },
 ];
 
+const VISIBILITY_OPTIONS: SelectOption<VisibilityLevel>[] = (
+  ['family', 'inner', 'sehr_nah', 'selected', 'private'] as VisibilityLevel[]
+).map((v) => ({ value: v, label: `${VISIBILITY_LEVELS[v].emoji} ${VISIBILITY_LEVELS[v].label}` }));
+
 export function CapsuleFormScreen({ navigation }: Props) {
   const { activeFamily } = useFamily();
   const { userId } = useAuth();
   const familyId = activeFamily!.id;
   const queryClient = useQueryClient();
   const { pickFromLibrary } = useImagePicker();
-  const recorder = useAudioRecorder();
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -52,8 +57,9 @@ export function CapsuleFormScreen({ navigation }: Props) {
   const [textContent, setTextContent] = useState('');
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [audioUri, setAudioUri] = useState<string | null>(null);
-  const [audioDuration, setAudioDuration] = useState<number | null>(null);
+  const [audioTranscript, setAudioTranscript] = useState('');
   const [openDate, setOpenDate] = useState<string | null>(null);
+  const [visibility, setVisibility] = useState<VisibilityLevel>('selected');
   const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
   const [selectedPersons, setSelectedPersons] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
@@ -72,14 +78,6 @@ export function CapsuleFormScreen({ navigation }: Props) {
     if (picked) setImageUri(picked.uri);
   }
 
-  async function handleStopRecording() {
-    const result = await recorder.stop();
-    if (result) {
-      setAudioUri(result.uri);
-      setAudioDuration(result.durationSeconds);
-    }
-  }
-
   function toggleMember(id: string) {
     setSelectedMembers((prev) =>
       prev.includes(id) ? prev.filter((m) => m !== id) : [...prev, id],
@@ -92,6 +90,7 @@ export function CapsuleFormScreen({ navigation }: Props) {
     );
   }
 
+  const { show } = useSuccess();
   const saveMutation = useMutation({
     mutationFn: async () => {
       const openAt = new Date(`${openDate}T09:00:00`).toISOString();
@@ -119,9 +118,15 @@ export function CapsuleFormScreen({ navigation }: Props) {
         title: title.trim(),
         description: description.trim() || null,
         contentType,
-        textContent: contentType === 'text' ? textContent.trim() : null,
+        textContent:
+          contentType === 'text'
+            ? textContent.trim()
+            : contentType === 'audio' && audioTranscript.trim()
+              ? audioTranscript.trim()
+              : null,
         mediaUri,
         openAt,
+        visibility,
         recipients,
       });
 
@@ -140,6 +145,7 @@ export function CapsuleFormScreen({ navigation }: Props) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: qk.capsules(familyId) });
       queryClient.invalidateQueries({ queryKey: qk.upcomingCapsules() });
+      show('Zeitkapsel erstellt');
       navigation.goBack();
     },
     onError: (e) => Alert.alert('Fehler', friendlyError(e)),
@@ -259,40 +265,13 @@ export function CapsuleFormScreen({ navigation }: Props) {
 
         {contentType === 'audio' ? (
           <View style={styles.mediaBlock}>
-            <Card style={styles.audioCard}>
-              <Ionicons
-                name={recorder.isRecording ? 'mic' : 'mic-outline'}
-                size={40}
-                color={recorder.isRecording ? colors.error : colors.primary}
-              />
-              <AppText variant="heading">
-                {recorder.isRecording
-                  ? formatDuration(recorder.durationSeconds)
-                  : audioUri
-                    ? formatDuration(audioDuration)
-                    : '0:00'}
-              </AppText>
-              {audioUri && !recorder.isRecording ? (
-                <AppText variant="caption" color={colors.success}>
-                  Aufnahme gespeichert
-                </AppText>
-              ) : null}
-            </Card>
-            {recorder.isRecording ? (
-              <Button
-                label="Stopp"
-                icon="stop-circle-outline"
-                variant="danger"
-                onPress={handleStopRecording}
-              />
-            ) : (
-              <Button
-                label={audioUri ? 'Neu aufnehmen' : 'Aufnahme starten'}
-                icon="mic-outline"
-                variant="secondary"
-                onPress={recorder.start}
-              />
-            )}
+            <AudioRecorder
+              showSave={false}
+              onChange={(audio, t) => {
+                setAudioUri(audio ? audio.uri : null);
+                setAudioTranscript(audio ? t : '');
+              }}
+            />
           </View>
         ) : null}
 
@@ -300,6 +279,13 @@ export function CapsuleFormScreen({ navigation }: Props) {
           label="Öffnungsdatum *"
           value={openDate}
           onChange={setOpenDate}
+        />
+
+        <SelectField
+          label="Freigeben für"
+          value={visibility}
+          options={VISIBILITY_OPTIONS}
+          onChange={setVisibility}
         />
 
         <View style={styles.recipientsBlock}>

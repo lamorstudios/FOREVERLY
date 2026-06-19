@@ -4,26 +4,72 @@ import { spacing, radius, touch } from './spacing';
 import type { RelationshipCategory } from '@/types/models';
 
 export { colors, typography, spacing, radius, touch };
+export { useResponsive, responsive, breakpoints } from './responsive';
+export type { ResponsiveInfo } from './responsive';
 
 export const theme = { colors, typography, spacing, radius, touch } as const;
 
-/** Weiche Schatten für Karten. */
+/**
+ * Verlaufs-Presets für eine emotionale, hochwertige Tiefe (Apple Health /
+ * Google Photos / Airbnb). Tupel aus Hex-Stops für expo-linear-gradient.
+ */
+export const gradients = {
+  // Hauptverlauf / Primary-Buttons & Hero: Blau -> Lila -> Lila -> Apricot
+  brand: ['#5D7CFF', '#7C6CFF', '#A46CFF', '#FFB46A'] as const,
+  // Hover/Active-Variante
+  brandActive: ['#5172FF', '#7060FF', '#9A5FFF', '#FFAC57'] as const,
+  // Sekundärverlauf (Blau -> Lila)
+  secondary: ['#6A84FF', '#7F72FF', '#A57EFF'] as const,
+  // Hero-Karte (135°): Blau -> Periwinkle -> Apricot (passend zur Buttonwelt)
+  hero: ['#5B7CFF', '#8A7DFF', '#FFB86C'] as const,
+  heroIndigo: ['#5B6CFF', '#7B74FF'] as const,
+  heroViolet: ['#8C7BFF', '#6473FF'] as const,
+  // Einheitlicher heller Seitenhintergrund #F7F8FC (flach, kein Farb-Gradient).
+  page: ['#F7F8FC', '#F7F8FC'] as const,
+  // Weiche, helle Hero-Fläche (Glas-Optik-Basis)
+  brandSoft: ['#EEF0FF', '#F1ECFF'] as const,
+  warm: ['#FFC58A', '#FF9F5A'] as const,
+  success: ['#5BC196', '#3F9E97'] as const,
+  danger: ['#F2697A', '#E0455A'] as const,
+  // Glas-Overlay (halbtransparentes Weiß für Glassmorphism)
+  glass: ['rgba(255,255,255,0.85)', 'rgba(255,255,255,0.55)'] as const,
+} as const;
+
+export type GradientName = keyof typeof gradients;
+
+/** Weiche, großzügige Schatten (kühles Tintenblau) für ein hochwertiges Gefühl. */
 export const shadow = {
-  card: {
-    shadowColor: colors.shadow,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    elevation: 3,
-  },
   soft: {
     shadowColor: colors.shadow,
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.06,
-    shadowRadius: 6,
+    shadowRadius: 12,
     elevation: 2,
   },
+  card: {
+    shadowColor: colors.shadow,
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.09,
+    shadowRadius: 28,
+    elevation: 5,
+  },
+  floating: {
+    shadowColor: colors.shadow,
+    shadowOffset: { width: 0, height: 18 },
+    shadowOpacity: 0.14,
+    shadowRadius: 40,
+    elevation: 10,
+  },
 } as const;
+
+/** Hex-Farbe in rgba mit Deckkraft umwandeln (für sanfte Tönungen). */
+export function withAlpha(hex: string, alpha: number): string {
+  const h = hex.replace('#', '');
+  const r = parseInt(h.slice(0, 2), 16);
+  const g = parseInt(h.slice(2, 4), 16);
+  const b = parseInt(h.slice(4, 6), 16);
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
 
 /** Farbe für eine Beziehungs-Kategorie. */
 export function relationshipColor(category: RelationshipCategory): string {

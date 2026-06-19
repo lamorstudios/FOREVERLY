@@ -10,11 +10,21 @@ import {
   Card,
   EmptyState,
   Loading,
+  IconChip,
 } from '@/components';
-import { colors, spacing, radius } from '@/theme';
+import { colors, spacing, radius, withAlpha } from '@/theme';
 import { qk } from '@/api/queryKeys';
 import { listDocuments, deleteDocument } from '@/api/documents';
 import { DOCUMENT_KINDS } from '@/constants/phase2';
+
+// Funktionsfarben je Dokumentart (Mockup: Nachlass=Pink, Vorsorge=Orange, Dokumente=Blau).
+const KIND_COLOR: Record<string, string> = {
+  testament: colors.iconLegacy, // Nachlass -> Pink
+  patientenverfuegung: colors.iconVorsorge, // Vorsorge -> Orange
+  vorsorgevollmacht: colors.iconVorsorge, // Vorsorge -> Orange
+  versicherung: colors.iconDocument, // Dokumente -> Blau
+  sonstige: colors.iconDocument, // Dokumente -> Blau
+};
 import { friendlyError } from '@/lib/errors';
 import { useFamily } from '@/context/FamilyContext';
 import type { HomeStackParamList } from '@/navigation/types';
@@ -61,7 +71,7 @@ export function DocumentsScreen({
 
   if (documentsQuery.isLoading) {
     return (
-      <Screen>
+      <Screen tint={colors.tintDocuments}>
         <Loading message="Dokumente werden geladen …" />
       </Screen>
     );
@@ -69,6 +79,7 @@ export function DocumentsScreen({
 
   return (
     <Screen
+      tint={colors.tintDocuments}
       refreshing={documentsQuery.isFetching}
       onRefresh={() => documentsQuery.refetch()}
     >
@@ -106,6 +117,7 @@ export function DocumentsScreen({
         <View style={styles.list}>
           {documents.map((doc) => {
             const meta = DOCUMENT_KINDS[doc.kind];
+            const kindColor = KIND_COLOR[doc.kind] ?? colors.iconDocument;
             return (
               <Card
                 key={doc.id}
@@ -114,9 +126,7 @@ export function DocumentsScreen({
                 }
               >
                 <View style={styles.row}>
-                  <View style={styles.iconCircle}>
-                    <Ionicons name={meta.icon} size={28} color={colors.primary} />
-                  </View>
+                  <IconChip name={meta.icon} color={kindColor} />
 
                   <View style={styles.body}>
                     <AppText variant="subheading">{doc.title}</AppText>
@@ -240,7 +250,7 @@ const styles = StyleSheet.create({
     gap: spacing.xs,
     alignSelf: 'flex-start',
     paddingHorizontal: spacing.sm,
-    paddingVertical: 2,
+    paddingVertical: spacing.xs,
     borderRadius: radius.pill,
     marginTop: spacing.xs,
   },

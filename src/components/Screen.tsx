@@ -1,4 +1,4 @@
-import { ReactNode } from 'react';
+import { ReactNode, Ref } from 'react';
 import {
   ScrollView,
   View,
@@ -7,9 +7,12 @@ import {
   KeyboardAvoidingView,
   Platform,
   ViewStyle,
+  NativeSyntheticEvent,
+  NativeScrollEvent,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { colors, spacing } from '@/theme';
+import { LinearGradient } from 'expo-linear-gradient';
+import { colors, spacing, gradients, useResponsive } from '@/theme';
 
 interface ScreenProps {
   children: ReactNode;
@@ -20,9 +23,18 @@ interface ScreenProps {
   contentStyle?: ViewStyle;
   /** Welche Kanten die Safe Area berücksichtigen sollen. */
   edges?: ('top' | 'bottom' | 'left' | 'right')[];
+  /** Dezente Bereichs-Tönung des Hintergrunds (Orientierung je App-Bereich). */
+  tint?: string;
+  /** Optionale Ref auf die interne ScrollView (z. B. für die geführte Tour). */
+  scrollRef?: Ref<ScrollView>;
+  /** Scroll-Position beobachten (z. B. für die geführte Tour). */
+  onScroll?: (e: NativeSyntheticEvent<NativeScrollEvent>) => void;
 }
 
-/** Bildschirm-Grundgerüst mit Safe Area, warmem Hintergrund und Scroll-Option. */
+/**
+ * Bildschirm-Grundgerüst mit Safe Area, warmem Hintergrund und Scroll-Option.
+ * Padding & maximale Inhaltsbreite sind responsiv (Mobile First, Tablet-tauglich).
+ */
 export function Screen({
   children,
   scroll = true,
@@ -31,19 +43,49 @@ export function Screen({
   onRefresh,
   contentStyle,
   edges = ['top'],
+  tint,
+  scrollRef,
+  onScroll,
 }: ScreenProps) {
-  const inner = (
-    <View style={[padded && styles.padded, contentStyle]}>{children}</View>
-  );
+  const { mobilePadding, responsiveSpacing, contentMaxWidth } = useResponsive();
+
+  const paddedStyle: ViewStyle = padded
+    ? {
+        paddingHorizontal: mobilePadding,
+        paddingVertical: responsiveSpacing,
+        gap: responsiveSpacing,
+        width: '100%',
+        maxWidth: contentMaxWidth,
+        alignSelf: 'center',
+      }
+    : { width: '100%', maxWidth: contentMaxWidth, alignSelf: 'center' };
+
+  const inner = <View style={[paddedStyle, contentStyle]}>{children}</View>;
+
+  // Ruhiger, neutraler Seitenhintergrund (nahezu flach). Eine optionale
+  // Bereichs-Tönung (tint) blendet oben weich ein, sonst neutrales Off-White.
+  const bgColors = (
+    tint ? [tint, gradients.page[1]] : gradients.page
+  ) as readonly [string, string, ...string[]];
 
   return (
     <SafeAreaView style={styles.safe} edges={edges}>
+      <LinearGradient
+        colors={bgColors}
+        start={{ x: 0, y: 0 }}
+        end={{ x: 0.9, y: 1 }}
+        style={StyleSheet.absoluteFill}
+        pointerEvents="none"
+      />
       <KeyboardAvoidingView
         style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         {scroll ? (
           <ScrollView
+            ref={scrollRef}
+            onScroll={onScroll}
+            scrollEventThrottle={16}
             style={styles.flex}
             contentContainerStyle={styles.scrollContent}
             keyboardShouldPersistTaps="handled"
@@ -72,5 +114,4 @@ const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.background },
   flex: { flex: 1 },
   scrollContent: { flexGrow: 1, paddingBottom: spacing.xxl },
-  padded: { padding: spacing.lg, gap: spacing.md },
 });

@@ -5,16 +5,28 @@ import {
   StyleSheet,
   TextInputProps,
   Pressable,
+  Platform,
+  type ViewStyle,
+  type TextStyle,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { AppText } from './AppText';
 import { colors, radius, spacing, typography } from '@/theme';
+
+// Web: harten Browser-Default-Outline entfernen; Fokus zeigt der Wrapper (blau + Ring).
+const webNoOutline =
+  Platform.OS === 'web' ? ({ outlineStyle: 'none' } as unknown as TextStyle) : null;
+const webFocusRing =
+  Platform.OS === 'web' ? ({ boxShadow: '0 0 0 4px rgba(91,124,255,0.12)' } as unknown as ViewStyle) : null;
 
 interface TextFieldProps extends TextInputProps {
   label?: string;
   error?: string;
   hint?: string;
   secure?: boolean;
+  /** Optionales Icon rechts im Feld (z. B. Kalender). */
+  rightIcon?: keyof typeof Ionicons.glyphMap;
+  onRightIconPress?: () => void;
 }
 
 /** Großes, klar beschriftetes Eingabefeld. */
@@ -23,6 +35,8 @@ export function TextField({
   error,
   hint,
   secure,
+  rightIcon,
+  onRightIconPress,
   style,
   ...props
 }: TextFieldProps) {
@@ -40,11 +54,12 @@ export function TextField({
         style={[
           styles.inputRow,
           focused && styles.focused,
+          focused && webFocusRing,
           !!error && styles.errored,
         ]}
       >
         <TextInput
-          style={[styles.input, style]}
+          style={[styles.input, webNoOutline, style]}
           placeholderTextColor={colors.textMuted}
           secureTextEntry={hidden}
           onFocus={() => setFocused(true)}
@@ -62,6 +77,16 @@ export function TextField({
               size={24}
               color={colors.textMuted}
             />
+          </Pressable>
+        ) : null}
+        {rightIcon ? (
+          <Pressable
+            onPress={onRightIconPress}
+            hitSlop={12}
+            accessibilityRole="button"
+            accessibilityLabel="Kalender öffnen"
+          >
+            <Ionicons name={rightIcon} size={22} color={colors.primary} />
           </Pressable>
         ) : null}
       </View>

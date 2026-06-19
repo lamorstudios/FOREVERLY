@@ -37,11 +37,38 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   },
   android: {
     package: 'app.foreverly.mobile',
+    versionCode: 1,
     adaptiveIcon: {
       foregroundImage: './assets/adaptive-icon.png',
       backgroundColor: '#FBF6EE',
     },
-    permissions: ['RECORD_AUDIO', 'READ_EXTERNAL_STORAGE', 'CAMERA'],
+    permissions: [
+      'CAMERA',
+      'RECORD_AUDIO',
+      'ACCESS_FINE_LOCATION',
+      'ACCESS_COARSE_LOCATION',
+      'READ_MEDIA_IMAGES',
+      'READ_MEDIA_VIDEO',
+      'READ_MEDIA_AUDIO',
+      'READ_EXTERNAL_STORAGE',
+      'POST_NOTIFICATIONS',
+    ],
+    // Deep Links: foreverly://… (immer) und https-Einladungslinks (optional,
+    // ohne App-Verifizierung -> öffnet per Auswahl).
+    intentFilters: [
+      {
+        action: 'VIEW',
+        autoVerify: false,
+        data: [{ scheme: 'foreverly' }],
+        category: ['BROWSABLE', 'DEFAULT'],
+      },
+      {
+        action: 'VIEW',
+        autoVerify: false,
+        data: [{ scheme: 'https', host: 'foreverly.app', pathPrefix: '/invite' }],
+        category: ['BROWSABLE', 'DEFAULT'],
+      },
+    ],
   },
   web: {
     bundler: 'metro',
@@ -70,5 +97,15 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
     inviteBaseUrl:
       process.env.EXPO_PUBLIC_INVITE_BASE_URL ?? 'https://foreverly.app/invite',
     demoMode: process.env.EXPO_PUBLIC_DEMO_MODE,
+    demoSeed: process.env.EXPO_PUBLIC_DEMO_SEED,
+    // Optionaler Speech-to-Text-Endpunkt (z. B. Supabase Edge Function, die
+    // an OpenAI Whisper weiterreicht). Ohne diese URL ist die automatische
+    // Transkription deaktiviert (Beta-Hinweis statt vorgetäuschtem Text).
+    transcribeUrl: process.env.EXPO_PUBLIC_TRANSCRIBE_URL,
+    // Sichtbarer Build-Stempel (vom Deploy-Workflow gesetzt) zur Versionskontrolle.
+    buildId: process.env.EXPO_PUBLIC_BUILD_ID ?? 'dev',
+    buildTime: process.env.EXPO_PUBLIC_BUILD_TIME ?? 'lokal',
+    // Von `eas init` gesetzt (bzw. EAS_PROJECT_ID); für Expo Push Tokens nötig.
+    eas: { projectId: process.env.EAS_PROJECT_ID },
   },
 });

@@ -2,7 +2,7 @@ import { supabase } from '@/lib/supabase';
 import { DEMO_MODE } from '@/lib/config';
 import { demoStore } from '@/demo/store';
 import { logActivity } from './activities';
-import type { ContentType, Memory } from '@/types/models';
+import type { ContentType, Memory, VisibilityLevel } from '@/types/models';
 
 export interface MemoryInput {
   title: string;
@@ -10,6 +10,8 @@ export interface MemoryInput {
   content_type: ContentType;
   person_id?: string | null;
   occurred_on?: string | null;
+  visibility?: VisibilityLevel;
+  visibility_branch_id?: string | null;
 }
 
 export async function listMemories(

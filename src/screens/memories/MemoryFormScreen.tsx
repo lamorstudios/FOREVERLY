@@ -11,19 +11,20 @@ import {
   TextField,
   DateField,
   SelectField,
+  AudioRecorder,
+  useSuccess,
 } from '@/components';
 import type { SelectOption } from '@/components';
 import { useFamily } from '@/context/FamilyContext';
 import { useAuth } from '@/context/AuthContext';
 import { useImagePicker } from '@/hooks/useImagePicker';
-import { useAudioRecorder } from '@/hooks/useAudioRecorder';
 import { createMemory } from '@/api/memories';
 import { uploadPhoto, uploadAudio } from '@/api/media';
 import { qk } from '@/api/queryKeys';
-import { formatDuration } from '@/lib/format';
 import { friendlyError } from '@/lib/errors';
+import { VISIBILITY_LEVELS, LEVEL_VISIBILITY_OPTIONS } from '@/constants/closeness';
 import { colors, spacing, radius } from '@/theme';
-import type { ContentType } from '@/types/models';
+import type { ContentType, VisibilityLevel } from '@/types/models';
 import type { MemoriesStackParamList } from '@/navigation/types';
 
 type Props = NativeStackScreenProps<MemoriesStackParamList, 'MemoryForm'>;
@@ -33,6 +34,10 @@ const CONTENT_TYPE_OPTIONS: SelectOption<ContentType>[] = [
   { value: 'photo', label: 'Foto' },
   { value: 'audio', label: 'Audio' },
 ];
+
+const VISIBILITY_OPTIONS: SelectOption<VisibilityLevel>[] = LEVEL_VISIBILITY_OPTIONS.map(
+  (v) => ({ value: v, label: `${VISIBILITY_LEVELS[v].emoji} ${VISIBILITY_LEVELS[v].label}` }),
+);
 
 interface PickedImage {
   uri: string;
@@ -48,19 +53,21 @@ export function MemoryFormScreen({ navigation, route }: Props) {
   const queryClient = useQueryClient();
 
   const { pickFromLibrary } = useImagePicker();
-  const recorder = useAudioRecorder();
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [occurredOn, setOccurredOn] = useState<string | null>(null);
   const [contentType, setContentType] = useState<ContentType>('text');
+  const [visibility, setVisibility] = useState<VisibilityLevel>('family');
   const [titleError, setTitleError] = useState<string | undefined>();
 
   const [photo, setPhoto] = useState<PickedImage | null>(null);
   const [audio, setAudio] = useState<{ uri: string; durationSeconds: number } | null>(
     null,
   );
+  const [audioTranscript, setAudioTranscript] = useState('');
 
+  const { show } = useSuccess();
   const saveMutation = useMutation({
     mutationFn: async () => {
       const memory = await createMemory(familyId, userId!, {
@@ -69,6 +76,7 @@ export function MemoryFormScreen({ navigation, route }: Props) {
         content_type: contentType,
         person_id: personId ?? null,
         occurred_on: occurredOn,
+        visibility,
       });
 
       if (contentType === 'photo' && photo) {
@@ -91,6 +99,7 @@ export function MemoryFormScreen({ navigation, route }: Props) {
           durationSeconds: audio.durationSeconds,
           memoryId: memory.id,
           personId: personId ?? null,
+          transcript: audioTranscript.trim() ? audioTranscript.trim() : null,
         });
       }
     },
@@ -98,6 +107,7 @@ export function MemoryFormScreen({ navigation, route }: Props) {
       queryClient.invalidateQueries({ queryKey: qk.memories(familyId) });
       queryClient.invalidateQueries({ queryKey: qk.photos(familyId) });
       queryClient.invalidateQueries({ queryKey: qk.audios(familyId) });
+      show('Erinnerung gespeichert');
       navigation.goBack();
     },
     onError: (e) => Alert.alert('Fehler', friendlyError(e)),
@@ -106,16 +116,6 @@ export function MemoryFormScreen({ navigation, route }: Props) {
   async function handlePickPhoto() {
     const picked = await pickFromLibrary();
     if (picked) setPhoto(picked);
-  }
-
-  async function handleStopRecording() {
-    const result = await recorder.stop();
-    if (result) setAudio(result);
-  }
-
-  function handleStartRecording() {
-    setAudio(null);
-    recorder.start();
   }
 
   function handleSave() {
@@ -133,7 +133,10 @@ export function MemoryFormScreen({ navigation, route }: Props) {
         label="Titel"
         placeholder="z. B. Unser Sommerurlaub"
         value={title}
-        onChangeText={setTitle}
+        onChangeText={(t) => {
+          setTitle(t);
+          if (titleError && t.trim()) setTitleError(undefined);
+        }}
         error={titleError}
       />
 
@@ -160,6 +163,13 @@ export function MemoryFormScreen({ navigation, route }: Props) {
         onChange={setContentType}
       />
 
+      <SelectField<VisibilityLevel>
+        label="Sichtbar für"
+        value={visibility}
+        options={VISIBILITY_OPTIONS}
+        onChange={setVisibility}
+      />
+
       {contentType === 'photo' ? (
         <View style={styles.media}>
           {photo ? (
@@ -178,23 +188,12 @@ export function MemoryFormScreen({ navigation, route }: Props) {
 
       {contentType === 'audio' ? (
         <View style={styles.media}>
-          <Card style={styles.audioCard}>
-            <Ionicons
-              name={recorder.isRecording ? 'radio' : 'mic-outline'}
-              size={32}
-              color={recorder.isRecording ? colors.error : colors.primary}
-            />
-            <AppText variant="heading">
-              {formatDuration(
-                recorder.isRecording ? recorder.durationSeconds : audio?.durationSeconds,
-              )}
-            </AppText>
-          </Card>
-          <Button
-            label={recorder.isRecording ? 'Stopp' : audio ? 'Neu aufnehmen' : 'Aufnahme starten'}
-            icon={recorder.isRecording ? 'stop' : 'mic'}
-            variant={recorder.isRecording ? 'danger' : 'secondary'}
-            onPress={recorder.isRecording ? handleStopRecording : handleStartRecording}
+          <AudioRecorder
+            showSave={false}
+            onChange={(a, t) => {
+              setAudio(a);
+              setAudioTranscript(t);
+            }}
           />
         </View>
       ) : null}

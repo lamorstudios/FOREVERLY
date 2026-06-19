@@ -1,46 +1,99 @@
 /**
- * Foreverly Farbpalette
+ * FAMII Farbwelt 2026 – „Premium Family App"
  *
- * Warm, emotional und vertrauenswürdig: Cremeweiß, Beigetöne, sanfte
- * Erdtöne und dezente Gold-Akzente. Bewusst keine Corporate-Optik.
+ * Reines Skin-Update: dieselben Token-Namen, neue Werte. Kühle, moderne
+ * Indigo/Violett-Basis mit warmem Orange-Akzent, viel Weißraum, klare Karten.
+ * Strukturen, Layouts und Logik bleiben unverändert – nur die Optik.
  */
 export const colors = {
-  // Hintergründe
-  background: '#FBF6EE', // Cremeweiß
-  surface: '#FFFFFF',
-  surfaceAlt: '#F3EADB', // sanftes Beige
-  overlay: 'rgba(58, 47, 36, 0.45)',
+  // Hintergründe – hell, ruhig, neutral (kein starker Seiten-Gradient)
+  background: '#F7F8FC', // einheitlicher heller Seitenhintergrund
+  surface: '#FFFFFF', // Karten
+  surfaceAlt: '#EEF1F8', // sehr helles Kühlgrau-Blau
+  surfaceMuted: '#EEF0F6', // dezente Tönung für Chips/Felder
+  warmWhite: '#FFFFFF',
+  sand: '#EEF0F6',
+  overlay: 'rgba(31, 34, 48, 0.45)',
 
   // Schrift
-  textPrimary: '#3A2F24', // warmes Dunkelbraun
-  textSecondary: '#6F6253',
-  textMuted: '#9C8F7E',
+  textPrimary: '#1F2230',
+  textSecondary: '#6B7280',
+  textMuted: '#9CA3AF',
   textOnAccent: '#FFFFFF',
 
-  // Akzente
-  primary: '#B07D4B', // warmes Karamell/Erdton
-  primaryDark: '#8A5F35',
-  primarySoft: '#E8D6BF',
-  gold: '#C8A24A', // dezenter Gold-Akzent
-  goldSoft: '#EBD9A8',
+  // Akzente – Royal-Blau / Periwinkle / Apricot (Premium-Familienpalette)
+  primary: '#5B7CFF', // Royal-Blau (zentrale Markenfarbe)
+  primaryDark: '#4457D9', // tieferes Blau (Text/Kontrast)
+  primarySoft: '#E9EEFF', // Soft Blue
+  secondary: '#8A7DFF', // Periwinkle/Violett
+  secondarySoft: '#EFECFF',
+  tertiary: '#FFB86C', // Apricot
+  accent: '#FFB86C', // Apricot-Akzent
+  accentSoft: '#FFEFDD',
+
+  // Soft-Flächen (Chips, Icon-Hintergründe)
+  softPink: '#FCE7F6',
+  softPurple: '#EFECFF',
+  softBlue: '#E9EEFF',
+
+  // Bottom-Navigation
+  navActive: '#5B7CFF',
+  navInactive: '#9CA3AF',
+
+  // Icon-Kategoriefarben (eindeutige Wiedererkennung)
+  iconBirthday: '#F6B44C',
+  iconCapsule: '#A46CFF', // Zeitkapseln – Lila
+  iconAudio: '#E86ACD',
+  iconDocument: '#5D7CFF', // Dokumente – Blau
+  iconLegacy: '#FF8DBE', // Nachlass – Rosa
+  iconMemories: '#FF7FB2', // Erinnerungen – Pink/Lila
+  iconFamily: '#7C6CFF', // Familie – Blau-Lila
+  iconPlaces: '#49B38A',
+  iconContacts: '#4FC3F7', // Kontakte – Türkis
+  iconVorsorge: '#F0B14A', // Vorsorge – Orange
+
+  // Bestehende Akzent-Tokens beibehalten, auf die neue Welt gemappt
+  gold: '#FFB86C', // Highlight (z. B. Premium) -> warmer Akzent
+  goldSoft: '#EAEEFF', // entbeigt: sehr helles Blau statt Creme
+  bronze: '#E89B4F',
 
   // Status
-  success: '#5B8A5A',
-  error: '#B4524A',
-  warning: '#CC9A3F',
+  success: '#4CAF86', // frisches Grün
+  error: '#ED5A6B',
+  warning: '#F2A33C',
 
-  // Beziehungs-Kategorien (farbliche Verbindungen)
-  relationBiological: '#5B8A5A', // Grün  – biologische Verwandtschaft
-  relationMarried: '#4A78A8', // Blau  – angeheiratete Familie
-  relationPatchwork: '#D6A93B', // Gelb  – Patchwork / Stieffamilie
-  relationAdoption: '#8A6BB0', // Lila  – Adoption / Pflegefamilie
+  // Beziehungs-Kategorien (farbliche Verbindungen im Stammbaum)
+  relationBiological: '#4FB286', // Grün    – biologische Verwandtschaft
+  relationMarried: '#5B7CFF', // Blau    – angeheiratete Familie
+  relationPatchwork: '#FFB86C', // Orange  – Patchwork / Stieffamilie
+  relationAdoption: '#A16CFF', // Violett – Adoption / Pflegefamilie
 
-  // Linien & Ränder
-  border: '#E3D7C4',
-  divider: '#EDE4D5',
+  // Vereinheitlichter Seitenhintergrund: ALLE Bereiche nutzen #F7F8FC.
+  // Keine rosa/mint/beige/gelben Seitenflächen mehr (ein Design-System).
+  tintHome: '#F7F8FC',
+  tintFamily: '#F7F8FC',
+  tintMemories: '#F7F8FC',
+  tintCapsules: '#F7F8FC',
+  tintHistorian: '#F7F8FC',
+  tintDocuments: '#F7F8FC',
+  tintHealth: '#F7F8FC',
+  tintLegacy: '#F7F8FC',
 
-  // Schatten
-  shadow: '#3A2F24',
+  // Bereichs-Akzentfarben (Icons, CTAs, Badges) – kräftiger als die Tönungen
+  sectionCapsules: '#8C7BFF', // Lila
+  sectionMemories: '#F2789F', // Rosé
+  sectionDocuments: '#4A86E8', // Blau
+  sectionHealth: '#34C7A0', // Mint
+  sectionFamily: '#E0A33C', // Gold
+  sectionLegacy: '#E0564E', // Warmrot
+
+  // Linien & Ränder – weich, kühl, kaum sichtbar
+  border: '#ECEDF4',
+  borderStrong: '#DCDEEC',
+  divider: '#F0F1F8',
+
+  // Schatten – kühles Tintenblau (premium Tiefe)
+  shadow: '#1E2233',
 } as const;
 
 export type ColorName = keyof typeof colors;

@@ -10,6 +10,7 @@ import {
   Card,
   EmptyState,
   Loading,
+  IconChip,
 } from '@/components';
 import { colors, spacing, radius } from '@/theme';
 import { qk } from '@/api/queryKeys';
@@ -127,11 +128,7 @@ export function CalendarScreen({
             return (
               <Card key={event.id} onPress={() => confirmDelete(event)}>
                 <View style={styles.row}>
-                  <View
-                    style={[styles.iconCircle, { backgroundColor: `${meta.color}22` }]}
-                  >
-                    <Ionicons name={meta.icon} size={28} color={meta.color} />
-                  </View>
+                  <IconChip name={meta.icon} color={meta.color} />
 
                   <View style={styles.body}>
                     <AppText variant="subheading">{event.title}</AppText>

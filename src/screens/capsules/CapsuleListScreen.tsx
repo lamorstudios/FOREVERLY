@@ -15,7 +15,7 @@ import { useFamily } from '@/context/FamilyContext';
 import { listMyCapsules, listUpcomingForMe } from '@/api/timeCapsules';
 import { qk } from '@/api/queryKeys';
 import { formatDate, openingCountdown } from '@/lib/format';
-import { colors, spacing, radius } from '@/theme';
+import { colors, spacing, radius, withAlpha } from '@/theme';
 import type { ContentType, TimeCapsule, UpcomingCapsule } from '@/types/models';
 import type { CapsulesStackParamList } from '@/navigation/types';
 
@@ -54,7 +54,7 @@ export function CapsuleListScreen({ navigation }: Props) {
 
   if (isLoading) {
     return (
-      <Screen>
+      <Screen tint={colors.tintCapsules}>
         <Loading message="Zeitkapseln werden geladen …" />
       </Screen>
     );
@@ -69,6 +69,7 @@ export function CapsuleListScreen({ navigation }: Props) {
       refreshing={isRefetching}
       onRefresh={refetch}
       contentStyle={styles.content}
+      tint={colors.tintCapsules}
     >
       <Button
         label="+ Zeitkapsel erstellen"
@@ -79,8 +80,8 @@ export function CapsuleListScreen({ navigation }: Props) {
       {isEmpty ? (
         <EmptyState
           icon="time-outline"
-          title="Noch keine Zeitkapseln"
-          message="Erstelle eine Zeitkapsel für einen besonderen Moment in der Zukunft."
+          title="Noch keine Zeitkapseln vorhanden"
+          message="Erstelle deine erste Zeitkapsel für zukünftige Generationen."
           actionLabel="Zeitkapsel erstellen"
           onAction={() => navigation.navigate('CapsuleForm')}
         />
@@ -122,7 +123,7 @@ function UpcomingCapsuleCard({ capsule }: { capsule: UpcomingCapsule }) {
     <Card style={styles.card}>
       <View style={styles.cardHeader}>
         <View style={styles.lockIcon}>
-          <Ionicons name="lock-closed" size={24} color={colors.gold} />
+          <Ionicons name="lock-closed" size={24} color={colors.iconCapsule} />
         </View>
         <AppText variant="subheading" style={styles.title}>
           {capsule.title}
@@ -196,7 +197,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: radius.pill,
-    backgroundColor: colors.goldSoft,
+    backgroundColor: withAlpha(colors.iconCapsule, 0.14),
     alignItems: 'center',
     justifyContent: 'center',
   },
