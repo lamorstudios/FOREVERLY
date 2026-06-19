@@ -320,7 +320,19 @@ export function FamilyTreeView({ persons, relationships, anchorId, onSelectPerso
       const cy = cell.get(id)!.r * ROWH + offY;
       const p = parentOf.get(id);
       const cat = p ? pairCat.get(pairKey(p, id)) : undefined;
-      const color = id === anchorId ? colors.primary : id === hubId ? colors.primary : t >= 3 ? colors.textMuted : cat ? relationshipColor(cat) : colors.border;
+      // Das ausgewählte (zentrierte) Node behält seine ursprüngliche
+      // Beziehungsfarbe (zur eigenen Person), statt auf Blau zu springen.
+      const hubCat = id === hubId && anchorId && id !== anchorId ? pairCat.get(pairKey(id, anchorId)) : undefined;
+      const color =
+        id === anchorId
+          ? colors.primary // „Du" bleibt blau
+          : id === hubId
+            ? (hubCat ? relationshipColor(hubCat) : colors.primary)
+            : t >= 3
+              ? colors.textMuted
+              : cat
+                ? relationshipColor(cat)
+                : colors.border;
       const rel = id === hubId ? undefined : t <= 2 ? dirLabel.get(`${hubId}->${id}`) ?? genericLabel(id) : undefined;
       nodes.push({ id, cx, cy, size: SIZE[t]!, ring: t, color, opacity: OPACITY[t]!, rel });
       if (p) {
