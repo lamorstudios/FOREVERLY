@@ -521,7 +521,13 @@ export function FamilyTreeView({ persons, relationships, anchorId, onSelectPerso
 
   // ---- Gesten ----
   const panStart = useRef({ x: 0, y: 0 });
-  const pinch = useRef<{ dist: number; scale: number; cx: number; cy: number } | null>(null);
+  // Anker am Finger-Mittelpunkt (fx/fy = Weltpunkt, der unter den Fingern bleibt).
+  const pinch = useRef<{ dist: number; scale: number; fx: number; fy: number } | null>(null);
+  // Verhindert, dass nach einem Pinch ein Node-/Hintergrund-Tap fälschlich
+  // eine Person fokussiert (Kamera-Sprung). didPinch wird beim 2-Finger-Move
+  // gesetzt; nach dem Loslassen unterdrücken wir Taps kurz.
+  const didPinch = useRef(false);
+  const suppressTapUntil = useRef(0);
   const responder = useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => false,
@@ -583,12 +589,22 @@ export function FamilyTreeView({ persons, relationships, anchorId, onSelectPerso
           const t2 = touches[1]!;
           const dist = Math.hypot(t1.pageX - t2.pageX, t1.pageY - t2.pageY);
           const { w, h } = viewport.current;
+          didPinch.current = true; // markiert die Geste -> Tap danach unterdrücken
+          // Finger-Mittelpunkt in View-Koordinaten (Fallback: Bildschirmmitte).
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const lx1 = (t1 as any).locationX, ly1 = (t1 as any).locationY, lx2 = (t2 as any).locationX, ly2 = (t2 as any).locationY;
+          const haveLoc = [lx1, ly1, lx2, ly2].every((v) => typeof v === 'number');
+          const mx = haveLoc ? (lx1 + lx2) / 2 : w / 2;
+          const my = haveLoc ? (ly1 + ly2) / 2 : h / 2;
           if (!pinch.current) {
-            pinch.current = { dist, scale: sc.current, cx: (w / 2 - tx.current) / sc.current, cy: (h / 2 - ty.current) / sc.current };
+            // Weltpunkt unter dem aktuellen Finger-Mittelpunkt merken.
+            pinch.current = { dist, scale: sc.current, fx: (mx - tx.current) / sc.current, fy: (my - ty.current) / sc.current };
           } else {
             const ns = clamp((pinch.current.scale * dist) / pinch.current.dist);
             scale.setValue(ns);
-            translate.setValue({ x: w / 2 - pinch.current.cx * ns, y: h / 2 - pinch.current.cy * ns });
+            // Diesen Weltpunkt unter dem aktuellen Finger-Mittelpunkt halten
+            // -> Zoom „unter den Fingern", keine Kamera-Sprünge.
+            translate.setValue({ x: mx - pinch.current.fx * ns, y: my - pinch.current.fy * ns });
           }
         } else {
           pinch.current = null;
@@ -597,6 +613,8 @@ export function FamilyTreeView({ persons, relationships, anchorId, onSelectPerso
       },
       onPanResponderRelease: () => {
         pinch.current = null;
+        if (didPinch.current) suppressTapUntil.current = Date.now() + 400;
+        didPinch.current = false;
         // ausgewichene Kreise an ihrer ausgewichenen Position belassen (kein Overlap)
         avoiding.forEach((id) => overridden.add(id));
         avoiding.clear();
@@ -605,6 +623,8 @@ export function FamilyTreeView({ persons, relationships, anchorId, onSelectPerso
       },
       onPanResponderTerminate: () => {
         pinch.current = null;
+        if (didPinch.current) suppressTapUntil.current = Date.now() + 400;
+        didPinch.current = false;
         avoiding.forEach((id) => overridden.add(id));
         avoiding.clear();
         grabbed.current = null;
@@ -620,6 +640,7 @@ export function FamilyTreeView({ persons, relationships, anchorId, onSelectPerso
   }
 
   function handleBackgroundTap() {
+    if (Date.now() < suppressTapUntil.current) return; // direkt nach Pinch ignorieren
     const now = Date.now();
     if (now - lastTap.current < 300 && anchorId) focusPerson(anchorId);
     lastTap.current = now;
@@ -639,6 +660,8 @@ export function FamilyTreeView({ persons, relationships, anchorId, onSelectPerso
   }
 
   function onNodePress(id: string) {
+    // Direkt nach einem Pinch keinen Fokuswechsel auslösen (kein Kamera-Sprung).
+    if (Date.now() < suppressTapUntil.current) return;
     if (id === hubId) onSelectPerson(id); // zweiter Tipp = Profil
     else focusPerson(id); // erster Tipp = erkunden / neues Zentrum
   }
