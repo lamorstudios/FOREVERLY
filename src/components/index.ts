@@ -1,5 +1,6 @@
 export { AppText } from './AppText';
 export { Appear } from './Appear';
+export { AudioRecorder } from './AudioRecorder';
 export { Avatar } from './Avatar';
 export { BetaBanner } from './BetaBanner';
 export { Button } from './Button';

@@ -8,6 +8,7 @@ import {
   Button,
   TextField,
   SelectField,
+  AudioRecorder,
 } from '@/components';
 import { useFamily } from '@/context/FamilyContext';
 import { useAuth } from '@/context/AuthContext';
@@ -16,8 +17,6 @@ import { qk } from '@/api/queryKeys';
 import { MOMENT_KIND_META } from '@/constants/events';
 import { VISIBILITY_LEVELS, LEVEL_VISIBILITY_OPTIONS } from '@/constants/closeness';
 import { useImagePicker } from '@/hooks/useImagePicker';
-import { useAudioRecorder } from '@/hooks/useAudioRecorder';
-import { formatDuration } from '@/lib/format';
 import { friendlyError } from '@/lib/errors';
 import { colors, radius, spacing } from '@/theme';
 import type { HomeStackParamList } from '@/navigation/types';
@@ -42,7 +41,6 @@ export function MomentComposeScreen({ navigation, route }: Props) {
   const queryClient = useQueryClient();
 
   const { pickFromLibrary } = useImagePicker();
-  const recorder = useAudioRecorder();
 
   const [kind, setKind] = useState<MomentKind>('text');
   const [text, setText] = useState('');
@@ -75,11 +73,6 @@ export function MomentComposeScreen({ navigation, route }: Props) {
   const onPickMedia = async () => {
     const picked = await pickFromLibrary();
     if (picked) setMediaUri(picked.uri);
-  };
-
-  const onStopRecording = async () => {
-    const result = await recorder.stop();
-    if (result) setAudio(result);
   };
 
   const onSave = () => {
@@ -115,7 +108,6 @@ export function MomentComposeScreen({ navigation, route }: Props) {
             setKind(value);
             setMediaUri(null);
             setAudio(null);
-            recorder.reset();
           }}
         />
 
@@ -145,31 +137,11 @@ export function MomentComposeScreen({ navigation, route }: Props) {
 
         {kind === 'audio' ? (
           <View style={styles.audioSection}>
-            {recorder.isRecording ? (
-              <>
-                <AppText variant="display" center color={colors.primary}>
-                  {formatDuration(recorder.durationSeconds)}
-                </AppText>
-                <Button
-                  label="Aufnahme stoppen"
-                  icon="stop-circle-outline"
-                  variant="danger"
-                  onPress={onStopRecording}
-                />
-              </>
-            ) : (
-              <Button
-                label={audio ? 'Erneut aufnehmen' : 'Aufnahme starten'}
-                icon="mic-outline"
-                variant="secondary"
-                onPress={recorder.start}
-              />
-            )}
-            {audio && !recorder.isRecording ? (
-              <AppText variant="body" color={colors.textSecondary} center>
-                Aufnahme bereit · {formatDuration(audio.durationSeconds)}
-              </AppText>
-            ) : null}
+            <AudioRecorder
+              showSave={false}
+              enableTranscription={false}
+              onChange={(a) => setAudio(a)}
+            />
           </View>
         ) : null}
 

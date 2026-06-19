@@ -12,19 +12,19 @@ import {
   DateField,
   Card,
   Loading,
+  AudioRecorder,
   useSuccess,
 } from '@/components';
 import { useFamily } from '@/context/FamilyContext';
 import { useAuth } from '@/context/AuthContext';
 import { useImagePicker } from '@/hooks/useImagePicker';
-import { useAudioRecorder } from '@/hooks/useAudioRecorder';
 import { createCapsule } from '@/api/timeCapsules';
 import type { CapsuleRecipientInput } from '@/api/timeCapsules';
 import { listMembers } from '@/api/families';
 import { listPersons } from '@/api/persons';
 import { qk } from '@/api/queryKeys';
 import { scheduleCapsuleReminder } from '@/lib/notifications';
-import { formatDuration, fullName } from '@/lib/format';
+import { fullName } from '@/lib/format';
 import { friendlyError } from '@/lib/errors';
 import { VISIBILITY_LEVELS } from '@/constants/closeness';
 import { colors, spacing, radius } from '@/theme';
@@ -50,7 +50,6 @@ export function CapsuleFormScreen({ navigation }: Props) {
   const familyId = activeFamily!.id;
   const queryClient = useQueryClient();
   const { pickFromLibrary } = useImagePicker();
-  const recorder = useAudioRecorder();
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -58,7 +57,6 @@ export function CapsuleFormScreen({ navigation }: Props) {
   const [textContent, setTextContent] = useState('');
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [audioUri, setAudioUri] = useState<string | null>(null);
-  const [audioDuration, setAudioDuration] = useState<number | null>(null);
   const [openDate, setOpenDate] = useState<string | null>(null);
   const [visibility, setVisibility] = useState<VisibilityLevel>('selected');
   const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
@@ -77,14 +75,6 @@ export function CapsuleFormScreen({ navigation }: Props) {
   async function handlePickImage() {
     const picked = await pickFromLibrary();
     if (picked) setImageUri(picked.uri);
-  }
-
-  async function handleStopRecording() {
-    const result = await recorder.stop();
-    if (result) {
-      setAudioUri(result.uri);
-      setAudioDuration(result.durationSeconds);
-    }
   }
 
   function toggleMember(id: string) {
@@ -269,40 +259,11 @@ export function CapsuleFormScreen({ navigation }: Props) {
 
         {contentType === 'audio' ? (
           <View style={styles.mediaBlock}>
-            <Card style={styles.audioCard}>
-              <Ionicons
-                name={recorder.isRecording ? 'mic' : 'mic-outline'}
-                size={40}
-                color={recorder.isRecording ? colors.error : colors.primary}
-              />
-              <AppText variant="heading">
-                {recorder.isRecording
-                  ? formatDuration(recorder.durationSeconds)
-                  : audioUri
-                    ? formatDuration(audioDuration)
-                    : '0:00'}
-              </AppText>
-              {audioUri && !recorder.isRecording ? (
-                <AppText variant="caption" color={colors.success}>
-                  Aufnahme gespeichert
-                </AppText>
-              ) : null}
-            </Card>
-            {recorder.isRecording ? (
-              <Button
-                label="Stopp"
-                icon="stop-circle-outline"
-                variant="danger"
-                onPress={handleStopRecording}
-              />
-            ) : (
-              <Button
-                label={audioUri ? 'Neu aufnehmen' : 'Aufnahme starten'}
-                icon="mic-outline"
-                variant="secondary"
-                onPress={recorder.start}
-              />
-            )}
+            <AudioRecorder
+              showSave={false}
+              enableTranscription={false}
+              onChange={(audio) => setAudioUri(audio ? audio.uri : null)}
+            />
           </View>
         ) : null}
 

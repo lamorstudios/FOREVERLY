@@ -334,6 +334,7 @@ export const demoStore = {
     durationSeconds?: number | null;
     personId?: string | null;
     memoryId?: string | null;
+    transcript?: string | null;
   }): Audio {
     const a: Audio = {
       id: newId('a'),
@@ -345,6 +346,7 @@ export const demoStore = {
       duration_seconds: input.durationSeconds ?? null,
       recorded_by: input.recordedBy,
       created_at: nowIso(),
+      transcript: input.transcript ?? null,
     };
     data.audios.unshift(a);
     return a;

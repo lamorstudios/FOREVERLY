@@ -11,17 +11,16 @@ import {
   TextField,
   DateField,
   SelectField,
+  AudioRecorder,
   useSuccess,
 } from '@/components';
 import type { SelectOption } from '@/components';
 import { useFamily } from '@/context/FamilyContext';
 import { useAuth } from '@/context/AuthContext';
 import { useImagePicker } from '@/hooks/useImagePicker';
-import { useAudioRecorder } from '@/hooks/useAudioRecorder';
 import { createMemory } from '@/api/memories';
 import { uploadPhoto, uploadAudio } from '@/api/media';
 import { qk } from '@/api/queryKeys';
-import { formatDuration } from '@/lib/format';
 import { friendlyError } from '@/lib/errors';
 import { VISIBILITY_LEVELS, LEVEL_VISIBILITY_OPTIONS } from '@/constants/closeness';
 import { colors, spacing, radius } from '@/theme';
@@ -54,7 +53,6 @@ export function MemoryFormScreen({ navigation, route }: Props) {
   const queryClient = useQueryClient();
 
   const { pickFromLibrary } = useImagePicker();
-  const recorder = useAudioRecorder();
 
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -67,6 +65,7 @@ export function MemoryFormScreen({ navigation, route }: Props) {
   const [audio, setAudio] = useState<{ uri: string; durationSeconds: number } | null>(
     null,
   );
+  const [audioTranscript, setAudioTranscript] = useState('');
 
   const { show } = useSuccess();
   const saveMutation = useMutation({
@@ -100,6 +99,7 @@ export function MemoryFormScreen({ navigation, route }: Props) {
           durationSeconds: audio.durationSeconds,
           memoryId: memory.id,
           personId: personId ?? null,
+          transcript: audioTranscript.trim() ? audioTranscript.trim() : null,
         });
       }
     },
@@ -116,16 +116,6 @@ export function MemoryFormScreen({ navigation, route }: Props) {
   async function handlePickPhoto() {
     const picked = await pickFromLibrary();
     if (picked) setPhoto(picked);
-  }
-
-  async function handleStopRecording() {
-    const result = await recorder.stop();
-    if (result) setAudio(result);
-  }
-
-  function handleStartRecording() {
-    setAudio(null);
-    recorder.start();
   }
 
   function handleSave() {
@@ -198,23 +188,12 @@ export function MemoryFormScreen({ navigation, route }: Props) {
 
       {contentType === 'audio' ? (
         <View style={styles.media}>
-          <Card style={styles.audioCard}>
-            <Ionicons
-              name={recorder.isRecording ? 'radio' : 'mic-outline'}
-              size={32}
-              color={recorder.isRecording ? colors.error : colors.primary}
-            />
-            <AppText variant="heading">
-              {formatDuration(
-                recorder.isRecording ? recorder.durationSeconds : audio?.durationSeconds,
-              )}
-            </AppText>
-          </Card>
-          <Button
-            label={recorder.isRecording ? 'Stopp' : audio ? 'Neu aufnehmen' : 'Aufnahme starten'}
-            icon={recorder.isRecording ? 'stop' : 'mic'}
-            variant={recorder.isRecording ? 'danger' : 'secondary'}
-            onPress={recorder.isRecording ? handleStopRecording : handleStartRecording}
+          <AudioRecorder
+            showSave={false}
+            onChange={(a, t) => {
+              setAudio(a);
+              setAudioTranscript(t);
+            }}
           />
         </View>
       ) : null}

@@ -117,6 +117,7 @@ export async function uploadAudio(input: {
   durationSeconds?: number | null;
   personId?: string | null;
   memoryId?: string | null;
+  transcript?: string | null;
 }): Promise<Audio> {
   if (DEMO_MODE) {
     const a = demoStore.uploadAudio(input);
@@ -144,6 +145,7 @@ export async function uploadAudio(input: {
       duration_seconds: input.durationSeconds ?? null,
       person_id: input.personId ?? null,
       memory_id: input.memoryId ?? null,
+      transcript: input.transcript ?? null,
     })
     .select('*')
     .single();

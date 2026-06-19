@@ -7,9 +7,9 @@ export interface RecordingResult {
   durationSeconds: number;
 }
 
-type RecorderStatus = 'idle' | 'recording' | 'stopped';
+type RecorderStatus = 'idle' | 'recording' | 'paused' | 'stopped';
 
-/** Audioaufnahme direkt in der App (expo-av). */
+/** Audioaufnahme direkt in der App (expo-av) inkl. Pause/Fortsetzen. */
 export function useAudioRecorder() {
   const recordingRef = useRef<Audio.Recording | null>(null);
   const [status, setStatus] = useState<RecorderStatus>('idle');
@@ -51,6 +51,25 @@ export function useAudioRecorder() {
     }
   }, []);
 
+  const pause = useCallback(async () => {
+    try {
+      await recordingRef.current?.pauseAsync();
+      setStatus('paused');
+    } catch {
+      /* ignorieren */
+    }
+  }, []);
+
+  const resume = useCallback(async () => {
+    try {
+      // expo-av setzt eine pausierte Aufnahme mit startAsync() fort.
+      await recordingRef.current?.startAsync();
+      setStatus('recording');
+    } catch {
+      /* ignorieren */
+    }
+  }, []);
+
   const stop = useCallback(async (): Promise<RecordingResult | null> => {
     const recording = recordingRef.current;
     if (!recording) return null;
@@ -73,6 +92,19 @@ export function useAudioRecorder() {
     }
   }, [durationMillis]);
 
+  /** Bricht eine laufende/pausierte Aufnahme ohne Ergebnis ab. */
+  const cancel = useCallback(async () => {
+    try {
+      await recordingRef.current?.stopAndUnloadAsync();
+    } catch {
+      /* ignorieren */
+    }
+    recordingRef.current = null;
+    await Audio.setAudioModeAsync({ allowsRecordingIOS: false }).catch(() => undefined);
+    setStatus('idle');
+    setDurationMillis(0);
+  }, []);
+
   const reset = useCallback(() => {
     setStatus('idle');
     setDurationMillis(0);
@@ -82,8 +114,12 @@ export function useAudioRecorder() {
     status,
     durationSeconds: Math.round(durationMillis / 1000),
     isRecording: status === 'recording',
+    isPaused: status === 'paused',
     start,
+    pause,
+    resume,
     stop,
+    cancel,
     reset,
   };
 }
