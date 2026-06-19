@@ -357,6 +357,14 @@ export function FamilyTreeView({ persons, relationships, anchorId, onSelectPerso
   const viewport = useRef({ w: 0, h: 0 });
   const didInit = useRef(false);
   const lastTap = useRef(0);
+  // Absolute Bildschirmposition des Tree-Containers – nötig, um den Finger-
+  // Mittelpunkt aus pageX/Y zuverlässig in View-Koordinaten umzurechnen.
+  const containerRef = useRef<View>(null);
+  const containerOffset = useRef({ x: 0, y: 0 });
+  const measureContainer = () =>
+    containerRef.current?.measureInWindow?.((x, y) => {
+      containerOffset.current = { x, y };
+    });
 
   useEffect(() => {
     const a = translate.x.addListener(({ value }) => (tx.current = value));
@@ -394,6 +402,7 @@ export function FamilyTreeView({ persons, relationships, anchorId, onSelectPerso
   function onLayout(e: LayoutChangeEvent) {
     const { width, height } = e.nativeEvent.layout;
     viewport.current = { w: width, h: height };
+    measureContainer();
     if (width && height) {
       didInit.current = true;
       requestAnimationFrame(centerHub);
@@ -538,6 +547,7 @@ export function FamilyTreeView({ persons, relationships, anchorId, onSelectPerso
       onPanResponderGrant: () => {
         panStart.current = { x: tx.current, y: ty.current };
         pinch.current = null;
+        measureContainer(); // Container-Offset vor der Geste aktualisieren
         if (grabbed.current) {
           const p = positions.get(grabbed.current);
           // aktuellen Wert auslesen, um von dort weiterzuziehen
@@ -590,12 +600,10 @@ export function FamilyTreeView({ persons, relationships, anchorId, onSelectPerso
           const dist = Math.hypot(t1.pageX - t2.pageX, t1.pageY - t2.pageY);
           const { w, h } = viewport.current;
           didPinch.current = true; // markiert die Geste -> Tap danach unterdrücken
-          // Finger-Mittelpunkt in View-Koordinaten (Fallback: Bildschirmmitte).
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const lx1 = (t1 as any).locationX, ly1 = (t1 as any).locationY, lx2 = (t2 as any).locationX, ly2 = (t2 as any).locationY;
-          const haveLoc = [lx1, ly1, lx2, ly2].every((v) => typeof v === 'number');
-          const mx = haveLoc ? (lx1 + lx2) / 2 : w / 2;
-          const my = haveLoc ? (ly1 + ly2) / 2 : h / 2;
+          // Finger-Mittelpunkt zuverlässig in View-Koordinaten:
+          // pageX/Y (absolut) minus die gemessene Container-Position.
+          const mx = (t1.pageX + t2.pageX) / 2 - containerOffset.current.x;
+          const my = (t1.pageY + t2.pageY) / 2 - containerOffset.current.y;
           if (!pinch.current) {
             // Weltpunkt unter dem aktuellen Finger-Mittelpunkt merken.
             pinch.current = { dist, scale: sc.current, fx: (mx - tx.current) / sc.current, fy: (my - ty.current) / sc.current };
@@ -659,6 +667,22 @@ export function FamilyTreeView({ persons, relationships, anchorId, onSelectPerso
     setActiveId(id);
   }
 
+  // Center-Button: aktive Person (oder „Du") mittig im Viewport – Zoom bleibt.
+  function recenterOnActive() {
+    const id = hubId ?? anchorId;
+    if (!id) return;
+    const { w, h } = viewport.current;
+    if (!w || !h) return;
+    const p = positions.get(id);
+    const nv = nodeViewById.get(id);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const wx = (p?.x as any)?.__getValue?.() ?? nv?.cx ?? layout.hubX;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const wy = (p?.y as any)?.__getValue?.() ?? nv?.cy ?? layout.hubY;
+    const s = sc.current || 1; // aktuellen Zoom beibehalten
+    animateCam(s, w / 2 - wx * s, h / 2 - wy * s);
+  }
+
   function onNodePress(id: string) {
     // Direkt nach einem Pinch keinen Fokuswechsel auslösen (kein Kamera-Sprung).
     if (Date.now() < suppressTapUntil.current) return;
@@ -681,7 +705,7 @@ export function FamilyTreeView({ persons, relationships, anchorId, onSelectPerso
     (hubId === anchorId ? colors.primary : hubId ? nodeViewById.get(hubId)?.color : null) || colors.primary;
 
   return (
-    <View style={styles.container} onLayout={onLayout}>
+    <View ref={containerRef} style={styles.container} onLayout={onLayout}>
       <View style={StyleSheet.absoluteFill} {...responder.panHandlers}>
         <Animated.View
           style={[
@@ -774,7 +798,7 @@ export function FamilyTreeView({ persons, relationships, anchorId, onSelectPerso
           <AppText variant="heading" color={colors.primary}>−</AppText>
         </Pressable>
         {anchorId ? (
-          <Pressable style={[styles.ctrlBtn, webGlassBtn]} onPress={() => focusPerson(anchorId)} hitSlop={6}>
+          <Pressable style={[styles.ctrlBtn, webGlassBtn]} onPress={recenterOnActive} hitSlop={6}>
             <Ionicons name="locate" size={20} color={colors.primary} />
           </Pressable>
         ) : null}
