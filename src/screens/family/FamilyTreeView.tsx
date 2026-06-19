@@ -31,7 +31,7 @@ interface FamilyTreeViewProps {
   onSelectPerson: (personId: string) => void;
 }
 
-const MIN_SCALE = 0.35; // weiteres Herauszoomen für mehr Übersicht
+const MIN_SCALE = 0.3; // weiteres Herauszoomen für mehr Übersicht
 const MAX_SCALE = 3;
 // Eigener Boden für den Start-/Center-Fit, damit der Startzoom unverändert bleibt
 // (Nutzer können danach manuell weiter bis MIN_SCALE herauszoomen).
@@ -426,6 +426,19 @@ export function FamilyTreeView({ persons, relationships, anchorId, onSelectPerso
     return () => loop.stop();
   }, [pulse]);
 
+  // Sehr dezente, langsame „Atmen"-Animation (eine geteilte Schleife für alle Nodes).
+  const breathe = useRef(new Animated.Value(0)).current;
+  useEffect(() => {
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(breathe, { toValue: 1, duration: 2800, easing: Easing.inOut(Easing.ease), useNativeDriver: false }),
+        Animated.timing(breathe, { toValue: 0, duration: 2800, easing: Easing.inOut(Easing.ease), useNativeDriver: false }),
+      ]),
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [breathe]);
+
   function getPos(id: string): Animated.ValueXY {
     let p = positions.get(id);
     if (!p) {
@@ -632,13 +645,17 @@ export function FamilyTreeView({ persons, relationships, anchorId, onSelectPerso
 
   const currentIds = useMemo(() => new Set(layout.nodes.map((n) => n.id)), [layout]);
   const exitingVisible = exiting.filter((e) => !currentIds.has(e.id));
-  const anchorVisible = !!anchorId && currentIds.has(anchorId);
   const nodeViewById = useMemo(() => {
     const m = new Map<string, TreeNodeView>();
     for (const n of layout.nodes) m.set(n.id, n);
     return m;
   }, [layout]);
-  const anchorSize = (anchorId && nodeViewById.get(anchorId)?.size) || NODE_D;
+  // Fokus-Glow folgt dem ausgewählten (zentrierten) Node und nutzt dessen
+  // Beziehungsfarbe – „Du" bleibt blau.
+  const hubVisible = !!hubId && currentIds.has(hubId);
+  const hubSize = (hubId && nodeViewById.get(hubId)?.size) || NODE_D;
+  const hubColor =
+    (hubId === anchorId ? colors.primary : hubId ? nodeViewById.get(hubId)?.color : null) || colors.primary;
 
   return (
     <View style={styles.container} onLayout={onLayout}>
@@ -675,19 +692,21 @@ export function FamilyTreeView({ persons, relationships, anchorId, onSelectPerso
 
           <Pressable style={StyleSheet.absoluteFill} onPress={handleBackgroundTap} />
 
-          {anchorVisible && anchorId ? (
+          {hubVisible && hubId ? (
             <Animated.View
               pointerEvents="none"
               style={[
                 styles.glow,
-                webActiveGlow,
+                coloredGlowStyle(hubColor),
                 {
-                  width: anchorSize + 26,
-                  height: anchorSize + 26,
+                  width: hubSize + 26,
+                  height: hubSize + 26,
+                  backgroundColor: withAlpha(hubColor, 0.1),
+                  shadowColor: hubColor,
                   opacity: pulse.interpolate({ inputRange: [0, 1], outputRange: [0.2, 0.5] }),
                   transform: [
-                    { translateX: Animated.subtract(getPos(anchorId).x, (anchorSize + 26) / 2) },
-                    { translateY: Animated.subtract(getPos(anchorId).y, (anchorSize + 26) / 2) },
+                    { translateX: Animated.subtract(getPos(hubId).x, (hubSize + 26) / 2) },
+                    { translateY: Animated.subtract(getPos(hubId).y, (hubSize + 26) / 2) },
                     { scale: pulse.interpolate({ inputRange: [0, 1], outputRange: [1, 1.07] }) },
                   ],
                 },
@@ -710,6 +729,7 @@ export function FamilyTreeView({ persons, relationships, anchorId, onSelectPerso
                 size={nv?.size ?? NODE_D}
                 isHub={isHub}
                 isAnchor={isAnchor}
+                breathe={breathe}
                 color={isAnchor ? colors.primary : nv?.color ?? colors.border}
                 ringOpacity={nv?.opacity ?? 1}
                 faded={(nv?.ring ?? 0) >= 3}
@@ -747,6 +767,7 @@ function NodeCircle({
   size,
   isHub,
   isAnchor,
+  breathe,
   color,
   ringOpacity,
   faded,
@@ -761,6 +782,7 @@ function NodeCircle({
   size: number;
   isHub: boolean;
   isAnchor: boolean;
+  breathe: Animated.Value;
   color: string;
   ringOpacity: number;
   faded: boolean;
@@ -775,6 +797,8 @@ function NodeCircle({
 
   const baseScale = appear.interpolate({ inputRange: [0, 1], outputRange: [0.75, 1] });
   const pressScale = press.interpolate({ inputRange: [0, 1], outputRange: [1, grabbed ? 1.14 : 1.07] });
+  // Sehr dezentes „Atmen" (~2,2 %) – nicht beim aktiv gegriffenen Node.
+  const breatheScale = breathe.interpolate({ inputRange: [0, 1], outputRange: [1, grabbed ? 1 : 1.022] });
   const wrapW = Math.max(size, 132);
 
   return (
@@ -789,7 +813,7 @@ function NodeCircle({
           transform: [
             { translateX: Animated.subtract(pos.x, wrapW / 2) },
             { translateY: Animated.subtract(pos.y, size / 2) },
-            { scale: Animated.multiply(baseScale, pressScale) },
+            { scale: Animated.multiply(Animated.multiply(baseScale, pressScale), breatheScale) },
           ],
         },
       ]}
@@ -835,6 +859,11 @@ function NodeCircle({
             <AppText variant="caption" color={colors.textOnAccent} style={styles.duText}>Du</AppText>
           </View>
         ) : null}
+        {person.is_legend && !faded ? (
+          <View style={styles.legendBadge}>
+            <Ionicons name="star" size={11} color={colors.textOnAccent} />
+          </View>
+        ) : null}
       </Pressable>
 
       <AppText
@@ -855,14 +884,13 @@ function NodeCircle({
   );
 }
 
-// Weicher, mehrschichtiger Glow für den aktiven Mittelpunkt (Web) – kein Gelb.
-const webActiveGlow =
-  Platform.OS === 'web'
-    ? ({
-        boxShadow:
-          '0 0 0 6px rgba(91,124,255,0.10), 0 12px 32px rgba(161,108,255,0.18), 0 8px 24px rgba(255,184,108,0.12)',
-      } as unknown as ViewStyle)
-    : null;
+// Weicher, mehrschichtiger Fokus-Glow in der jeweiligen Beziehungsfarbe (Web).
+function coloredGlowStyle(color: string): ViewStyle | null {
+  if (Platform.OS !== 'web') return null;
+  return {
+    boxShadow: `0 0 0 6px ${withAlpha(color, 0.12)}, 0 14px 34px ${withAlpha(color, 0.30)}, 0 8px 22px ${withAlpha(color, 0.16)}`,
+  } as unknown as ViewStyle;
+}
 // Glas-Effekt für die Floating-Controls (Web).
 const webGlassBtn =
   Platform.OS === 'web'
@@ -890,6 +918,19 @@ const styles = StyleSheet.create({
     borderColor: colors.surface,
   },
   duText: { fontSize: 10, fontWeight: '800', color: colors.textOnAccent },
+  legendBadge: {
+    position: 'absolute',
+    top: -4,
+    right: -2,
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: colors.accent,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: colors.surface,
+  },
   name: { marginTop: 8 },
   rel: { fontWeight: '600', marginTop: 1 },
   glow: {
