@@ -379,6 +379,42 @@ export function FamilyTreeView({ persons, relationships, anchorId, onSelectPerso
 
   const clamp = (v: number) => Math.min(MAX_SCALE, Math.max(MIN_SCALE, v));
 
+  // Zoom um einen festen Punkt (px,py = View-Koordinaten). Der Weltpunkt unter
+  // (px,py) bleibt exakt stehen: worldX=(px-tx)/old; newTx=px-worldX*new.
+  // tx/ty/sc werden direkt aktualisiert (kein Listener-Lag -> kein Springen).
+  function zoomAt(px: number, py: number, factor: number) {
+    const oldScale = sc.current || 1;
+    const ns = clamp(oldScale * factor);
+    if (ns === oldScale) return;
+    const worldX = (px - tx.current) / oldScale;
+    const worldY = (py - ty.current) / oldScale;
+    const nx = px - worldX * ns;
+    const ny = py - worldY * ns;
+    scale.setValue(ns);
+    sc.current = ns;
+    translate.setValue({ x: nx, y: ny });
+    tx.current = nx;
+    ty.current = ny;
+  }
+
+  // Mausrad/Trackpad-Zoom (nur Web): um den Cursor herum, stabil.
+  useEffect(() => {
+    if (Platform.OS !== 'web') return;
+    const el = containerRef.current as unknown as HTMLElement | null;
+    if (!el || typeof el.addEventListener !== 'function') return;
+    const onWheel = (ev: WheelEvent) => {
+      ev.preventDefault();
+      const rect = el.getBoundingClientRect();
+      const px = ev.clientX - rect.left;
+      const py = ev.clientY - rect.top;
+      const factor = ev.deltaY < 0 ? 1.12 : 1 / 1.12;
+      zoomAt(px, py, factor);
+    };
+    el.addEventListener('wheel', onWheel, { passive: false });
+    return () => el.removeEventListener('wheel', onWheel);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   function animateCam(s: number, x: number, y: number) {
     Animated.parallel([
       Animated.spring(scale, { toValue: s, useNativeDriver: false, friction: 7, tension: 48 }),
@@ -530,8 +566,8 @@ export function FamilyTreeView({ persons, relationships, anchorId, onSelectPerso
 
   // ---- Gesten ----
   const panStart = useRef({ x: 0, y: 0 });
-  // Anker am Finger-Mittelpunkt (fx/fy = Weltpunkt, der unter den Fingern bleibt).
-  const pinch = useRef<{ dist: number; scale: number; fx: number; fy: number } | null>(null);
+  // Inkrementeller Pinch: nur der letzte Finger-Abstand als Baseline.
+  const pinch = useRef<{ dist: number } | null>(null);
   // Verhindert, dass nach einem Pinch ein Node-/Hintergrund-Tap fälschlich
   // eine Person fokussiert (Kamera-Sprung). didPinch wird beim 2-Finger-Move
   // gesetzt; nach dem Loslassen unterdrücken wir Taps kurz.
@@ -598,21 +634,19 @@ export function FamilyTreeView({ persons, relationships, anchorId, onSelectPerso
           const t1 = touches[0]!;
           const t2 = touches[1]!;
           const dist = Math.hypot(t1.pageX - t2.pageX, t1.pageY - t2.pageY);
-          const { w, h } = viewport.current;
           didPinch.current = true; // markiert die Geste -> Tap danach unterdrücken
           // Finger-Mittelpunkt zuverlässig in View-Koordinaten:
           // pageX/Y (absolut) minus die gemessene Container-Position.
           const mx = (t1.pageX + t2.pageX) / 2 - containerOffset.current.x;
           const my = (t1.pageY + t2.pageY) / 2 - containerOffset.current.y;
-          if (!pinch.current) {
-            // Weltpunkt unter dem aktuellen Finger-Mittelpunkt merken.
-            pinch.current = { dist, scale: sc.current, fx: (mx - tx.current) / sc.current, fy: (my - ty.current) / sc.current };
+          if (!pinch.current || pinch.current.dist <= 0) {
+            pinch.current = { dist }; // Baseline-Abstand merken
           } else {
-            const ns = clamp((pinch.current.scale * dist) / pinch.current.dist);
-            scale.setValue(ns);
-            // Diesen Weltpunkt unter dem aktuellen Finger-Mittelpunkt halten
-            // -> Zoom „unter den Fingern", keine Kamera-Sprünge.
-            translate.setValue({ x: mx - pinch.current.fx * ns, y: my - pinch.current.fy * ns });
+            // Inkrementell um den AKTUELLEN Finger-Mittelpunkt zoomen:
+            // worldX = (pointer - translate) / oldScale; danach
+            // newTranslate = pointer - worldX * newScale  -> Punkt bleibt stabil.
+            zoomAt(mx, my, dist / pinch.current.dist);
+            pinch.current.dist = dist; // Baseline für nächsten Frame
           }
         } else {
           pinch.current = null;
