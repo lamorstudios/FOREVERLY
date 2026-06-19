@@ -12,6 +12,11 @@ import {
   isTranscriptionAvailable,
   TranscriptionUnavailableError,
 } from '@/lib/transcription';
+import {
+  createLiveTranscriber,
+  isLiveTranscriptionSupported,
+  type LiveTranscriber,
+} from '@/lib/speech';
 import { formatDuration } from '@/lib/format';
 import { colors, spacing, radius } from '@/theme';
 
@@ -34,10 +39,55 @@ interface AudioRecorderProps {
 
 const WAVE_BARS = 7;
 
+/** Gleich große Pill-Buttons – nie abgeschnitten, kein horizontaler Overflow. */
+function PillButton({
+  label,
+  icon,
+  onPress,
+  variant = 'neutral',
+  tint,
+  loading,
+  disabled,
+}: {
+  label: string;
+  icon: keyof typeof Ionicons.glyphMap;
+  onPress: () => void;
+  variant?: 'neutral' | 'primary';
+  tint?: string;
+  loading?: boolean;
+  disabled?: boolean;
+}) {
+  const primary = variant === 'primary';
+  const fg = primary ? colors.textOnAccent : tint ?? colors.primary;
+  return (
+    <Pressable
+      onPress={onPress}
+      disabled={disabled || loading}
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      style={[
+        styles.pill,
+        primary ? styles.pillPrimary : styles.pillNeutral,
+        (disabled || loading) && styles.pillDisabled,
+      ]}
+    >
+      {loading ? (
+        <ActivityIndicator size="small" color={fg} />
+      ) : (
+        <Ionicons name={icon} size={18} color={fg} />
+      )}
+      <AppText variant="label" color={fg} numberOfLines={1} style={styles.pillLabel}>
+        {label}
+      </AppText>
+    </Pressable>
+  );
+}
+
 /**
  * Zentrale, wiederverwendbare Audio-Aufnahme-Komponente:
  * Aufnehmen · Pause · Fortsetzen · Stoppen · Abbrechen · Anhören · Neu aufnehmen
- * · Speichern · editierbare Transkription. Wird von allen Audio-Seiten genutzt.
+ * · Speichern · Live-Transkription (Browser) mit Fallback. Wird von allen
+ * Audio-Seiten genutzt.
  */
 export function AudioRecorder({
   onSave,
@@ -53,10 +103,51 @@ export function AudioRecorder({
   const rec = useAudioRecorder();
   const [result, setResult] = useState<RecordingResult | null>(null);
   const [transcript, setTranscript] = useState('');
-
-  // --- automatische Transkription ---
   const [transStatus, setTransStatus] = useState<TranscriptionStatus>('idle');
   const abortRef = useRef<AbortController | null>(null);
+
+  // --- Live-Transkription (Web Speech API) ---
+  const liveSupported = isLiveTranscriptionSupported();
+  const [liveText, setLiveText] = useState('');
+  const liveFinalRef = useRef('');
+  const committedRef = useRef('');
+  const transcriberRef = useRef<LiveTranscriber | null>(null);
+
+  function makeTranscriber(): LiveTranscriber | null {
+    return createLiveTranscriber({
+      onPartial: (txt) => {
+        const full = committedRef.current ? `${committedRef.current} ${txt}`.trim() : txt;
+        setLiveText(full);
+      },
+      onFinal: (txt) => {
+        liveFinalRef.current = committedRef.current
+          ? `${committedRef.current} ${txt}`.trim()
+          : txt;
+      },
+    });
+  }
+
+  function startLive() {
+    if (!enableTranscription || !liveSupported) return;
+    committedRef.current = '';
+    liveFinalRef.current = '';
+    setLiveText('');
+    transcriberRef.current = makeTranscriber();
+    transcriberRef.current?.start();
+  }
+  function pauseLive() {
+    committedRef.current = liveFinalRef.current;
+    transcriberRef.current?.stop();
+  }
+  function resumeLive() {
+    if (!enableTranscription || !liveSupported) return;
+    transcriberRef.current = makeTranscriber();
+    transcriberRef.current?.start();
+  }
+  function stopLive() {
+    transcriberRef.current?.stop();
+    transcriberRef.current = null;
+  }
 
   async function runTranscription(audio: RecordingResult) {
     if (!isTranscriptionAvailable()) {
@@ -96,6 +187,7 @@ export function AudioRecorder({
     () => () => {
       unload();
       abortRef.current?.abort();
+      transcriberRef.current?.stop();
     },
     [],
   );
@@ -147,19 +239,52 @@ export function AudioRecorder({
     return undefined;
   }, [rec.isRecording, wave]);
 
+  function handleStart() {
+    setTransStatus('idle');
+    startLive();
+    void rec.start();
+  }
+  function handlePause() {
+    pauseLive();
+    void rec.pause();
+  }
+  function handleResume() {
+    resumeLive();
+    void rec.resume();
+  }
+  function handleCancel() {
+    stopLive();
+    setLiveText('');
+    committedRef.current = '';
+    liveFinalRef.current = '';
+    void rec.cancel();
+  }
   async function handleStop() {
+    stopLive();
     const r = await rec.stop();
-    if (r) {
-      setResult(r);
+    if (!r) return;
+    setResult(r);
+    const live = (liveText || liveFinalRef.current).trim();
+    if (live) {
+      // Live-Transkription erfolgreich – Text direkt übernehmen (editierbar).
+      setTranscript(live);
+      setTransStatus('done');
+      onChange?.(r, live);
+    } else {
       onChange?.(r, transcript.trim());
+      // Keine Live-Transkription → nach der Aufnahme transkribieren (oder Beta-Hinweis).
       if (enableTranscription) void runTranscription(r);
     }
   }
   function handleRetake() {
     unload();
     abortRef.current?.abort();
+    stopLive();
     setResult(null);
     setTranscript('');
+    setLiveText('');
+    committedRef.current = '';
+    liveFinalRef.current = '';
     setTransStatus('idle');
     rec.reset();
     onChange?.(null, '');
@@ -194,7 +319,7 @@ export function AudioRecorder({
         </Card>
 
         {enableTranscription ? (
-          <View style={styles.section}>
+          <Card>
             <View style={styles.transHeader}>
               <Ionicons name="document-text-outline" size={16} color={colors.textMuted} />
               <AppText variant="label" color={colors.textSecondary}>Transkription</AppText>
@@ -248,20 +373,21 @@ export function AudioRecorder({
             <AppText variant="caption" color={colors.textMuted}>
               Du kannst den Text jederzeit anpassen. Das Original-Audio bleibt immer erhalten.
             </AppText>
-          </View>
+          </Card>
         ) : null}
 
         <View style={styles.actions}>
           {allowRetake ? (
-            <Pressable onPress={handleRetake} style={styles.secondaryBtn} accessibilityRole="button">
-              <Ionicons name="refresh" size={18} color={colors.primary} />
-              <AppText variant="label" color={colors.primary}>Neu aufnehmen</AppText>
-            </Pressable>
+            <PillButton label="Neu aufnehmen" icon="refresh" onPress={handleRetake} />
           ) : null}
           {showSave ? (
-            <View style={styles.flex}>
-              <Button label={saveLabel} icon="checkmark" loading={saving} onPress={() => onSave?.(result, transcript.trim())} />
-            </View>
+            <PillButton
+              label={saveLabel}
+              icon="checkmark"
+              variant="primary"
+              loading={saving}
+              onPress={() => onSave?.(result, transcript.trim())}
+            />
           ) : null}
         </View>
       </View>
@@ -271,61 +397,102 @@ export function AudioRecorder({
   // ---------- RECORDING / PAUSED ----------
   if (rec.isRecording || rec.isPaused) {
     return (
-      <Card>
-        <View style={styles.recHeader}>
-          <View style={[styles.recDot, rec.isPaused && styles.recDotPaused]} />
-          <AppText variant="heading">{formatDuration(rec.durationSeconds)}</AppText>
-        </View>
-        <View style={styles.waves}>
-          {Array.from({ length: WAVE_BARS }).map((_, i) => {
-            const h = wave.interpolate({ inputRange: [0, 1], outputRange: [10, 10 + ((i % 3) + 1) * 12] });
-            return <Animated.View key={i} style={[styles.waveBar, { height: rec.isPaused ? 10 : h }]} />;
-          })}
-        </View>
-        <View style={styles.actions}>
-          <Pressable onPress={rec.cancel} style={styles.secondaryBtn} accessibilityRole="button">
-            <Ionicons name="close" size={18} color={colors.error} />
-            <AppText variant="label" color={colors.error}>{rec.isPaused ? 'Verwerfen' : 'Abbrechen'}</AppText>
-          </Pressable>
-          {allowPause ? (
-            <Pressable onPress={rec.isPaused ? rec.resume : rec.pause} style={styles.secondaryBtn} accessibilityRole="button">
-              <Ionicons name={rec.isPaused ? 'play' : 'pause'} size={18} color={colors.primary} />
-              <AppText variant="label" color={colors.primary}>{rec.isPaused ? 'Fortsetzen' : 'Pause'}</AppText>
-            </Pressable>
-          ) : null}
-          <View style={styles.flex}>
-            <Button label="Stoppen" icon="stop" onPress={handleStop} />
+      <View style={styles.wrap}>
+        <Card>
+          <View style={styles.recHeader}>
+            <View style={[styles.recDot, rec.isPaused && styles.recDotPaused]} />
+            <AppText variant="heading">{formatDuration(rec.durationSeconds)}</AppText>
           </View>
-        </View>
-      </Card>
+          <View style={styles.waves}>
+            {Array.from({ length: WAVE_BARS }).map((_, i) => {
+              const h = wave.interpolate({ inputRange: [0, 1], outputRange: [10, 10 + ((i % 3) + 1) * 12] });
+              return <Animated.View key={i} style={[styles.waveBar, { height: rec.isPaused ? 10 : h }]} />;
+            })}
+          </View>
+          <View style={styles.actions}>
+            <PillButton
+              label={rec.isPaused ? 'Verwerfen' : 'Abbrechen'}
+              icon="close"
+              tint={colors.error}
+              onPress={handleCancel}
+            />
+            {allowPause ? (
+              <PillButton
+                label={rec.isPaused ? 'Fortsetzen' : 'Pause'}
+                icon={rec.isPaused ? 'play' : 'pause'}
+                onPress={rec.isPaused ? handleResume : handlePause}
+              />
+            ) : null}
+            <PillButton label="Stoppen" icon="stop" variant="primary" onPress={handleStop} />
+          </View>
+        </Card>
+
+        {enableTranscription ? (
+          <Card>
+            <View style={styles.transHeader}>
+              <View style={styles.liveDot} />
+              <AppText variant="label" color={colors.textSecondary}>Live-Transkription</AppText>
+            </View>
+            {liveSupported ? (
+              <AppText
+                variant="body"
+                color={liveText ? colors.textPrimary : colors.textMuted}
+                style={styles.liveText}
+              >
+                {liveText || 'Sprich jetzt – dein Text erscheint hier in Echtzeit …'}
+              </AppText>
+            ) : (
+              <AppText variant="caption" color={colors.textMuted}>
+                Live-Transkription wird in diesem Browser nicht unterstützt. Nach dem Stoppen wird
+                – sofern verfügbar – automatisch transkribiert; sonst kannst du den Text manuell
+                eingeben.
+              </AppText>
+            )}
+          </Card>
+        ) : null}
+      </View>
     );
   }
 
   // ---------- IDLE ----------
-  return (
-    <Button label="Aufnahme starten" icon="mic" onPress={rec.start} />
-  );
+  return <Button label="Aufnahme starten" icon="mic" onPress={handleStart} />;
 }
 
 const styles = StyleSheet.create({
   wrap: { gap: spacing.md },
-  section: { gap: spacing.xs },
   flex: { flex: 1 },
   recHeader: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
   recDot: { width: 12, height: 12, borderRadius: 6, backgroundColor: colors.error },
   recDotPaused: { backgroundColor: colors.textMuted },
+  liveDot: { width: 10, height: 10, borderRadius: 5, backgroundColor: colors.error },
+  liveText: { marginTop: spacing.xs, minHeight: 44, lineHeight: 24 },
   waves: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6, height: 56, marginVertical: spacing.sm },
   waveBar: { width: 6, borderRadius: 3, backgroundColor: colors.primary },
-  actions: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginTop: spacing.sm },
-  secondaryBtn: { flexDirection: 'row', alignItems: 'center', gap: 6, paddingVertical: spacing.sm, paddingHorizontal: spacing.md, borderRadius: radius.pill, backgroundColor: colors.surfaceAlt },
+  // Aktionsreihe: gleich große Pills, dürfen schrumpfen, kein Overflow.
+  actions: { flexDirection: 'row', alignItems: 'stretch', gap: spacing.sm, marginTop: spacing.sm },
+  pill: {
+    flex: 1,
+    minWidth: 0,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
+    minHeight: 50,
+    paddingHorizontal: spacing.sm,
+    borderRadius: radius.pill,
+  },
+  pillNeutral: { backgroundColor: colors.surfaceAlt },
+  pillPrimary: { backgroundColor: colors.primary },
+  pillDisabled: { opacity: 0.6 },
+  pillLabel: { flexShrink: 1 },
   playerRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.md },
   playBtn: { width: 52, height: 52, borderRadius: 26, backgroundColor: colors.primary, alignItems: 'center', justifyContent: 'center' },
   playerBody: { flex: 1, gap: spacing.xs },
   progressTrack: { height: 6, borderRadius: 3, backgroundColor: colors.surfaceMuted, overflow: 'hidden' },
   progressFill: { height: 6, borderRadius: 3, backgroundColor: colors.primary },
-  transHeader: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
+  transHeader: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs, marginBottom: spacing.xs },
   transInput: { minHeight: 80, textAlignVertical: 'top' },
-  transStatusRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  transStatusRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, marginBottom: spacing.xs },
   transNotice: {
     flexDirection: 'row',
     alignItems: 'flex-start',
@@ -333,5 +500,6 @@ const styles = StyleSheet.create({
     backgroundColor: colors.surfaceAlt,
     borderRadius: radius.md,
     padding: spacing.sm,
+    marginBottom: spacing.xs,
   },
 });

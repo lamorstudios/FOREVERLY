@@ -57,6 +57,7 @@ export function CapsuleFormScreen({ navigation }: Props) {
   const [textContent, setTextContent] = useState('');
   const [imageUri, setImageUri] = useState<string | null>(null);
   const [audioUri, setAudioUri] = useState<string | null>(null);
+  const [audioTranscript, setAudioTranscript] = useState('');
   const [openDate, setOpenDate] = useState<string | null>(null);
   const [visibility, setVisibility] = useState<VisibilityLevel>('selected');
   const [selectedMembers, setSelectedMembers] = useState<string[]>([]);
@@ -117,7 +118,12 @@ export function CapsuleFormScreen({ navigation }: Props) {
         title: title.trim(),
         description: description.trim() || null,
         contentType,
-        textContent: contentType === 'text' ? textContent.trim() : null,
+        textContent:
+          contentType === 'text'
+            ? textContent.trim()
+            : contentType === 'audio' && audioTranscript.trim()
+              ? audioTranscript.trim()
+              : null,
         mediaUri,
         openAt,
         visibility,
@@ -261,8 +267,10 @@ export function CapsuleFormScreen({ navigation }: Props) {
           <View style={styles.mediaBlock}>
             <AudioRecorder
               showSave={false}
-              enableTranscription={false}
-              onChange={(audio) => setAudioUri(audio ? audio.uri : null)}
+              onChange={(audio, t) => {
+                setAudioUri(audio ? audio.uri : null);
+                setAudioTranscript(audio ? t : '');
+              }}
             />
           </View>
         ) : null}
