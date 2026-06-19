@@ -98,6 +98,10 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       process.env.EXPO_PUBLIC_INVITE_BASE_URL ?? 'https://foreverly.app/invite',
     demoMode: process.env.EXPO_PUBLIC_DEMO_MODE,
     demoSeed: process.env.EXPO_PUBLIC_DEMO_SEED,
+    // Optionaler Speech-to-Text-Endpunkt (z. B. Supabase Edge Function, die
+    // an OpenAI Whisper weiterreicht). Ohne diese URL ist die automatische
+    // Transkription deaktiviert (Beta-Hinweis statt vorgetäuschtem Text).
+    transcribeUrl: process.env.EXPO_PUBLIC_TRANSCRIBE_URL,
     // Sichtbarer Build-Stempel (vom Deploy-Workflow gesetzt) zur Versionskontrolle.
     buildId: process.env.EXPO_PUBLIC_BUILD_ID ?? 'dev',
     buildTime: process.env.EXPO_PUBLIC_BUILD_TIME ?? 'lokal',

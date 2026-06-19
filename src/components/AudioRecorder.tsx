@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { View, StyleSheet, Pressable, Animated, Easing } from 'react-native';
+import { View, StyleSheet, Pressable, Animated, Easing, ActivityIndicator } from 'react-native';
 import { Audio } from 'expo-av';
 import { Ionicons } from '@expo/vector-icons';
 import { AppText } from './AppText';
@@ -7,8 +7,15 @@ import { Button } from './Button';
 import { Card } from './Card';
 import { TextField } from './TextField';
 import { useAudioRecorder, type RecordingResult } from '@/hooks/useAudioRecorder';
+import {
+  transcribeAudio,
+  isTranscriptionAvailable,
+  TranscriptionUnavailableError,
+} from '@/lib/transcription';
 import { formatDuration } from '@/lib/format';
 import { colors, spacing, radius } from '@/theme';
+
+type TranscriptionStatus = 'idle' | 'loading' | 'done' | 'error' | 'unavailable';
 
 interface AudioRecorderProps {
   /** Wird beim Tippen auf „Speichern" aufgerufen (nur wenn showSave !== false). */
@@ -47,6 +54,31 @@ export function AudioRecorder({
   const [result, setResult] = useState<RecordingResult | null>(null);
   const [transcript, setTranscript] = useState('');
 
+  // --- automatische Transkription ---
+  const [transStatus, setTransStatus] = useState<TranscriptionStatus>('idle');
+  const abortRef = useRef<AbortController | null>(null);
+
+  async function runTranscription(audio: RecordingResult) {
+    if (!isTranscriptionAvailable()) {
+      setTransStatus('unavailable');
+      return;
+    }
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+    setTransStatus('loading');
+    try {
+      const text = await transcribeAudio(audio.uri, { language: 'de', signal: controller.signal });
+      if (controller.signal.aborted) return;
+      setTranscript(text);
+      setTransStatus('done');
+      onChange?.(audio, text.trim());
+    } catch (e) {
+      if (controller.signal.aborted) return;
+      setTransStatus(e instanceof TranscriptionUnavailableError ? 'unavailable' : 'error');
+    }
+  }
+
   // --- lokale Wiedergabe der Aufnahme (mit Fortschritt) ---
   const soundRef = useRef<Audio.Sound | null>(null);
   const [playing, setPlaying] = useState(false);
@@ -60,7 +92,13 @@ export function AudioRecorder({
     setPosMs(0);
     setDurMs(0);
   };
-  useEffect(() => () => unload(), []);
+  useEffect(
+    () => () => {
+      unload();
+      abortRef.current?.abort();
+    },
+    [],
+  );
 
   async function togglePlay() {
     if (!result) return;
@@ -114,12 +152,15 @@ export function AudioRecorder({
     if (r) {
       setResult(r);
       onChange?.(r, transcript.trim());
+      if (enableTranscription) void runTranscription(r);
     }
   }
   function handleRetake() {
     unload();
+    abortRef.current?.abort();
     setResult(null);
     setTranscript('');
+    setTransStatus('idle');
     rec.reset();
     onChange?.(null, '');
   }
@@ -158,15 +199,54 @@ export function AudioRecorder({
               <Ionicons name="document-text-outline" size={16} color={colors.textMuted} />
               <AppText variant="label" color={colors.textSecondary}>Transkription</AppText>
             </View>
+
+            {transStatus === 'loading' ? (
+              <View style={styles.transStatusRow}>
+                <ActivityIndicator size="small" color={colors.primary} />
+                <AppText variant="caption" color={colors.textSecondary}>
+                  Transkription wird erstellt …
+                </AppText>
+              </View>
+            ) : null}
+
+            {transStatus === 'unavailable' ? (
+              <View style={styles.transNotice}>
+                <Ionicons name="information-circle-outline" size={16} color={colors.textMuted} />
+                <AppText variant="caption" color={colors.textSecondary} style={styles.flex}>
+                  Automatische Transkription ist in dieser Beta noch nicht aktiv. Du kannst den
+                  Text unten manuell eingeben.
+                </AppText>
+              </View>
+            ) : null}
+
+            {transStatus === 'error' ? (
+              <View style={styles.transNotice}>
+                <Ionicons name="warning-outline" size={16} color={colors.error} />
+                <View style={styles.flex}>
+                  <AppText variant="caption" color={colors.error}>
+                    Transkription konnte nicht erstellt werden. Du kannst den Text manuell ergänzen.
+                  </AppText>
+                  <Pressable onPress={() => runTranscription(result)} accessibilityRole="button">
+                    <AppText variant="label" color={colors.primary}>Erneut versuchen</AppText>
+                  </Pressable>
+                </View>
+              </View>
+            ) : null}
+
             <TextField
               value={transcript}
               onChangeText={handleTranscriptChange}
               multiline
-              placeholder="Der erkannte Text erscheint hier – du kannst ihn bearbeiten."
+              editable={transStatus !== 'loading'}
+              placeholder={
+                transStatus === 'loading'
+                  ? 'Transkription wird erstellt …'
+                  : 'Tippe den gesprochenen Text hier ein – oder bearbeite die automatische Transkription.'
+              }
               style={styles.transInput}
             />
             <AppText variant="caption" color={colors.textMuted}>
-              Tipp: Du kannst den Text jederzeit anpassen. Das Original-Audio bleibt erhalten.
+              Du kannst den Text jederzeit anpassen. Das Original-Audio bleibt immer erhalten.
             </AppText>
           </View>
         ) : null}
@@ -245,4 +325,13 @@ const styles = StyleSheet.create({
   progressFill: { height: 6, borderRadius: 3, backgroundColor: colors.primary },
   transHeader: { flexDirection: 'row', alignItems: 'center', gap: spacing.xs },
   transInput: { minHeight: 80, textAlignVertical: 'top' },
+  transStatusRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm },
+  transNotice: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: spacing.xs,
+    backgroundColor: colors.surfaceAlt,
+    borderRadius: radius.md,
+    padding: spacing.sm,
+  },
 });

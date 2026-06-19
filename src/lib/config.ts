@@ -6,6 +6,7 @@ type Extra = {
   inviteBaseUrl?: string;
   demoMode?: string;
   demoSeed?: string;
+  transcribeUrl?: string;
 };
 
 const extra = (Constants.expoConfig?.extra ?? {}) as Extra;
@@ -50,7 +51,20 @@ export const DEMO_SEED = (() => {
   return false;
 })();
 
+/**
+ * Endpunkt für automatische Audio-Transkription (Speech-to-Text).
+ * Erwartet einen POST mit multipart/form-data (Feld „file") und antwortet
+ * mit JSON { "text": "…" }. Typischerweise eine Supabase Edge Function, die
+ * an OpenAI Whisper o. Ä. weiterreicht. Leer = Transkription deaktiviert.
+ */
+const envTranscribeUrl =
+  extra.transcribeUrl && extra.transcribeUrl.trim() ? extra.transcribeUrl.trim() : undefined;
+
+/** Ist ein Transkriptions-Backend konfiguriert? */
+export const isTranscriptionConfigured = !!envTranscribeUrl;
+
 export const config = {
+  transcribeUrl: envTranscribeUrl,
   // Im Demo-Modus dienen Platzhalterwerte nur dazu, dass der Supabase-Client
   // konstruiert werden kann – er wird dann nie aufgerufen. Es MUSS eine
   // gültige (nicht-leere) URL sein, sonst wirft createClient beim Start.
