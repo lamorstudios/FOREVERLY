@@ -8,6 +8,7 @@ export { Chip } from './Chip';
 export { DateField } from './DateField';
 export { Disclaimer } from './Disclaimer';
 export { IconChip } from './IconChip';
+export { SuccessProvider, useSuccess } from './SuccessOverlay';
 export { EmptyState } from './EmptyState';
 export { GoogleSignInButton, AppleSignInButton } from './GoogleSignInButton';
 export { InviteFamilyButton } from './InviteFamilyButton';

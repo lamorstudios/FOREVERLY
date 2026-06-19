@@ -8,6 +8,7 @@ import { OnboardingProvider } from '@/context/OnboardingContext';
 import { TourProvider } from '@/context/TourContext';
 import { RootNavigator } from '@/navigation/RootNavigator';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
+import { SuccessProvider } from '@/components';
 
 export default function App() {
   return (
@@ -19,8 +20,10 @@ export default function App() {
               <PremiumProvider>
                 <OnboardingProvider>
                   <TourProvider>
-                    <StatusBar style="dark" />
-                    <RootNavigator />
+                    <SuccessProvider>
+                      <StatusBar style="dark" />
+                      <RootNavigator />
+                    </SuccessProvider>
                   </TourProvider>
                 </OnboardingProvider>
               </PremiumProvider>

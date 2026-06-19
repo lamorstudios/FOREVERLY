@@ -7,7 +7,6 @@ import {
   ScrollView,
   Share,
   Platform,
-  Alert,
   Animated,
   Easing,
   type LayoutChangeEvent,
@@ -19,6 +18,7 @@ import { AppText } from './AppText';
 import { Button } from './Button';
 import { Chip } from './Chip';
 import { Card } from './Card';
+import { useSuccess } from './SuccessOverlay';
 import { listPersons } from '@/api/persons';
 import { getProfile } from '@/api/profiles';
 import { createSmartInvite, buildSmartInviteLink } from '@/api/smartInvites';
@@ -118,6 +118,7 @@ interface SheetProps {
 function InviteSheet({ visible, onClose }: SheetProps) {
   const { userId } = useAuth();
   const { activeFamily } = useFamily();
+  const { show } = useSuccess();
   const familyId = activeFamily!.id;
 
   const personsQuery = useQuery({ queryKey: qk.persons(familyId), queryFn: () => listPersons(familyId), enabled: visible });
@@ -164,6 +165,7 @@ function InviteSheet({ visible, onClose }: SheetProps) {
       });
       const link = `${buildSmartInviteLink(inv.code)}?fam=${familyId}&rel=${rel.type}&closeness=${closeness}`;
       setInvite({ link, message: `${message}\n\n${link}`, relLabel: rel.label });
+      show('Einladung erstellt');
     } finally {
       setCreating(false);
     }
@@ -173,6 +175,7 @@ function InviteSheet({ visible, onClose }: SheetProps) {
     if (!invite) return;
     try {
       await Share.share({ message: invite.message, title: 'Einladung zu Foreverly' });
+      show('Einladung verschickt');
     } catch {
       /* abgebrochen */
     }
@@ -182,9 +185,10 @@ function InviteSheet({ visible, onClose }: SheetProps) {
     if (!invite) return;
     if (Platform.OS === 'web' && typeof navigator !== 'undefined' && navigator.clipboard) {
       await navigator.clipboard.writeText(invite.link);
-      Alert.alert('Kopiert', 'Der Einladungslink wurde in die Zwischenablage kopiert.');
+      show('Link kopiert');
     } else {
       await Share.share({ message: invite.link });
+      show('Einladung verschickt');
     }
   }
 
