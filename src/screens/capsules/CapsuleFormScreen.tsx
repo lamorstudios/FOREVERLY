@@ -12,6 +12,7 @@ import {
   DateField,
   Card,
   Loading,
+  useSuccess,
 } from '@/components';
 import { useFamily } from '@/context/FamilyContext';
 import { useAuth } from '@/context/AuthContext';
@@ -98,6 +99,7 @@ export function CapsuleFormScreen({ navigation }: Props) {
     );
   }
 
+  const { show } = useSuccess();
   const saveMutation = useMutation({
     mutationFn: async () => {
       const openAt = new Date(`${openDate}T09:00:00`).toISOString();
@@ -147,6 +149,7 @@ export function CapsuleFormScreen({ navigation }: Props) {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: qk.capsules(familyId) });
       queryClient.invalidateQueries({ queryKey: qk.upcomingCapsules() });
+      show('Zeitkapsel erstellt');
       navigation.goBack();
     },
     onError: (e) => Alert.alert('Fehler', friendlyError(e)),

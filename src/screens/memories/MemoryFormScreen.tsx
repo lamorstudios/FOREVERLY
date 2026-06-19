@@ -11,6 +11,7 @@ import {
   TextField,
   DateField,
   SelectField,
+  useSuccess,
 } from '@/components';
 import type { SelectOption } from '@/components';
 import { useFamily } from '@/context/FamilyContext';
@@ -67,6 +68,7 @@ export function MemoryFormScreen({ navigation, route }: Props) {
     null,
   );
 
+  const { show } = useSuccess();
   const saveMutation = useMutation({
     mutationFn: async () => {
       const memory = await createMemory(familyId, userId!, {
@@ -105,6 +107,7 @@ export function MemoryFormScreen({ navigation, route }: Props) {
       queryClient.invalidateQueries({ queryKey: qk.memories(familyId) });
       queryClient.invalidateQueries({ queryKey: qk.photos(familyId) });
       queryClient.invalidateQueries({ queryKey: qk.audios(familyId) });
+      show('Erinnerung gespeichert');
       navigation.goBack();
     },
     onError: (e) => Alert.alert('Fehler', friendlyError(e)),
@@ -140,7 +143,10 @@ export function MemoryFormScreen({ navigation, route }: Props) {
         label="Titel"
         placeholder="z. B. Unser Sommerurlaub"
         value={title}
-        onChangeText={setTitle}
+        onChangeText={(t) => {
+          setTitle(t);
+          if (titleError && t.trim()) setTitleError(undefined);
+        }}
         error={titleError}
       />
 

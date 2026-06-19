@@ -3,7 +3,7 @@ import { View, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useQuery } from '@tanstack/react-query';
-import { Screen, AppText, Card, Button, Chip, TextField, Loading, EmptyState, IconChip } from '@/components';
+import { Screen, AppText, Card, Button, Chip, TextField, Loading, EmptyState, IconChip, useSuccess } from '@/components';
 import { listFamilyWisdoms, addFamilyWisdom } from '@/api/legacyMoments';
 import { listPersons } from '@/api/persons';
 import { qk } from '@/api/queryKeys';
@@ -24,6 +24,7 @@ export function FamilyWisdomsScreen(_: Props) {
   const [text, setText] = useState('');
   const [author, setAuthor] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+  const { show } = useSuccess();
 
   const persons = personsQuery.data ?? [];
   const nameOf = (id: string | null) => {
@@ -37,6 +38,7 @@ export function FamilyWisdomsScreen(_: Props) {
     try {
       await addFamilyWisdom({ familyId, text: text.trim(), authorPersonId: author });
       setText(''); setAuthor(null);
+      show('Weisheit gespeichert');
       await wisdomsQuery.refetch();
     } finally {
       setSaving(false);

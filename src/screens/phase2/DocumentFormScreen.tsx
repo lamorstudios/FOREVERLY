@@ -11,6 +11,7 @@ import {
   Chip,
   TextField,
   SelectField,
+  useSuccess,
 } from '@/components';
 import type { SelectOption } from '@/components';
 import { colors, spacing, radius } from '@/theme';
@@ -69,6 +70,7 @@ export function DocumentFormScreen({
     setNote(existing.note ?? '');
   }
 
+  const { show } = useSuccess();
   const mutation = useMutation({
     mutationFn: () =>
       upsertDocument({
@@ -84,6 +86,7 @@ export function DocumentFormScreen({
       }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: qk.documents(familyId) });
+      show('Dokument gespeichert');
       navigation.goBack();
     },
     onError: (e) => {
