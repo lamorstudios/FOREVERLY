@@ -2,7 +2,7 @@ import { View, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { useQuery } from '@tanstack/react-query';
-import { Screen, AppText, Card, Loading, Disclaimer } from '@/components';
+import { Screen, AppText, Card, Loading, Disclaimer, IconChip } from '@/components';
 import { listVaultEntries, listLegacyItems, listFarewellMessages } from '@/api/vault';
 import { listTrustees, getEstateInfo } from '@/api/estate';
 import { qk } from '@/api/queryKeys';
@@ -34,7 +34,7 @@ export function VaultHubScreen({ navigation }: Props) {
   const Row = ({ icon, title, subtitle, onPress, color = colors.primary }: { icon: IoniconName; title: string; subtitle: string; onPress: () => void; color?: string }) => (
     <Card onPress={onPress}>
       <View style={styles.row}>
-        <Ionicons name={icon} size={28} color={color} />
+        <IconChip name={icon} color={color} />
         <View style={styles.rowText}>
           <AppText variant="bodyStrong">{title}</AppText>
           <AppText variant="caption" color={colors.textSecondary}>{subtitle}</AppText>
@@ -52,9 +52,7 @@ export function VaultHubScreen({ navigation }: Props) {
       }}
     >
       <View style={styles.intro}>
-        <View style={styles.iconCircle}>
-          <Ionicons name="file-tray-full-outline" size={28} color={colors.primary} />
-        </View>
+        <IconChip name="file-tray-full" color={colors.primary} />
         <AppText variant="title">Dokumente & Nachlass</AppText>
         <AppText variant="body" color={colors.textSecondary}>
           Dein Family Vault: wichtige Hinweise, Vermächtnisse und persönliche Worte – sicher
@@ -68,12 +66,12 @@ export function VaultHubScreen({ navigation }: Props) {
         text="Foreverly ersetzt keine notarische Verwahrung, Rechtsberatung oder offizielle Nachlassverwaltung. Dies ist nur eine Informations- und Archivfunktion."
       />
 
-      <Row icon="folder-open-outline" title="Dokumente" subtitle={`${entries.data?.length ?? 0} Hinweise hinterlegt`} onPress={() => navigation.navigate('VaultEntries')} />
-      <Row icon="gift-outline" title="Was ich hinterlassen möchte" subtitle={`${legacy.data?.length ?? 0} Vermächtnisse`} color={colors.gold} onPress={() => navigation.navigate('Legacy')} />
-      <Row icon="heart-outline" title="Abschiedsnachrichten" subtitle={`${farewell.data?.length ?? 0} Nachrichten`} color={colors.error} onPress={() => navigation.navigate('Farewell')} />
-      <Row icon="shield-checkmark-outline" title="Vertrauenspersonen" subtitle={`${trustees.data?.length ?? 0} festgelegt`} onPress={() => navigation.navigate('Trustees')} />
-      <Row icon="people-circle-outline" title="Nachlass-Freigabe" subtitle={estate.data ? `Freigabe-Regel: ${estate.data.required_confirmations} Bestätigungen` : 'Regeln festlegen'} color={colors.gold} onPress={() => navigation.navigate('EstateHub')} />
-      <Row icon="list-outline" title="Erben-Übersicht" subtitle="Wer wird informiert & erhält was (informativ)" onPress={() => navigation.navigate('Heirs')} />
+      <Row icon="folder-open" title="Dokumente" subtitle={`${entries.data?.length ?? 0} Hinweise hinterlegt`} color={colors.iconDocument} onPress={() => navigation.navigate('VaultEntries')} />
+      <Row icon="gift" title="Was ich hinterlassen möchte" subtitle={`${legacy.data?.length ?? 0} Vermächtnisse`} color={colors.accent} onPress={() => navigation.navigate('Legacy')} />
+      <Row icon="heart" title="Abschiedsnachrichten" subtitle={`${farewell.data?.length ?? 0} Nachrichten`} color={colors.iconMemories} onPress={() => navigation.navigate('Farewell')} />
+      <Row icon="shield-checkmark" title="Vertrauenspersonen" subtitle={`${trustees.data?.length ?? 0} festgelegt`} color={colors.primary} onPress={() => navigation.navigate('Trustees')} />
+      <Row icon="people-circle" title="Nachlass-Freigabe" subtitle={estate.data ? `Freigabe-Regel: ${estate.data.required_confirmations} Bestätigungen` : 'Regeln festlegen'} color={colors.accent} onPress={() => navigation.navigate('EstateHub')} />
+      <Row icon="list" title="Erben-Übersicht" subtitle="Wer wird informiert & erhält was (informativ)" color={colors.secondary} onPress={() => navigation.navigate('Heirs')} />
 
       <AppText variant="caption" center color={colors.textMuted} style={styles.disclaimer}>
         🔒 Zugriff erst nach bestätigter Nachlassfreigabe. Bitte keine Passwörter, TANs, Bankzugänge

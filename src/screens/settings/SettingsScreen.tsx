@@ -2,7 +2,7 @@ import { View, StyleSheet } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import Constants from 'expo-constants';
-import { Screen, AppText, Card, Chip } from '@/components';
+import { Screen, AppText, Card, Chip, IconChip } from '@/components';
 import { usePremium } from '@/context/PremiumContext';
 import { LEGAL_DOCS } from '@/lib/legalContent';
 import { planById } from '@/lib/premium';
@@ -17,11 +17,11 @@ export function SettingsScreen({ navigation }: Props) {
   const { plan, isPaid } = usePremium();
 
   const rows: { icon: IoniconName; title: string; subtitle: string; target: Target; color?: string }[] = [
-    { icon: 'star-outline', title: 'Tarif & Premium', subtitle: isPaid ? `Aktiv – ${planById(plan).name}` : 'Free · Plus & Premium ansehen', target: 'Premium', color: colors.gold },
-    { icon: 'people-outline', title: 'Rollen & Rechte', subtitle: 'Wer darf was in der Familie', target: 'Roles' },
-    { icon: 'notifications-outline', title: 'Benachrichtigungen', subtitle: 'Push & Hinweise je Kategorie', target: 'NotificationSettings' },
-    { icon: 'shield-checkmark-outline', title: 'Datenschutz & Daten', subtitle: 'Export, Löschung, Einwilligungen (DSGVO)', target: 'PrivacyData' },
-    { icon: 'chatbox-ellipses-outline', title: 'Feedback senden', subtitle: 'Fehler melden, Wünsche & Ideen', target: 'Feedback' },
+    { icon: 'star', title: 'Tarif & Premium', subtitle: isPaid ? `Aktiv – ${planById(plan).name}` : 'Free · Plus & Premium ansehen', target: 'Premium', color: colors.accent },
+    { icon: 'people', title: 'Rollen & Rechte', subtitle: 'Wer darf was in der Familie', target: 'Roles', color: colors.primary },
+    { icon: 'notifications', title: 'Benachrichtigungen', subtitle: 'Push & Hinweise je Kategorie', target: 'NotificationSettings', color: colors.secondary },
+    { icon: 'shield-checkmark', title: 'Datenschutz & Daten', subtitle: 'Export, Löschung, Einwilligungen (DSGVO)', target: 'PrivacyData', color: colors.primary },
+    { icon: 'chatbox-ellipses', title: 'Feedback senden', subtitle: 'Fehler melden, Wünsche & Ideen', target: 'Feedback', color: colors.primary },
   ];
 
   return (
@@ -34,7 +34,7 @@ export function SettingsScreen({ navigation }: Props) {
       {rows.map((r) => (
         <Card key={r.target} onPress={() => navigation.navigate(r.target)}>
           <View style={styles.row}>
-            <View style={styles.iconCircle}><Ionicons name={r.icon} size={24} color={r.color ?? colors.primary} /></View>
+            <IconChip name={r.icon} color={r.color ?? colors.primary} />
             <View style={styles.rowText}>
               <AppText variant="bodyStrong">{r.title}</AppText>
               <AppText variant="caption" color={colors.textSecondary}>{r.subtitle}</AppText>
@@ -49,9 +49,7 @@ export function SettingsScreen({ navigation }: Props) {
       {LEGAL_DOCS.map((d) => (
         <Card key={d.doc} onPress={() => navigation.navigate('Legal', { doc: d.doc })}>
           <View style={styles.row}>
-            <View style={styles.iconCircle}>
-              <Ionicons name={d.icon as keyof typeof Ionicons.glyphMap} size={22} color={colors.primary} />
-            </View>
+            <IconChip name={d.icon as keyof typeof Ionicons.glyphMap} color={colors.primary} />
             <AppText variant="bodyStrong" style={styles.rowText}>{d.label}</AppText>
             <Ionicons name="chevron-forward" size={22} color={colors.textMuted} />
           </View>
